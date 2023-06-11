@@ -1,7 +1,7 @@
 using AngleSharp.Html.Dom;
-using Grimoire.Common;
-using Grimoire.Common.Interfaces;
-using Grimoire.Common.Models;
+using Grimoire.Commons;
+using Grimoire.Commons.Interfaces;
+using Grimoire.Commons.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Grimoire.Providers;
@@ -42,6 +42,7 @@ public sealed class TCBScansProvider : IGrimoireProvider {
                     Name = img.AlternativeText,
                     Url = $"{BaseUrl}{anchor.PathName}",
                     Cover = img.Source,
+                    Provider = GetType().Name[..^8],
                     Summary = doc.GetElementsByClassName("leading-6 my-3")
                         .FirstOrDefault()
                         .TextContent,

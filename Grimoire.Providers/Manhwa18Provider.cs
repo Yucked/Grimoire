@@ -1,9 +1,9 @@
 using System.Globalization;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
-using Grimoire.Common;
-using Grimoire.Common.Interfaces;
-using Grimoire.Common.Models;
+using Grimoire.Commons;
+using Grimoire.Commons.Interfaces;
+using Grimoire.Commons.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Grimoire.Providers;
@@ -89,6 +89,7 @@ public sealed class Manhwa18Provider : IGrimoireProvider {
                         .First()
                         .GetAttribute("data-bg"),
                     LastFetch = DateTimeOffset.Now,
+                    Provider = GetType().Name[..^8]
                 };
             })
             .ToArray();
