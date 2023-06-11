@@ -1,0 +1,61 @@
+﻿@page "/"
+@using Grimoire.Common.Models
+@using Grimoire.Providers
+@using System.Text.Json
+
+@inject NavigationManager NavigationManager
+<div class="container py-2">
+    <figure class="text-center border-bottom">
+        <blockquote class="blockquote p-2">
+            <p class="display-5">📑 Library</p>
+        </blockquote>
+    </figure>
+
+    <div class="container-md p-3 border rounded">
+        @if (_mangas?.Count == 0 || _mangas == default) {
+            <div class="d-flex justify-content-center">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        }
+        else {
+            <div class="row row-cols-1 row-cols-lg-4 g-4">
+                @foreach (var manga in _mangas) {
+                    <div class="col">
+                        <div class="card h-100 shadow-sm" @onclick="() => OpenMangaPage(manga.Name)">
+                            <img src="@manga.Cover" class="card-img-top" alt="@manga.Name">
+                            <div class="card-body">
+                                <h5 class="card-title">@manga.Name</h5>
+                                <p class="card-text">@Truncate(manga.Summary)</p>
+                            </div>
+                            <div class="card-footer">
+                                <small class="text-body-secondary">Last fetched on @(manga.LastFetch.ToString("D"))</small>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div >
+</div>
+
+@code {
+
+    private IReadOnlyList<Manga>? _mangas;
+
+    protected override async Task OnInitializedAsync() {
+        _mangas = JsonSerializer.Deserialize<IReadOnlyList<Manga>>(
+            await File.ReadAllBytesAsync($"{nameof(TCBScansProvider)}.json"))!;
+    }
+
+    private void OpenMangaPage(string name) {
+        NavigationManager.NavigateTo($"/manga/{name.Replace(' ', '-')}");
+    }
+
+    private static string Truncate(string str) {
+        return str.Length > 150 ?
+            $"{str[..150]}..." : str;
+    }
+
+}

@@ -1,0 +1,18 @@
+﻿@page "/Manga/{Manga}"
+<div class="container py-2">
+    <figure class="text-center border-bottom">
+        <blockquote class="blockquote p-2">
+            <p class="display-5"></p>
+        </blockquote>
+    </figure>
+
+    <div class="container-md p-3 border rounded">
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public string Manga { get; set; }
+
+}
