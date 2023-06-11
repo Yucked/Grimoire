@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Remove="wwwroot\css\bootstrap.min.css" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Grimoire.Providers\Grimoire.Providers.csproj" />
   </ItemGroup>
 
