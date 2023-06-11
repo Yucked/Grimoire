@@ -1,4 +1,4 @@
-namespace Grimoire.Common.Models;
+namespace Grimoire.Commons.Models;
 
 public sealed record Manga {
     public string Name { get; set; }
@@ -6,6 +6,7 @@ public sealed record Manga {
     public string Cover { get; set; }
     public string Summary { get; set; }
     public string Author { get; set; }
+    public string Provider { get; set; }
     public DateTimeOffset LastFetch { get; set; }
     public IReadOnlyList<string> Metonyms { get; set; }
     public IReadOnlyList<string> Genre { get; set; }

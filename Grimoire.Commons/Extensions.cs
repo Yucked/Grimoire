@@ -1,7 +1,7 @@
 ﻿using AngleSharp;
 using AngleSharp.Dom;
 
-namespace Grimoire.Common;
+namespace Grimoire.Commons;
 
 public static class Extensions {
     private static readonly IBrowsingContext Context
