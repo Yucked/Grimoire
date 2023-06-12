@@ -32,9 +32,34 @@ public class AsuraScansProvider : IGrimoireProvider {
             .Range(1, int.Parse(lastPage))
             .Select(PaginateAsync));
 
-        return results
+        var populate = results
             .SelectMany(x => x)
-            .ToArray();
+            .AsParallel()
+            .Select(async manga => {
+                _logger.LogDebug("Getting additional information for {manga}", manga.Name);
+                using var doc = await _httpClient.ParseAsync(manga.Url);
+
+                // TODO: Cleanup text, lots of text breaks. Mentonyms match against Genre, getting duplicated.
+                var info = doc.QuerySelector("div.infox");
+                manga.Author = info.Children[3].Children[1].Children[1].TextContent;
+                manga.Summary = info.QuerySelector("div.entry-content").TextContent;
+                manga.Genre = info.QuerySelector("span.mgen").TextContent.Split(' ');
+                manga.Metonyms = info.QuerySelector("div.wd-full > span").TextContent.Split(',');
+                manga.LastFetch = DateTimeOffset.Now;
+                manga.Chapters = doc.GetElementsByClassName("eph-num")
+                    .Select(x => {
+                        var anchor = x.Children[0] as IHtmlAnchorElement;
+                        return new MangaChapter {
+                            Name = anchor.Children[0].TextContent,
+                            Url = anchor.Href,
+                            ReleasedOn = DateOnly.Parse(anchor.Children[1].TextContent)
+                        };
+                    })
+                    .ToArray();
+                return manga;
+            });
+
+        return await Task.WhenAll(populate);
     }
 
     public async Task<IReadOnlyList<Manga>> PaginateAsync(int page) {
