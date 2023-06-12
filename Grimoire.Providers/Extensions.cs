@@ -9,6 +9,12 @@ public static class Extensions {
     private static readonly IBrowsingContext Context
         = BrowsingContext.New(Configuration.Default.WithDefaultLoader());
 
+    private static readonly IReadOnlyList<string> UserAgents = new[] {
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/114.0",
+        "Mozilla/5.0 (X11; Ubuntu; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) " +
+        "Chrome/78.0.3904.108 Safari/537.36 RuxitSynthetic/1.0 v3283331297382284845 t6205049005192687891"
+    };
+
     /// <summary>
     /// 
     /// </summary>
@@ -17,6 +23,9 @@ public static class Extensions {
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
     public static async Task<IDocument> ParseAsync(this HttpClient httpClient, string url) {
+        httpClient.DefaultRequestHeaders.Clear();
+        httpClient.DefaultRequestHeaders.Add("User-Agent", UserAgents[Random.Shared.Next(UserAgents.Count - 1)]);
+
         var responseMessage = await httpClient.GetAsync(url);
         if (!responseMessage.IsSuccessStatusCode) {
             throw new Exception(responseMessage.ReasonPhrase);
