@@ -1,11 +1,12 @@
-﻿using AngleSharp;
+﻿using System.Text.RegularExpressions;
+using AngleSharp;
 using AngleSharp.Dom;
 using Grimoire.Providers.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Grimoire.Providers;
 
-public static class Extensions {
+public static partial class Extensions {
     private static readonly IBrowsingContext Context
         = BrowsingContext.New(Configuration.Default.WithDefaultLoader());
 
@@ -19,6 +20,13 @@ public static class Extensions {
         "Mozilla/5.0 (Windows; U; Windows NT 10.1;; en-US) AppleWebKit/535.14 (KHTML, like Gecko) Chrome/51.0.2258.396 Safari/600",
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_5; en-US) AppleWebKit/600.21 (KHTML, like Gecko) Chrome/48.0.1544.246 Safari/536"
     };
+
+    [GeneratedRegex("\\r\\n?|\\n")]
+    private static partial Regex CleanRegex();
+
+    public static string Clean(this string str) {
+        return CleanRegex().Replace(str, string.Empty);
+    }
 
     /// <summary>
     /// 
