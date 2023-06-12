@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Grimoire.Providers;
 
-public sealed class Manhwa18Provider : IGrimoireProvider {
+public sealed class Manhwa18NetProvider : IGrimoireProvider {
     public string Name
         => "Manhwa 18";
 
@@ -18,9 +18,9 @@ public sealed class Manhwa18Provider : IGrimoireProvider {
         => $"{BaseUrl}/favicon1.ico";
 
     private readonly HttpClient _httpClient;
-    private readonly ILogger<Manhwa18Provider> _logger;
+    private readonly ILogger<Manhwa18NetProvider> _logger;
 
-    public Manhwa18Provider(HttpClient httpClient, ILogger<Manhwa18Provider> logger) {
+    public Manhwa18NetProvider(HttpClient httpClient, ILogger<Manhwa18NetProvider> logger) {
         _httpClient = httpClient;
         _logger = logger;
     }
