@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grimoire.Commons", "Grimoir
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grimoire.Web", "Grimoire.Web\Grimoire.Web.csproj", "{2DC1EDD2-67E6-41D4-BD79-BBBA96C8D8A9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grimoire.Tests", "Grimoire.Tests\Grimoire.Tests.csproj", "{BC769B6F-1ED8-463B-8CDB-C6FFA96924A7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grimoire.Db", "Grimoire.Db\Grimoire.Db.csproj", "{4C973BE6-8CB4-4E20-9AED-0C87F1A6274E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +34,13 @@ Global
 		{2DC1EDD2-67E6-41D4-BD79-BBBA96C8D8A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2DC1EDD2-67E6-41D4-BD79-BBBA96C8D8A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2DC1EDD2-67E6-41D4-BD79-BBBA96C8D8A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC769B6F-1ED8-463B-8CDB-C6FFA96924A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC769B6F-1ED8-463B-8CDB-C6FFA96924A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC769B6F-1ED8-463B-8CDB-C6FFA96924A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC769B6F-1ED8-463B-8CDB-C6FFA96924A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C973BE6-8CB4-4E20-9AED-0C87F1A6274E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C973BE6-8CB4-4E20-9AED-0C87F1A6274E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C973BE6-8CB4-4E20-9AED-0C87F1A6274E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C973BE6-8CB4-4E20-9AED-0C87F1A6274E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
