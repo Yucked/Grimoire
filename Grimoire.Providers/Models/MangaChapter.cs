@@ -1,4 +1,4 @@
-namespace Grimoire.Commons.Models; 
+namespace Grimoire.Providers.Models; 
 
 public readonly record struct MangaChapter(
     string Name,
