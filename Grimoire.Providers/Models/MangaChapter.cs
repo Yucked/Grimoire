@@ -3,4 +3,4 @@ namespace Grimoire.Providers.Models;
 public readonly record struct MangaChapter(
     string Name,
     string Url,
-    DateTimeOffset ReleasedOn);
+    DateOnly ReleasedOn);
