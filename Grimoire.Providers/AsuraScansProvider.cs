@@ -1,12 +1,11 @@
-﻿using System.Text.RegularExpressions;
-using AngleSharp.Html.Dom;
+﻿using AngleSharp.Html.Dom;
 using Grimoire.Providers.Interfaces;
 using Grimoire.Providers.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Grimoire.Providers;
 
-public partial class AsuraScansProvider : IGrimoireProvider {
+public class AsuraScansProvider : IGrimoireProvider {
     public string Name
         => "Asura Scans";
 
@@ -14,7 +13,7 @@ public partial class AsuraScansProvider : IGrimoireProvider {
         => "https://www.asurascans.com";
 
     public string Icon
-        => "wp-content/uploads/2021/03/Group_1.png";
+        => $"{BaseUrl}/wp-content/uploads/2021/03/Group_1.png";
 
     private readonly HttpClient _httpClient;
     private readonly ILogger<AsuraScansProvider> _logger;
@@ -42,8 +41,8 @@ public partial class AsuraScansProvider : IGrimoireProvider {
 
                 // TODO: Summary and Author messing up. Probably better to use Contains to check data
                 var info = doc.QuerySelector("div.infox");
-                manga.Author = MyRegex().Replace(info.Children[3].Children[1].Children[1].TextContent, string.Empty);
-                manga.Summary = MyRegex().Replace(info.QuerySelector("div.entry-content").TextContent, string.Empty);
+                manga.Author = info.Children[3].Children[1].Children[1].TextContent.Clean();
+                manga.Summary = info.QuerySelector("div.entry-content").TextContent.Clean();
                 manga.Genre = info.QuerySelector("span.mgen").TextContent.Split(' ');
 
                 var addName = info.QuerySelector("div.wd-full > span").TextContent;
@@ -94,6 +93,8 @@ public partial class AsuraScansProvider : IGrimoireProvider {
 
     public async Task<IReadOnlyList<MangaChapter>> FetchChaptersAsync(Manga manga) {
         using var document = await _httpClient.ParseAsync(manga.Url);
+
+        // TODO: Get it by Id 
         return document.GetElementsByClassName("eph-num")
             .Select(x => {
                 var anchor = x.Children[0] as IHtmlAnchorElement;
@@ -105,7 +106,4 @@ public partial class AsuraScansProvider : IGrimoireProvider {
             })
             .ToArray();
     }
-
-    [GeneratedRegex("\\r\\n?|\\n")]
-    private static partial Regex MyRegex();
 }
