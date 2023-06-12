@@ -1,9 +1,13 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Grimoire.Providers;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace Grimoire.Tests; 
+namespace Grimoire.Tests;
 
 public static class Globals {
-    public static IServiceCollection Services
-    = new ServiceCollection()
-        .AddSingleton
+    public static IServiceProvider Services
+        => new ServiceCollection()
+            .AddGrimoireProviders()
+            .AddLogging()
+            .AddHttpClient()
+            .BuildServiceProvider();
 }
