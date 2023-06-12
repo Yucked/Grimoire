@@ -1,11 +1,12 @@
-﻿using AngleSharp.Html.Dom;
+﻿using System.Text.RegularExpressions;
+using AngleSharp.Html.Dom;
 using Grimoire.Providers.Interfaces;
 using Grimoire.Providers.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Grimoire.Providers;
 
-public class AsuraScansProvider : IGrimoireProvider {
+public partial class AsuraScansProvider : IGrimoireProvider {
     public string Name
         => "Asura Scans";
 
@@ -39,12 +40,17 @@ public class AsuraScansProvider : IGrimoireProvider {
                 _logger.LogDebug("Getting additional information for {manga}", manga.Name);
                 using var doc = await _httpClient.ParseAsync(manga.Url);
 
-                // TODO: Cleanup text, lots of text breaks. Mentonyms match against Genre, getting duplicated.
+                // TODO: Summary and Author messing up. Probably better to use Contains to check data
                 var info = doc.QuerySelector("div.infox");
-                manga.Author = info.Children[3].Children[1].Children[1].TextContent;
-                manga.Summary = info.QuerySelector("div.entry-content").TextContent;
+                manga.Author = MyRegex().Replace(info.Children[3].Children[1].Children[1].TextContent, string.Empty);
+                manga.Summary = MyRegex().Replace(info.QuerySelector("div.entry-content").TextContent, string.Empty);
                 manga.Genre = info.QuerySelector("span.mgen").TextContent.Split(' ');
-                manga.Metonyms = info.QuerySelector("div.wd-full > span").TextContent.Split(',');
+
+                var addName = info.QuerySelector("div.wd-full > span").TextContent;
+                manga.Metonyms = manga.Genre.Count == addName.Split(' ').Length
+                    ? default
+                    : addName.Split(',');
+
                 manga.LastFetch = DateTimeOffset.Now;
                 manga.Chapters = doc.GetElementsByClassName("eph-num")
                     .Select(x => {
@@ -99,4 +105,7 @@ public class AsuraScansProvider : IGrimoireProvider {
             })
             .ToArray();
     }
+
+    [GeneratedRegex("\\r\\n?|\\n")]
+    private static partial Regex MyRegex();
 }
