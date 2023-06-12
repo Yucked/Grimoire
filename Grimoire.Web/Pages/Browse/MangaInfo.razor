@@ -1,0 +1,96 @@
+﻿@page "/manga/{Provider}/{Query}"
+@using Grimoire.Commons.Models
+
+<div class="container p-4">
+    <div class="card mb-3 shadow-lg rounded-4">
+        <div class="row g-0">
+            <div class="col-sm-4">
+                <img src="@Manga.Cover" class="card-img" alt="@Manga.Name">
+            </div>
+
+            <div class="col-sm-8">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <p class="display-6">
+                            @Manga.Name
+                        </p>
+                    </h5>
+
+                    <p class="card-text">
+                        <small class="text-body-secondary">
+                            @Manga.Summary)
+                        </small>
+                    </p>
+                </div>
+
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <span>Genre: </span>
+                        @if (Manga?.Genre == default || Manga.Genre.Count == 0) {
+                            <span>N/A</span>
+                        }
+                        else {
+                            @foreach (var genre in Manga.Genre) {
+                                <span class="badge text-bg-primary mx-1">@genre </span>
+                            }
+                        }
+                    </li>
+                    <li class="list-group-item">
+                        Author: @(Manga?.Author ?? "Unknown")
+                    </li>
+                    <li class="list-group-item">
+                        <span>Metonyms: </span>
+                        @if (Manga?.Metonyms == default || Manga.Metonyms.Count == 0) {
+                            <span>N/A</span>
+                        }
+                        else {
+                            <span>@string.Join(',', Manga.Metonyms)</span>
+                        }
+                    </li>
+                </ul>
+
+                <div class="card-body">
+                    <p class="card-text">
+                        <small class="text-body-secondary">Last fetched on @Manga.LastFetch</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-md p-3">
+        <div class="list-group list-group-flush rounded">
+            @for (var i = 0; i < Manga.Chapters.Count; i++) {
+                <a href="@Manga.Chapters[i].Url"
+                   class="list-group-item list-group-item-action rounded @(i == 0 ? "active" : string.Empty)"
+                   aria-current="@(i == 0 ? "true" : "false")">
+                    <div class="d-flex w-100 justify-content-between">
+                        <p>
+                            @Manga.Chapters[i].Name
+                        </p>
+                        <small>
+                            @Manga.Chapters[i].ReleasedOn
+                        </small>
+                    </div>
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public string Provider { get; set; }
+
+    [Parameter]
+    public string Query { get; set; }
+
+    private Manga Manga { get; set; }
+
+    protected override Task OnInitializedAsync() {
+        
+        return base.OnInitializedAsync();
+    }
+
+}
