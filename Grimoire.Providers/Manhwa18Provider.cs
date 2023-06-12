@@ -1,9 +1,8 @@
 using System.Globalization;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
-using Grimoire.Commons;
-using Grimoire.Commons.Interfaces;
-using Grimoire.Commons.Models;
+using Grimoire.Providers.Interfaces;
+using Grimoire.Providers.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Grimoire.Providers;

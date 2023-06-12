@@ -1,6 +1,6 @@
-using Grimoire.Commons.Models;
+using Grimoire.Providers.Models;
 
-namespace Grimoire.Commons.Interfaces;
+namespace Grimoire.Providers.Interfaces;
 
 public interface IGrimoireProvider {
     /// <summary>
