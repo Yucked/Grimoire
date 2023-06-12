@@ -1,4 +1,4 @@
-namespace Grimoire.Commons.Models;
+namespace Grimoire.Providers.Models;
 
 public sealed record Manga {
     public string Name { get; set; }
