@@ -28,7 +28,7 @@ public static class Extensions {
     }
 
     public static IServiceCollection AddGrimoireProviders(this IServiceCollection collection) {
-        var providers = typeof(Globals).Assembly
+        var providers = typeof(IGrimoireProvider).Assembly
             .GetTypes()
             .Where(x => typeof(IGrimoireProvider).IsAssignableFrom(x)
                         && !x.IsInterface
@@ -42,7 +42,7 @@ public static class Extensions {
     }
 
     public static IEnumerable<IGrimoireProvider> GetProviders(this IServiceProvider provider) {
-        var providers = typeof(Globals).Assembly
+        var providers = typeof(IGrimoireProvider).Assembly
             .GetTypes()
             .Where(x => typeof(IGrimoireProvider).IsAssignableFrom(x)
                         && !x.IsInterface
