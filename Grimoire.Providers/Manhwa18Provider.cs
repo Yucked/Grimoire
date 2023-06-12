@@ -54,7 +54,7 @@ public sealed class Manhwa18Provider : IGrimoireProvider {
                 ?.Children
                 .Select(x => {
                     var href = x as IHtmlAnchorElement;
-                    var parsedDate = DateTimeOffset.ParseExact(href
+                    var parsedDate = DateOnly.ParseExact(href
                         .GetElementsByClassName("chapter-time")
                         .FirstOrDefault()
                         .TextContent.Split('-')[1].Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
@@ -104,7 +104,7 @@ public sealed class Manhwa18Provider : IGrimoireProvider {
             .Children
             .Select(x => {
                 var href = x as IHtmlAnchorElement;
-                var parsedDate = DateTimeOffset.ParseExact(href
+                var parsedDate = DateOnly.ParseExact(href
                     .GetElementsByClassName("chapter-time")
                     .FirstOrDefault()
                     .TextContent.Split('-')[1].Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
@@ -112,7 +112,7 @@ public sealed class Manhwa18Provider : IGrimoireProvider {
             }).ToArray();
     }
 
-    private static string GetTagData(IHtmlCollection<IElement> elements, string tagName) {
+    private static string GetTagData(IEnumerable<IElement> elements, string tagName) {
         var element = elements.FirstOrDefault(x => x.TextContent.Contains($"{tagName}:"));
         if (element == null) {
             return "N/A";
