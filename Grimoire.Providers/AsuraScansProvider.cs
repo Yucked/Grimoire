@@ -25,10 +25,8 @@ public class AsuraScansProvider : IGrimoireProvider {
 
     public async Task<IReadOnlyList<Manga>> FetchMangasAsync() {
         using var document = await _httpClient.ParseAsync($"{BaseUrl}/?s=");
-
-        var lastPage = (document.GetElementsByClassName("page-numbers")
-                .LastOrDefault()
-            as IHtmlAnchorElement).Href[^4..^3];
+        var lastPage = (document.GetElementsByClassName("page-numbers").Skip(4).FirstOrDefault() as IHtmlAnchorElement)
+            .Href[^4..^3];
 
         var results = await Task.WhenAll(Enumerable
             .Range(1, int.Parse(lastPage))
@@ -49,8 +47,8 @@ public class AsuraScansProvider : IGrimoireProvider {
             .Select(x => {
                 var info = x.Children[0] as IHtmlAnchorElement;
                 return new Manga {
-                    Name = info.TextContent,
-                    Url = info?.Href!,
+                    Name = info.Title,
+                    Url = info.Href!,
                     Cover = (info
                                 .GetElementsByClassName("ts-post-image wp-post-image attachment-medium size-medium")
                                 .First()
@@ -64,6 +62,16 @@ public class AsuraScansProvider : IGrimoireProvider {
     }
 
     public async Task<IReadOnlyList<MangaChapter>> FetchChaptersAsync(Manga manga) {
-        throw new NotImplementedException();
+        using var document = await _httpClient.ParseAsync(manga.Url);
+        return document.GetElementsByClassName("eph-num")
+            .Select(x => {
+                var anchor = x.Children[0] as IHtmlAnchorElement;
+                return new MangaChapter {
+                    Name = anchor.Children[0].TextContent,
+                    Url = anchor.Href,
+                    ReleasedOn = DateOnly.Parse(anchor.Children[1].TextContent)
+                };
+            })
+            .ToArray();
     }
 }
