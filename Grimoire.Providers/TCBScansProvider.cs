@@ -14,7 +14,7 @@ public sealed class TCBScansProvider : IGrimoireProvider {
         => "https://tcbscans.com";
 
     public string Icon
-        => $"{BaseUrl}/files/h-logo.png";
+        => $"{BaseUrl}/files/apple-touch-icon.png";
 
     private readonly HttpClient _httpClient;
     private readonly ILogger<TCBScansProvider> _logger;
