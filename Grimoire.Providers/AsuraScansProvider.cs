@@ -24,7 +24,7 @@ public class AsuraScansProvider : IGrimoireProvider {
     }
 
     public async Task<IReadOnlyList<Manga>> FetchMangasAsync() {
-        using var document = await _httpClient.ParseAsync($"{BaseUrl}/?s=");
+        using var document = await _httpClient.ParseAsync($"{BaseUrl}/?s=", true);
         var lastPage = (document.GetElementsByClassName("page-numbers").Skip(4).FirstOrDefault() as IHtmlAnchorElement)
             .Href[^4..^3];
 
@@ -68,7 +68,7 @@ public class AsuraScansProvider : IGrimoireProvider {
     }
 
     public async Task<IReadOnlyList<Manga>> PaginateAsync(int page) {
-        using var document = await _httpClient.ParseAsync($"{BaseUrl}/page/{page}/?s");
+        using var document = await _httpClient.ParseAsync($"{BaseUrl}/page/{page}/?s", true);
         var titles = document.GetElementsByClassName("bsx");
         _logger.LogDebug("Parsing page #{page} with {titlesCount} titles", page, titles.Length);
 
@@ -92,7 +92,7 @@ public class AsuraScansProvider : IGrimoireProvider {
     }
 
     public async Task<IReadOnlyList<MangaChapter>> FetchChaptersAsync(Manga manga) {
-        using var document = await _httpClient.ParseAsync(manga.Url);
+        using var document = await _httpClient.ParseAsync(manga.Url, true);
 
         // TODO: Get it by Id 
         return document.GetElementsByClassName("eph-num")
