@@ -25,7 +25,7 @@ public static partial class Extensions {
     private static partial Regex CleanRegex();
 
     public static string Clean(this string str) {
-        return CleanRegex().Replace(str, string.Empty);
+        return string.IsNullOrWhiteSpace(str) ? str : CleanRegex().Replace(str, string.Empty);
     }
 
     /// <summary>
@@ -33,14 +33,20 @@ public static partial class Extensions {
     /// </summary>
     /// <param name="httpClient"></param>
     /// <param name="url"></param>
+    /// <param name="withAccept"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public static async Task<IDocument> ParseAsync(this HttpClient httpClient, string url) {
-        //TODO: Probably should seperate that based on Provider
-        httpClient.DefaultRequestHeaders.Clear();
-        httpClient.DefaultRequestHeaders.Add("User-Agent", UserAgents[Random.Shared.Next(UserAgents.Count - 1)]);
-        httpClient.DefaultRequestHeaders.Add("Accept",
-            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8");
+    public static async Task<IDocument> ParseAsync(this HttpClient httpClient, string url, bool withAccept = false) {
+        var requestMessage = new HttpRequestMessage {
+            Method = HttpMethod.Get,
+            RequestUri = new Uri(url)
+        };
+
+        requestMessage.Headers.Add("User-Agent", UserAgents[Random.Shared.Next(UserAgents.Count - 1)]);
+        if (withAccept) {
+            requestMessage.Headers.Add("Accept",
+                "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8");
+        }
 
         var responseMessage = await httpClient.GetAsync(url);
         if (!responseMessage.IsSuccessStatusCode) {
