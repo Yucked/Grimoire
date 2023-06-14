@@ -1,6 +1,8 @@
-namespace Grimoire.Providers.Models; 
+namespace Grimoire.Providers.Models;
 
-public readonly record struct MangaChapter(
-    string Name,
-    string Url,
-    DateOnly ReleasedOn);
+public sealed record MangaChapter {
+    public string Name { get; set; }
+    public string Url { get; set; }
+    public DateOnly ReleasedOn { get; set; }
+    public IReadOnlyDictionary<int, string> Pages { get; set; }
+}
