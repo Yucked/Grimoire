@@ -70,4 +70,15 @@ public sealed class TCBScansProvider : IGrimoireProvider {
             })
             .ToArray();
     }
+
+    public async Task<MangaChapter> GetChapterAsync(MangaChapter chapter) {
+        using var document = await _httpClient.ParseAsync(chapter.Url);
+        chapter.Pages = document
+            .QuerySelectorAll("img.fixed-ratio-content")
+            .Select((x, index) => new {
+                Key = index, Value = (x as IHtmlImageElement).Source
+            })
+            .ToDictionary(x => x.Key, x => x.Value);
+        return chapter;
+    }
 }
