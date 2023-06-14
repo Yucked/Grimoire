@@ -1,0 +1,46 @@
+﻿@page "/{provider}/{manga}/chapter/{chapter:int}"
+@using Grimoire.Providers
+@inject IServiceProvider ServiceProvider
+@inject AppState AppState
+<div class="container">
+    @if (!ShouldLoad()) {
+        <div class="d-flex justify-content-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else {
+        @foreach (var p in AppState.Chapter.Pages) {
+            <img src="@p.Value" alt="@p.Key">
+        }
+    }
+</div>
+
+@code {
+
+    [Parameter]
+    public string Provider { get; set; }
+
+    [Parameter]
+    public string Manga { get; set; }
+
+    [Parameter]
+    public int Chapter { get; set; }
+
+    protected override async Task OnInitializedAsync() {
+        if (!ShouldLoad()) {
+            var provider = ServiceProvider.GetRequiredService<TCBScansProvider>();
+            AppState.Chapter = await provider.GetChapterAsync(AppState.Chapter);
+        }
+    }
+
+    private bool ShouldLoad() {
+        if (AppState.Chapter?.Pages == null) {
+            return false;
+        }
+
+        return AppState.Chapter.Pages.Count != 0;
+    }
+
+}
