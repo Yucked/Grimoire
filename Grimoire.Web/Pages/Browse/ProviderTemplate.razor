@@ -1,9 +1,10 @@
 ﻿@using Grimoire.Providers.Interfaces
 @using Grimoire.Providers.Models
 @inject NavigationManager NavigationManager
+@inject AppState AppState
 
 <div class="container p-4">
-    @if (_mangas?.Count == 0 || _mangas == default) {
+    @if (AppState.Mangas?.Count == 0 || AppState.Mangas == default) {
         <div class="d-flex justify-content-center">
             <div class="spinner-border" role="status">
                 <span class="visually-hidden">Loading...</span>
@@ -14,9 +15,9 @@
         <div class="container pb-3">
             <div id="carouselExampleSlidesOnly" class="carousel slide carousel-fade shadow-lg" data-bs-ride="carousel">
                 <div class="carousel-inner">
-                    @for (var i = 0; i < _mangas.Take(5).Count(); i++) {
+                    @for (var i = 0; i < AppState.Mangas.Take(5).Count(); i++) {
                         <div class="carousel-item @(i == 0 ? "active" : string.Empty)">
-                            <img src="@_mangas[i].Cover" class="rounded-4" alt="@_mangas[i].Name">
+                            <img src="@AppState.Mangas[i].Cover" class="rounded-4" alt="@AppState.Mangas[i].Name">
                         </div>
                     }
                 </div>
@@ -35,7 +36,7 @@
 
         <div class="container pt-2">
             <div class="row row-cols-1 row-cols-lg-4 g-4">
-                @foreach (var manga in _mangas.Take(40)) {
+                @foreach (var manga in AppState.Mangas.Take(40)) {
                     <div class="col">
                         <div class="card h-100 shadow-sm" @onclick="() => OpenMangaPage(manga.Name)">
                             <img src="@manga.Cover" class="card-img-top" alt="@manga.Name">
@@ -90,13 +91,14 @@
     [Parameter]
     public IGrimoireProvider Provider { get; set; }
 
-    private IReadOnlyList<Manga> _mangas;
-
     protected override async Task OnInitializedAsync() {
-        _mangas = await Provider.FetchMangasAsync();
+        if (AppState.Mangas is null or null) {
+            AppState.Mangas = await Provider.FetchMangasAsync();
+        }
     }
 
     private void OpenMangaPage(string name) {
+        AppState.Manga = AppState.Mangas.FirstOrDefault(x => x.Name == name);
         NavigationManager.NavigateTo($"/manga/{Provider.Name}/{name}");
     }
 
