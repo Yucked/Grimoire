@@ -17,9 +17,14 @@
     transform: scale(1.07);
 }
 
-.card-img-top, .card-img {
+.card-img-top {
     width: 100%;
     height: 25vh;
+    object-fit: cover;
+}
+
+.card-img {
+    height: 100%;
     object-fit: cover;
 }
 
@@ -77,4 +82,8 @@
 
 .blazor-error-boundary::after {
     content: "An error has occurred."
+}
+
+#components-reconnect-modal {
+    background: #2b2f32 !important;
 }
