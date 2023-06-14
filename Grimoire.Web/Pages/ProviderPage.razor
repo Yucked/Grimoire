@@ -1,19 +1,22 @@
-﻿@page "/provider/{Query}"
+﻿@page "/{Prov}"
+
 @using Grimoire.Providers.Interfaces
 @using Grimoire.Providers
+@using Grimoire.Web.Components
+
 @inject IServiceProvider Provider
 
-<ProviderTemplate Provider="@_provider"></ProviderTemplate>
+<ProviderComponent Provider="_provider"></ProviderComponent>
 
 @code {
 
     [Parameter]
-    public string Query { get; set; }
+    public string Prov { get; set; }
 
     private IGrimoireProvider _provider;
 
     protected override void OnInitialized() {
-        _provider = Provider.GetProviders().FirstOrDefault(x => x.Name.Contains(Query));
+        _provider = Provider.GetProviders().FirstOrDefault(x => x.Name == Prov);
         base.OnInitialized();
     }
 

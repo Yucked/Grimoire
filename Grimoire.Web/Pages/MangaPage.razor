@@ -1,6 +1,8 @@
-﻿@page "/manga/{Provider}/{Query}"
+﻿@page "/{Prov}/{Mang}"
+
 @inject NavigationManager NavigationManager
 @inject AppState AppState
+
 <div class="container p-4">
     <div class="card mb-3 shadow-lg rounded-4">
         <div class="row g-0">
@@ -65,7 +67,7 @@
                     _chapter = i;
                 }
                 <!-- <a href="@AppState.Manga.Chapters[i].Url" -->
-                <a @onclick="ViewChapter"
+                <a @onclick="NavTo"
                    class="list-group-item list-group-item-action rounded @(i == 0 ? "active" : string.Empty)"
                    aria-current="@(i == 0 ? "true" : "false")">
                     <div class="d-flex w-100 justify-content-between">
@@ -85,16 +87,16 @@
 @code {
 
     [Parameter]
-    public string Provider { get; set; }
+    public string Prov { get; set; }
 
     [Parameter]
-    public string Query { get; set; }
+    public string Mang { get; set; }
 
     private int _chapter;
 
-    private void ViewChapter() {
+    private void NavTo() {
         AppState.Chapter = AppState.Manga.Chapters[_chapter];
-        NavigationManager.NavigateTo($"/{Provider}/{AppState.Manga.Name}/chapter/{_chapter}");
+        NavigationManager.NavigateTo($"/{Prov}/{AppState.Manga.Name}/{_chapter}");
     }
 
 }

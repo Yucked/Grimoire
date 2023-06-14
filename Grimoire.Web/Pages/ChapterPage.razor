@@ -1,7 +1,10 @@
-﻿@page "/{provider}/{manga}/chapter/{chapter:int}"
+﻿@page "/{Prov}/{Mang}/{Chap:int}"
+
 @using Grimoire.Providers
+
 @inject IServiceProvider ServiceProvider
 @inject AppState AppState
+
 <div class="container">
     @if (!ShouldLoad()) {
         <div class="d-flex justify-content-center">
@@ -20,13 +23,13 @@
 @code {
 
     [Parameter]
-    public string Provider { get; set; }
+    public string Prov { get; set; }
 
     [Parameter]
-    public string Manga { get; set; }
+    public string Mang { get; set; }
 
     [Parameter]
-    public int Chapter { get; set; }
+    public int Chap { get; set; }
 
     protected override async Task OnInitializedAsync() {
         if (!ShouldLoad()) {
