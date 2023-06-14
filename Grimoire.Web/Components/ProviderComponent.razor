@@ -1,5 +1,5 @@
 ﻿@using Grimoire.Providers.Interfaces
-@using Grimoire.Providers.Models
+
 @inject NavigationManager NavigationManager
 @inject AppState AppState
 
@@ -38,7 +38,7 @@
             <div class="row row-cols-1 row-cols-lg-4 g-4">
                 @foreach (var manga in AppState.Mangas.Take(40)) {
                     <div class="col">
-                        <div class="card h-100 shadow-sm" @onclick="() => OpenMangaPage(manga.Name)">
+                        <div class="card h-100 shadow-sm" @onclick="() => NavTo(manga.Name)">
                             <img src="@manga.Cover" class="card-img-top" alt="@manga.Name">
                             <div class="card-body">
                                 <h5 class="card-title">
@@ -97,9 +97,9 @@
         }
     }
 
-    private void OpenMangaPage(string name) {
+    private void NavTo(string name) {
         AppState.Manga = AppState.Mangas.FirstOrDefault(x => x.Name == name);
-        NavigationManager.NavigateTo($"/manga/{Provider.Name}/{name}");
+        NavigationManager.NavigateTo($"/{Provider.Name}/{name}");
     }
 
     private static string Truncate(string str) {
