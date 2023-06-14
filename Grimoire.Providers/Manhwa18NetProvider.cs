@@ -58,7 +58,11 @@ public sealed class Manhwa18NetProvider : IGrimoireProvider {
                         .GetElementsByClassName("chapter-time")
                         .FirstOrDefault()
                         .TextContent.Split('-')[1].Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
-                    return new MangaChapter(href.Title, href.Href, parsedDate);
+                    return new MangaChapter {
+                        Name = href.Title,
+                        Url = href.Href,
+                        ReleasedOn = parsedDate
+                    };
                 }).ToArray();
             manga.Metonyms = new[] {
                 GetTagData(extras, "Other name"),
@@ -108,8 +112,28 @@ public sealed class Manhwa18NetProvider : IGrimoireProvider {
                     .GetElementsByClassName("chapter-time")
                     .FirstOrDefault()
                     .TextContent.Split('-')[1].Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
-                return new MangaChapter(href.Title, href.Href, parsedDate);
+                return new MangaChapter {
+                    Name = href.Title,
+                    Url = href.Href,
+                    ReleasedOn = parsedDate
+                };
             }).ToArray();
+    }
+
+    public async Task<MangaChapter> GetChapterAsync(MangaChapter chapter) {
+        using var document = await _httpClient.ParseAsync(chapter.Url);
+        IElement element;
+        do {
+            element = document.All.FirstOrDefault(x => x.LocalName == "div" && x.Id == "chapter-content");
+        } while (element == default && !element.Children.Any());
+
+        chapter.Pages = element
+            .Children
+            .Select((x, index) => new {
+                Key = index, x.Attributes[1].Value
+            })
+            .ToDictionary(x => x.Key, x => x.Value);
+        return chapter;
     }
 
     private static string GetTagData(IEnumerable<IElement> elements, string tagName) {
