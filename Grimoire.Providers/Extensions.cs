@@ -1,5 +1,4 @@
-﻿using System.Net;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using AngleSharp;
 using AngleSharp.Dom;
 using Grimoire.Providers.Interfaces;
@@ -29,14 +28,6 @@ public static partial class Extensions {
         return string.IsNullOrWhiteSpace(str) ? str : CleanRegex().Replace(str, string.Empty);
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="httpClient"></param>
-    /// <param name="url"></param>
-    /// <param name="withAccept"></param>
-    /// <returns></returns>
-    /// <exception cref="Exception"></exception>
     public static async Task<IDocument> ParseAsync(this HttpClient httpClient, string url, bool withAccept = false) {
         var requestMessage = new HttpRequestMessage {
             Method = HttpMethod.Get,
@@ -49,7 +40,7 @@ public static partial class Extensions {
                 "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8");
         }
 
-        var responseMessage = await httpClient.GetAsync(url);
+        var responseMessage = await httpClient.SendAsync(requestMessage);
         if (!responseMessage.IsSuccessStatusCode) {
             throw new Exception(responseMessage.ReasonPhrase);
         }
@@ -57,6 +48,28 @@ public static partial class Extensions {
         await using var stream = await responseMessage.Content.ReadAsStreamAsync();
         var document = await Context.OpenAsync(x => x.Content(stream));
         return document;
+    }
+
+    public static async Task DownloadAsync(this HttpClient httpClient, string url, string output) {
+        var requestMessage = new HttpRequestMessage {
+            Method = HttpMethod.Get,
+            RequestUri = new Uri(url),
+            Headers = {
+                {
+                    "User-Agent", UserAgents[Random.Shared.Next(UserAgents.Count - 1)]
+                }
+            }
+        };
+
+        var responseMessage = await httpClient.SendAsync(requestMessage);
+        if (!responseMessage.IsSuccessStatusCode) {
+            throw new Exception(responseMessage.ReasonPhrase);
+        }
+
+        using var content = responseMessage.Content;
+        await using var stream = await content.ReadAsStreamAsync();
+        await using var fileStream = File.Create($"{output}/{content.Headers.ContentDisposition.FileNameStar}");
+        await stream.CopyToAsync(fileStream);
     }
 
     public static IServiceCollection AddGrimoireProviders(this IServiceCollection collection) {
@@ -73,7 +86,7 @@ public static partial class Extensions {
         return collection;
     }
 
-    public static IEnumerable<IGrimoireProvider> GetProviders(this IServiceProvider provider) {
+    public static IEnumerable<IGrimoireProvider> GetGrimoireProviders(this IServiceProvider provider) {
         var providers = typeof(IGrimoireProvider).Assembly
             .GetTypes()
             .Where(x => typeof(IGrimoireProvider).IsAssignableFrom(x)
