@@ -5,7 +5,7 @@ using Grimoire.Providers.Interfaces;
 using Grimoire.Providers.Models;
 using Microsoft.Extensions.Logging;
 
-namespace Grimoire.Providers;
+namespace Grimoire.Providers.Providers;
 
 public sealed class Manhwa18NetProvider : IGrimoireProvider {
     public string Name
