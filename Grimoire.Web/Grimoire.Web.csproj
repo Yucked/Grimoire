@@ -6,11 +6,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\Grimoire.Db\Grimoire.Db.csproj" />
 		<ProjectReference Include="..\Grimoire.Providers\Grimoire.Providers.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <PackageReference Include="SurrealDB.Extensions.Service" Version="1.0.8" />
 	</ItemGroup>
 
 </Project>
