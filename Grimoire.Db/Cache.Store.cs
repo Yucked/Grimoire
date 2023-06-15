@@ -21,6 +21,10 @@ public partial class Cache {
     public async Task StoreProvidersAsync() {
         foreach (var provider in _provider.GetGrimoireProviders()) {
             var db = _multiplexer.GetDatabase(0);
+            if (!Directory.Exists($"{_options.SaveTo}/{provider.GetId()}")) {
+                Directory.CreateDirectory($"{_options.SaveTo}/{provider.GetId()}");
+            }
+
             var icon = await _httpClient.DownloadAsync(provider.Icon, $"{_options.SaveTo}/{provider.GetId()}");
             var mangas = await provider.FetchMangasAsync();
 
@@ -33,7 +37,5 @@ public partial class Cache {
         }
     }
 
-    public async Task StoreChapterAsync() {
-        
-    }
+    public async Task StoreChapterAsync() { }
 }
