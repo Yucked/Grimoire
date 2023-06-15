@@ -1,6 +1,7 @@
 ﻿using Grimoire.Providers;
 using Grimoire.Providers.Interfaces;
 using Grimoire.Providers.Models;
+using Grimoire.Providers.Providers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Grimoire.Tests;
@@ -8,7 +9,7 @@ namespace Grimoire.Tests;
 [TestClass]
 public sealed class ProviderTests {
     private readonly Type _provider
-        = typeof(FlameScansProvider);
+        = typeof(TCBScansProvider);
 
     private static Manga Manga => new() {
         Url = "https://flamescans.org/series/1686564121-forty-eight-hours-a-day/"
@@ -40,11 +41,20 @@ public sealed class ProviderTests {
 
     [TestMethod]
     public async Task GetChapterAsync() {
-        var provider = Globals.Services.GetRequiredService<TCBScansProvider>();
+        var provider = Globals.Services.GetRequiredService(_provider) as TCBScansProvider;
         var chapter = await provider.GetChapterAsync(Chapter);
 
         Assert.IsNotNull(chapter);
         Assert.IsNotNull(chapter.Pages);
         Assert.IsTrue(chapter.Pages.Count > 0);
+    }
+
+    [TestMethod]
+    public async Task DownloadIconAsync() {
+        var provider = Globals.Services.GetRequiredService(_provider) as IGrimoireProvider;
+        var path = await Globals.Services.GetRequiredService<HttpClient>()
+            .DownloadAsync(provider!.Icon, Directory.GetCurrentDirectory());
+        
+        Assert.IsFalse(string.IsNullOrWhiteSpace(path));
     }
 }
