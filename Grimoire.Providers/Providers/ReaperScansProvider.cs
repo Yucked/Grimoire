@@ -1,5 +1,4 @@
-﻿using Grimoire.Providers.Interfaces;
-using Grimoire.Providers.Models;
+﻿using Grimoire.Providers.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Grimoire.Providers.Providers;
