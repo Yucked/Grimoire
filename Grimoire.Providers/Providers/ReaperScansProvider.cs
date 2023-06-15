@@ -2,10 +2,10 @@
 using Grimoire.Providers.Models;
 using Microsoft.Extensions.Logging;
 
-namespace Grimoire.Providers;
+namespace Grimoire.Providers.Providers;
 
 // This is a fun one
-public class ReaperScansProvider : IGrimoireProvider {
+public class ReaperScansProvider {
     public string Name
         => "Reaper Scans";
 

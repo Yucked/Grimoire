@@ -3,7 +3,7 @@ using Grimoire.Providers.Interfaces;
 using Grimoire.Providers.Models;
 using Microsoft.Extensions.Logging;
 
-namespace Grimoire.Providers;
+namespace Grimoire.Providers.Providers;
 
 public class FlameScansProvider : IGrimoireProvider {
     public string Name
