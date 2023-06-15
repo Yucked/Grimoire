@@ -23,7 +23,7 @@
     private IEnumerable<IGrimoireProvider> _providers;
 
     protected override void OnInitialized() {
-        _providers = Provider.GetProviders();
+        _providers = Provider.GetGrimoireProviders();
         base.OnInitialized();
     }
 
