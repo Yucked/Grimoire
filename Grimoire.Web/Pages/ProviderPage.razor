@@ -16,7 +16,7 @@
     private IGrimoireProvider _provider;
 
     protected override void OnInitialized() {
-        _provider = Provider.GetProviders().FirstOrDefault(x => x.Name == Prov);
+        _provider = Provider.GetGrimoireProviders().FirstOrDefault(x => x.Name == Prov);
         base.OnInitialized();
     }
 
