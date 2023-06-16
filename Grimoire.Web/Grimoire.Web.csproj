@@ -6,8 +6,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Grimoire.Db\Grimoire.Db.csproj" />
 		<ProjectReference Include="..\Grimoire.Providers\Grimoire.Providers.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="static\" />
 	</ItemGroup>
 
 </Project>
