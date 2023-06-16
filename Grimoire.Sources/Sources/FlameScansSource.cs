@@ -1,11 +1,11 @@
 ﻿using AngleSharp.Html.Dom;
-using Grimoire.Providers.Interfaces;
-using Grimoire.Providers.Models;
+using Grimoire.Sources.Interfaces;
+using Grimoire.Sources.Models;
 using Microsoft.Extensions.Logging;
 
-namespace Grimoire.Providers.Providers;
+namespace Grimoire.Sources.Sources;
 
-public class FlameScansProvider : IGrimoireProvider {
+public class FlameScansSource : IGrimoireSource {
     public string Name
         => "Flame Scans";
 
@@ -16,9 +16,9 @@ public class FlameScansProvider : IGrimoireProvider {
         => $"{BaseUrl}/favicon.ico";
 
     private readonly HttpClient _httpClient;
-    private readonly ILogger<FlameScansProvider> _logger;
+    private readonly ILogger<FlameScansSource> _logger;
 
-    public FlameScansProvider(HttpClient httpClient, ILogger<FlameScansProvider> logger) {
+    public FlameScansSource(HttpClient httpClient, ILogger<FlameScansSource> logger) {
         _httpClient = httpClient;
         _logger = logger;
     }

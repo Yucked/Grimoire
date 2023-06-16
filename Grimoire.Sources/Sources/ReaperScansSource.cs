@@ -1,10 +1,10 @@
-﻿using Grimoire.Providers.Models;
+﻿using Grimoire.Sources.Models;
 using Microsoft.Extensions.Logging;
 
-namespace Grimoire.Providers.Providers;
+namespace Grimoire.Sources.Sources;
 
 // This is a fun one
-public class ReaperScansProvider {
+public class ReaperScansSource {
     public string Name
         => "Reaper Scans";
 
@@ -15,7 +15,7 @@ public class ReaperScansProvider {
         => $"{BaseUrl}/images/icons/310x310.png";
 
     private readonly HttpClient _httpClient;
-    private readonly ILogger<ReaperScansProvider> _logger;
+    private readonly ILogger<ReaperScansSource> _logger;
 
     public async Task<IReadOnlyList<Manga>> FetchMangasAsync() {
         using var responseMessage = await _httpClient.GetAsync($"{BaseUrl}/comics?page=5");

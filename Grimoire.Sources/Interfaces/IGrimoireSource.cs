@@ -1,8 +1,11 @@
-using Grimoire.Providers.Models;
+using Grimoire.Sources.Models;
 
-namespace Grimoire.Providers.Interfaces;
+namespace Grimoire.Sources.Interfaces;
 
-public interface IGrimoireProvider {
+public interface IGrimoireSource {
+    public string Id
+        => Name.GetMangaIdFromName();
+
     /// <summary>
     /// Name of the provider
     /// </summary>

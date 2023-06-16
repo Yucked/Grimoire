@@ -1,11 +1,11 @@
 ﻿using AngleSharp.Html.Dom;
-using Grimoire.Providers.Interfaces;
-using Grimoire.Providers.Models;
+using Grimoire.Sources.Interfaces;
+using Grimoire.Sources.Models;
 using Microsoft.Extensions.Logging;
 
-namespace Grimoire.Providers.Providers;
+namespace Grimoire.Sources.Sources;
 
-public class AsuraScansProvider : IGrimoireProvider {
+public class AsuraScansSource : IGrimoireSource {
     public string Name
         => "Asura Scans";
 
@@ -16,9 +16,9 @@ public class AsuraScansProvider : IGrimoireProvider {
         => $"{BaseUrl}/wp-content/uploads/2021/03/Group_1.png";
 
     private readonly HttpClient _httpClient;
-    private readonly ILogger<AsuraScansProvider> _logger;
+    private readonly ILogger<AsuraScansSource> _logger;
 
-    public AsuraScansProvider(HttpClient httpClient, ILogger<AsuraScansProvider> logger) {
+    public AsuraScansSource(HttpClient httpClient, ILogger<AsuraScansSource> logger) {
         _httpClient = httpClient;
         _logger = logger;
     }

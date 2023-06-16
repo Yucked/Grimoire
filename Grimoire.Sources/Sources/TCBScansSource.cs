@@ -1,11 +1,11 @@
 using AngleSharp.Html.Dom;
-using Grimoire.Providers.Interfaces;
-using Grimoire.Providers.Models;
+using Grimoire.Sources.Interfaces;
+using Grimoire.Sources.Models;
 using Microsoft.Extensions.Logging;
 
-namespace Grimoire.Providers.Providers;
+namespace Grimoire.Sources.Sources;
 
-public sealed class TCBScansProvider : IGrimoireProvider {
+public sealed class TCBScansSource : IGrimoireSource {
     public string Name
         => "TCB Scans";
 
@@ -16,9 +16,9 @@ public sealed class TCBScansProvider : IGrimoireProvider {
         => $"{BaseUrl}/files/apple-touch-icon.png";
 
     private readonly HttpClient _httpClient;
-    private readonly ILogger<TCBScansProvider> _logger;
+    private readonly ILogger<TCBScansSource> _logger;
 
-    public TCBScansProvider(HttpClient httpClient, ILogger<TCBScansProvider> logger) {
+    public TCBScansSource(HttpClient httpClient, ILogger<TCBScansSource> logger) {
         _httpClient = httpClient;
         _logger = logger;
     }
