@@ -50,7 +50,7 @@ public static partial class Extensions {
         return document;
     }
 
-    public static async Task<string> DownloadAsync(this HttpClient httpClient, string url, string output) {
+    public static async Task DownloadAsync(this HttpClient httpClient, string url, string output) {
         var requestMessage = new HttpRequestMessage {
             Method = HttpMethod.Get,
             RequestUri = new Uri(url),
@@ -67,14 +67,10 @@ public static partial class Extensions {
         }
 
         using var content = responseMessage.Content;
-        await using var stream = await content.ReadAsStreamAsync();
+        var data = await content.ReadAsByteArrayAsync();
         var fileName = content.Headers.ContentDisposition?.FileNameStar
                        ?? url.Split('/')[^1];
-        
-        var fileStream = File.Create($"{output}/{fileName}");
-        await stream.CopyToAsync(fileStream);
-
-        return $"{output}/{fileName}";
+        await File.WriteAllBytesAsync($"{output}/{fileName}", data);
     }
 
     public static IServiceCollection AddGrimoireProviders(this IServiceCollection collection) {
