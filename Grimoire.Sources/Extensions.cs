@@ -1,10 +1,12 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Text;
+using System.Text.RegularExpressions;
 using AngleSharp;
 using AngleSharp.Dom;
-using Grimoire.Providers.Interfaces;
+using Grimoire.Sources.Interfaces;
+using Grimoire.Sources.Sources;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Grimoire.Providers;
+namespace Grimoire.Sources;
 
 public static partial class Extensions {
     private static readonly IBrowsingContext Context
@@ -74,9 +76,9 @@ public static partial class Extensions {
     }
 
     public static IServiceCollection AddGrimoireProviders(this IServiceCollection collection) {
-        var providers = typeof(IGrimoireProvider).Assembly
+        var providers = typeof(IGrimoireSource).Assembly
             .GetTypes()
-            .Where(x => typeof(IGrimoireProvider).IsAssignableFrom(x)
+            .Where(x => typeof(IGrimoireSource).IsAssignableFrom(x)
                         && !x.IsInterface
                         && !x.IsAbstract);
 
@@ -87,15 +89,29 @@ public static partial class Extensions {
         return collection;
     }
 
-    public static IEnumerable<IGrimoireProvider> GetGrimoireProviders(this IServiceProvider provider) {
-        var providers = typeof(IGrimoireProvider).Assembly
+    public static IEnumerable<IGrimoireSource> GetGrimoireProviders(this IServiceProvider provider) {
+        /*
+        var providers = typeof(IGrimoireSource).Assembly
             .GetTypes()
-            .Where(x => typeof(IGrimoireProvider).IsAssignableFrom(x)
+            .Where(x => typeof(IGrimoireSource).IsAssignableFrom(x)
                         && !x.IsInterface
                         && !x.IsAbstract);
 
         return providers
             .Select(provider.GetRequiredService)
-            .OfType<IGrimoireProvider>();
+            .OfType<IGrimoireSource>();
+            */
+
+        return new[] {
+            provider.GetRequiredService<TCBScansSource>()
+        };
+    }
+
+    public static string GetMangaIdFromName(this string mangaName) {
+        return Convert.ToBase64String(Encoding.UTF8.GetBytes(mangaName));
+    }
+
+    public static string GetMangaNameFromId(this string mangaId) {
+        return Encoding.UTF8.GetString(Convert.FromBase64String(mangaId));
     }
 }

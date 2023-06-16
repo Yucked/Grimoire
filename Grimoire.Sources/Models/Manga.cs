@@ -1,4 +1,4 @@
-namespace Grimoire.Providers.Models;
+namespace Grimoire.Sources.Models;
 
 public record Manga {
     public string Name { get; set; }
