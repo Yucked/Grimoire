@@ -1,4 +1,4 @@
-namespace Grimoire.Providers.Models;
+namespace Grimoire.Sources.Models;
 
 public sealed record MangaChapter {
     public string Name { get; set; }

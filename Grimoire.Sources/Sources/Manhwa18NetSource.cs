@@ -1,13 +1,13 @@
 using System.Globalization;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
-using Grimoire.Providers.Interfaces;
-using Grimoire.Providers.Models;
+using Grimoire.Sources.Interfaces;
+using Grimoire.Sources.Models;
 using Microsoft.Extensions.Logging;
 
-namespace Grimoire.Providers.Providers;
+namespace Grimoire.Sources.Sources;
 
-public sealed class Manhwa18NetProvider : IGrimoireProvider {
+public sealed class Manhwa18NetSource : IGrimoireSource {
     public string Name
         => "Manhwa 18";
 
@@ -18,9 +18,9 @@ public sealed class Manhwa18NetProvider : IGrimoireProvider {
         => $"{BaseUrl}/favicon1.ico";
 
     private readonly HttpClient _httpClient;
-    private readonly ILogger<Manhwa18NetProvider> _logger;
+    private readonly ILogger<Manhwa18NetSource> _logger;
 
-    public Manhwa18NetProvider(HttpClient httpClient, ILogger<Manhwa18NetProvider> logger) {
+    public Manhwa18NetSource(HttpClient httpClient, ILogger<Manhwa18NetSource> logger) {
         _httpClient = httpClient;
         _logger = logger;
     }
