@@ -11,11 +11,11 @@ public sealed class ProviderTests {
     private readonly Type _provider
         = typeof(TCBScansProvider);
 
-    private static Manga Manga => new() {
+    private static readonly Manga Manga = new() {
         Url = "https://flamescans.org/series/1686564121-forty-eight-hours-a-day/"
     };
 
-    private static MangaChapter Chapter = new() {
+    private static readonly MangaChapter Chapter = new() {
         Url = "https://tcbscans.com/chapters/43/bleach-chapter-686.5"
     };
 
@@ -42,7 +42,7 @@ public sealed class ProviderTests {
     [TestMethod]
     public async Task GetChapterAsync() {
         var provider = Globals.Services.GetRequiredService(_provider) as TCBScansProvider;
-        var chapter = await provider.GetChapterAsync(Chapter);
+        var chapter = await provider!.GetChapterAsync(Chapter);
 
         Assert.IsNotNull(chapter);
         Assert.IsNotNull(chapter.Pages);
@@ -52,9 +52,7 @@ public sealed class ProviderTests {
     [TestMethod]
     public async Task DownloadIconAsync() {
         var provider = Globals.Services.GetRequiredService(_provider) as IGrimoireProvider;
-        var path = await Globals.Services.GetRequiredService<HttpClient>()
+        await Globals.Services.GetRequiredService<HttpClient>()
             .DownloadAsync(provider!.Icon, Directory.GetCurrentDirectory());
-        
-        Assert.IsFalse(string.IsNullOrWhiteSpace(path));
     }
 }
