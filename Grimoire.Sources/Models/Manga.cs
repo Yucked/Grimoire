@@ -13,5 +13,5 @@ public record Manga {
     public DateTimeOffset LastFetch { get; set; }
     public IReadOnlyList<string> Metonyms { get; set; }
     public IReadOnlyList<string> Genre { get; set; }
-    public IReadOnlyList<Chapter> Chapters { get; set; }
+    public IList<Chapter> Chapters { get; set; }
 }
