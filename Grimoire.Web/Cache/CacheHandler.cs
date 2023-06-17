@@ -102,6 +102,16 @@ public sealed class CacheHandler {
     }
 
     public async Task<Chapter> GetChapterAsync(string sourceId, string mangaId, int chapterIndex) {
+        if (_memoryCache.TryGetValue($"{sourceId}@{mangaId}@{chapterIndex}", out string[] pages)) {
+            return new Chapter {
+                Pages = pages
+                    .Select((x, index) => new {
+                        Key = index, Value = x
+                    })
+                    .ToDictionary(x => x.Key, x => x.Value)
+            };
+        }
+
         if (!_memoryCache.TryGetValue($"{sourceId}@Mangas", out IReadOnlyList<Manga> mangas)) {
             //TODO: Fetch individual manga?
             return default;
@@ -114,15 +124,37 @@ public sealed class CacheHandler {
 
         var source = _sources.First(x => x.Id == sourceId);
         var chapters = await source.FetchChaptersAsync(manga);
+        var chapter = await source.FetchChapterAsync(chapters[chapterIndex]);
 
-        var chapter = source
-        if (!_config.GetValue<bool>("Cache:MangaChapter")) {
-            return chapters[chapterIndex];
-        }
-
-        mangas.Where(x => x.Id == mangaId).ToList().ForEach(x => x.Chapters = chapters);
+        mangas.Where(x => x.Id == mangaId).ToList().ForEach(x => {
+            x.Chapters = chapters.ToArray();
+            x.Chapters[chapterIndex] = chapter;
+        });
         _memoryCache.Set($"{sourceId}@Mangas", mangas);
 
-        return manga.Chapters[chapterIndex];
+        if (!_config.GetValue<bool>("Save:MangaChapter")) {
+            return chapter;
+        }
+
+        var path = PathMaker
+            .New(_config["Save:To"])
+            .WithSource(sourceId)
+            .WithSource(manga.Id)
+            .WithChapter(chapterIndex)
+            .Verify();
+
+        var tasks = chapter.Pages
+            .Select(async x => {
+                if (!File.Exists(path.WithPage(x.Value))) {
+                    await _httpClient.DownloadAsync(x.Value, path.Ave);
+                }
+
+                return path.WithPage(x.Value);
+            });
+
+        pages = await Task.WhenAll(tasks);
+        _memoryCache.Set($"{sourceId}@{manga.Id}@{chapterIndex}", pages);
+
+        return chapter;
     }
 }
