@@ -33,7 +33,7 @@ public class ReaperScansSource {
         throw new NotImplementedException();
     }
 
-    public async Task<IReadOnlyList<MangaChapter>> FetchChaptersAsync(Manga manga) {
+    public async Task<IReadOnlyList<Chapter>> FetchChaptersAsync(Manga manga) {
         throw new NotImplementedException();
     }
 }
