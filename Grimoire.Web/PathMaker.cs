@@ -19,12 +19,21 @@ public record struct PathMaker {
         return this;
     }
 
+    public PathMaker WithChapter(int chapter) {
+        Ave = Path.Combine(Ave, $"{chapter}");
+        return this;
+    }
+
     public string WithIcon(string sourceIcon) {
         return Path.Combine(Ave, sourceIcon.Split('/')[^1]);
     }
 
     public string WithCover(string sourceIcon) {
-        return Path.Combine(Ave, sourceIcon.Split('/')[^1]);
+        return WithIcon(sourceIcon);
+    }
+
+    public string WithPage(string chapterPage) {
+        return WithIcon(chapterPage);
     }
 
     public PathMaker Verify() {
