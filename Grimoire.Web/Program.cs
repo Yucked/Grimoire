@@ -13,16 +13,16 @@ builder
     .Services
     .AddServerSideBlazor()
     .Services
-    .AddSingleton<CacheHandler>()
-    //.AddGrimoireProviders()
-    .AddSingleton<TCBScansSource>()
     .AddResponseCaching()
     .AddHttpClient()
     .AddMemoryCache()
     .AddLogging(x => {
         x.ClearProviders();
         x.AddConsole();
-    });
+    })
+    //.AddGrimoireProviders()
+    .AddSingleton<TCBScansSource>()
+    .AddSingleton<CacheHandler>();
 
 var app = builder.Build();
 if (!app.Environment.IsDevelopment()) {
@@ -32,7 +32,7 @@ if (!app.Environment.IsDevelopment()) {
 app.UseHttpsRedirection();
 
 var provider = new PhysicalFileProvider(
-    Path.GetFullPath(app.Configuration["SaveTo"]!)
+    Path.GetFullPath(app.Configuration["Save:To"]!)
 );
 
 app.Environment.WebRootFileProvider = new CompositeFileProvider(
@@ -43,7 +43,7 @@ app.Environment.WebRootFileProvider = new CompositeFileProvider(
 app.UseStaticFiles();
 app.UseStaticFiles(new StaticFileOptions {
     FileProvider = provider,
-    RequestPath = $"/{app.Configuration["SaveTo"]!}"
+    RequestPath = $"/{app.Configuration["Save:To"]!}"
 });
 
 app.UseRouting();
