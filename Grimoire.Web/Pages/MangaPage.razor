@@ -1,26 +1,30 @@
-﻿@page "/{Prov}/{Mang}"
+﻿@page "/{SourceId}/{MangaId}"
+@using Grimoire.Web.Cache
+@using Grimoire.Sources.Models
 
+@inject CacheHandler CacheHandler
+@inject IConfiguration Configuration
 @inject NavigationManager NavigationManager
-@inject dynamic AppState
 
 <div class="container p-4">
     <div class="card mb-3 shadow-lg rounded-4">
         <div class="row g-0">
             <div class="col-sm-4">
-                <img src="@AppState.Manga.Cover" class="card-img" alt="@AppState.Manga.Name">
+                <img src="@Configuration.GetCover(CacheHandler.Get<string>($"{SourceId}@{_manga.Id}"), _manga.Cover)"
+                     class="card-img" alt="_manga.Name">
             </div>
 
             <div class="col-sm-8">
                 <div class="card-body">
                     <h5 class="card-title">
                         <p class="display-6">
-                            @AppState.Manga.Name
+                            @_manga.Name
                         </p>
                     </h5>
 
                     <p class="card-text">
                         <small class="text-body-secondary">
-                            @AppState.Manga.Summary)
+                            @_manga.Summary
                         </small>
                     </p>
                 </div>
@@ -28,32 +32,32 @@
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">
                         <span>Genre: </span>
-                        @if (AppState.Manga?.Genre == null || AppState.Manga.Genre.Count == 0) {
+                        @if (_manga?.Genre == null || _manga.Genre.Count == 0) {
                             <span>N/A</span>
                         }
                         else {
-                            @foreach (var genre in AppState.Manga.Genre) {
+                            @foreach (var genre in _manga.Genre) {
                                 <span class="badge text-bg-primary mx-1">@genre </span>
                             }
                         }
                     </li>
                     <li class="list-group-item">
-                        Author: @(AppState.Manga?.Author ?? "Unknown")
+                        Author: @(_manga?.Author ?? "Unknown")
                     </li>
                     <li class="list-group-item">
                         <span>Metonyms: </span>
-                        @if (AppState.Manga?.Metonyms == null || AppState.Manga.Metonyms.Count == 0) {
+                        @if (_manga?.Metonyms == null || _manga.Metonyms.Count == 0) {
                             <span>N/A</span>
                         }
                         else {
-                            <span>@string.Join(',', AppState.Manga.Metonyms)</span>
+                            <span>@string.Join(',', _manga.Metonyms)</span>
                         }
                     </li>
                 </ul>
 
                 <div class="card-body">
                     <p class="card-text">
-                        <small class="text-body-secondary">Last fetched on @AppState.Manga.LastFetch</small>
+                        <small class="text-body-secondary">Last fetched on @_manga.LastFetch</small>
                     </p>
                 </div>
             </div>
@@ -62,22 +66,22 @@
 
     <div class="container-md p-3">
         <div class="list-group list-group-flush rounded">
-            @for (var i = 0; i < AppState.Manga.Chapters.Count; i++) {
+            @for (var i = 0; i < _manga.Chapters.Count; i++) {
                 {
-                    _chapter = (AppState.Manga.Chapters.Count - i) - 1;
+                    _chapter = (_manga.Chapters.Count - i) - 1;
+                    <a @onclick="@NavTo"
+                       class="list-group-item list-group-item-action rounded @(i == 0 ? "active" : string.Empty)"
+                       aria-current="@(i == 0 ? "true" : "false")">
+                        <div class="d-flex w-100 justify-content-between">
+                            <p>
+                                @_manga.Chapters[i].Name
+                            </p>
+                            <small>
+                                @_manga.Chapters[i].ReleasedOn
+                            </small>
+                        </div>
+                    </a>
                 }
-                <a @onclick="NavTo"
-                   class="list-group-item list-group-item-action rounded @(i == 0 ? "active" : string.Empty)"
-                   aria-current="@(i == 0 ? "true" : "false")">
-                    <div class="d-flex w-100 justify-content-between">
-                        <p>
-                            @AppState.Manga.Chapters[i].Name
-                        </p>
-                        <small>
-                            @AppState.Manga.Chapters[i].ReleasedOn
-                        </small>
-                    </div>
-                </a>
             }
         </div>
     </div>
@@ -86,16 +90,20 @@
 @code {
 
     [Parameter]
-    public string Prov { get; set; }
+    public string SourceId { get; set; }
 
     [Parameter]
-    public string Mang { get; set; }
+    public string MangaId { get; set; }
 
     private int _chapter;
+    private Manga _manga;
+
+    protected override async Task OnInitializedAsync() {
+        _manga = await CacheHandler.GetMangaAsync(SourceId, MangaId);
+    }
 
     private void NavTo() {
-        AppState.Chapter = AppState.Manga.Chapters[_chapter];
-        NavigationManager.NavigateTo($"/{Prov}/{AppState.Manga.Name}/{_chapter}");
+        NavigationManager.NavigateTo($"/{SourceId}/{MangaId}/{_chapter}");
     }
 
 }
