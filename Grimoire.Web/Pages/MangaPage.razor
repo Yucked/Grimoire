@@ -68,8 +68,8 @@
         <div class="list-group list-group-flush rounded">
             @for (var i = 0; i < _manga.Chapters.Count; i++) {
                 {
-                    _chapter = (_manga.Chapters.Count - i) - 1;
-                    <a @onclick="@NavTo"
+                    var chapter = (_manga.Chapters.Count - i) - 1;
+                    <a @onclick="() => NavTo(chapter)"
                        class="list-group-item list-group-item-action rounded @(i == 0 ? "active" : string.Empty)"
                        aria-current="@(i == 0 ? "true" : "false")">
                         <div class="d-flex w-100 justify-content-between">
@@ -94,16 +94,15 @@
 
     [Parameter]
     public string MangaId { get; set; }
-
-    private int _chapter;
+    
     private Manga _manga;
 
     protected override async Task OnInitializedAsync() {
         _manga = await CacheHandler.GetMangaAsync(SourceId, MangaId);
     }
 
-    private void NavTo() {
-        NavigationManager.NavigateTo($"/{SourceId}/{MangaId}/{_chapter}");
+    private void NavTo(int chapter) {
+        NavigationManager.NavigateTo($"/{SourceId}/{MangaId}/{chapter}");
     }
 
 }
