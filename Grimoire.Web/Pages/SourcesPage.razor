@@ -4,6 +4,7 @@
 @using Grimoire.Sources.Interfaces
 
 @inject CacheHandler CacheHandler
+@inject IConfiguration Configuration
 @inject NavigationManager NavigationManager
 
 <div class="container p-4">
@@ -14,8 +15,8 @@
         <div class="container">
             <ul class="list-group list-group-flush">
                 @foreach (var source in _sources) {
-                    <a class="list-group-item list-group-item-action" @onclick="() => NavTo(source.Name)">
-                        <img src="@CacheHandler.GetStaticPath(source.Icon)" class="img-thumbnail" alt="@source.Name" width="70">
+                    <a class="list-group-item list-group-item-action" @onclick="() => NavTo(source.Id)">
+                        <img src="@GetIcon(source.Id)" class="img-thumbnail" alt="@source.Name" width="70">
                         <span>@source.Name</span>
                     </a>
                 }
@@ -29,6 +30,12 @@
 
     protected override async Task OnInitializedAsync() {
         _sources = await CacheHandler.GetSourcesAsync();
+    }
+
+    private string GetIcon(string sourceId) {
+        return Configuration.GetValue<bool>("Save:SourceIcon")
+            ? CacheHandler.Get<string>(sourceId)
+            : _sources.First(x => x.Id == sourceId).Icon;
     }
 
     private void NavTo(string source) {
