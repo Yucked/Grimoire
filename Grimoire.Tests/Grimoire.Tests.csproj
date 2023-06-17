@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Grimoire.Providers\Grimoire.Providers.csproj" />
+    <ProjectReference Include="..\Grimoire.Sources\Grimoire.Sources.csproj" />
   </ItemGroup>
 
 </Project>
