@@ -3,7 +3,6 @@ using System.Text.RegularExpressions;
 using AngleSharp;
 using AngleSharp.Dom;
 using Grimoire.Sources.Interfaces;
-using Grimoire.Sources.Sources;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Grimoire.Sources;
@@ -90,7 +89,6 @@ public static partial class Extensions {
     }
 
     public static IEnumerable<IGrimoireSource> GetGrimoireSources(this IServiceProvider provider) {
-        /*
         var providers = typeof(IGrimoireSource).Assembly
             .GetTypes()
             .Where(x => typeof(IGrimoireSource).IsAssignableFrom(x)
@@ -100,11 +98,6 @@ public static partial class Extensions {
         return providers
             .Select(provider.GetRequiredService)
             .OfType<IGrimoireSource>();
-            */
-
-        return new[] {
-            provider.GetRequiredService<TCBScansSource>()
-        };
     }
 
     public static string GetIdFromName(this string name) {
