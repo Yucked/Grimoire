@@ -1,22 +1,119 @@
-﻿@page "/{Prov}"
-@using Grimoire.Web.Components
-@using Grimoire.Sources.Interfaces
-@using Grimoire.Sources
+﻿@page "/{SourceId}"
 
-@inject IServiceProvider Provider
+@using Grimoire.Web.Cache
+@using Grimoire.Sources.Models
 
-<SourceComponent Provider="_provider"></SourceComponent>
+@inject CacheHandler CacheHandler
+@inject NavigationManager NavigationManager
+@inject IConfiguration Configuration
+
+<div class="container p-4">
+    @if (_mangas?.Count == 0 || _mangas == null) {
+        <div class="d-flex justify-content-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else {
+        <div class="container pb-3">
+            <div id="carouselExampleSlidesOnly" class="carousel slide carousel-fade shadow-lg" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    @for (var i = 0; i < _mangas.Take(5).Count(); i++) {
+                        <div class="carousel-item @(i == 0 ? "active" : string.Empty)">
+                            <img src="@Configuration.GetCover(CacheHandler.Get<string>($"{SourceId}@{_mangas[i].Id}"), _mangas[i].Cover)"
+                                 class="rounded-4" alt="@_mangas[i].Name">
+                        </div>
+                    }
+                </div>
+
+                <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleSlidesOnly" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleSlidesOnly" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+
+            </div>
+        </div>
+
+        <div class="container pt-2">
+            <div class="row row-cols-1 row-cols-lg-4 g-4">
+                @for (var i = 0; i < _mangas.Take(40).Count(); i++) {
+                    {
+                        var index = i;
+                        <div class="col">
+                            <div class="card h-100 shadow-sm" @onclick="() => NavTo(_mangas[index].Id)">
+                                <img src="@Configuration.GetCover(CacheHandler.Get<string>($"{SourceId}@{_mangas[i].Id}"), _mangas[i].Cover)"
+                                     class="card-img-top" alt="@_mangas[i].Name">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <p>
+                                            @_mangas[i].Name
+                                        </p>
+                                    </h5>
+                                    <p class="card-text">
+                                        <small class="text-body-secondary">
+                                            @Truncate(_mangas[i].Summary)
+                                        </small>
+                                    </p>
+                                </div>
+                                <div class="card-footer">
+                                    <small class="text-body-secondary">Last fetched on @(_mangas[i].LastFetch.ToString("D"))</small>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <div class="container pt-2">
+            <nav aria-label="Page navigation example">
+                <ul class="pagination justify-content-end">
+                    <li class="page-item disabled">
+                        <a class="page-link">Previous</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">1</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">2</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">3</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
+</div >
+
 
 @code {
 
     [Parameter]
-    public string Prov { get; set; }
+    public string SourceId { get; set; }
 
-    private IGrimoireSource _provider;
+    private IReadOnlyList<Manga> _mangas;
+    private int _index;
 
-    protected override void OnInitialized() {
-        _provider = Provider.GetGrimoireSources().FirstOrDefault(x => x.Name == Prov);
-        base.OnInitialized();
+    protected override async Task OnInitializedAsync() {
+        _mangas = await CacheHandler.GetMangasAsync(SourceId);
+    }
+
+    private void NavTo(string mangaId) {
+        NavigationManager.NavigateTo($"/{SourceId}/{mangaId}");
+    }
+
+    private static string Truncate(string str) {
+        return str.Length > 150 ?
+            $"{str[..150]}..." : str;
     }
 
 }
