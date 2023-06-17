@@ -1,7 +1,7 @@
-﻿using Grimoire.Providers;
-using Grimoire.Providers.Interfaces;
-using Grimoire.Providers.Models;
-using Grimoire.Providers.Providers;
+﻿using Grimoire.Sources;
+using Grimoire.Sources.Interfaces;
+using Grimoire.Sources.Models;
+using Grimoire.Sources.Sources;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Grimoire.Tests;
@@ -9,7 +9,7 @@ namespace Grimoire.Tests;
 [TestClass]
 public sealed class ProviderTests {
     private readonly Type _provider
-        = typeof(TCBScansProvider);
+        = typeof(TCBScansSource);
 
     private static readonly Manga Manga = new() {
         Url = "https://flamescans.org/series/1686564121-forty-eight-hours-a-day/"
@@ -21,7 +21,7 @@ public sealed class ProviderTests {
 
     [TestMethod]
     public async Task FetchMangasAsync() {
-        var provider = Globals.Services.GetRequiredService(_provider) as IGrimoireProvider;
+        var provider = Globals.Services.GetRequiredService(_provider) as IGrimoireSource;
         Assert.IsNotNull(provider);
 
         var mangas = await provider.FetchMangasAsync();
@@ -31,7 +31,7 @@ public sealed class ProviderTests {
 
     [TestMethod]
     public async Task FetchChaptersAsync() {
-        var provider = Globals.Services.GetRequiredService(_provider) as IGrimoireProvider;
+        var provider = Globals.Services.GetRequiredService(_provider) as IGrimoireSource;
         Assert.IsNotNull(provider);
 
         var chapters = await provider.FetchChaptersAsync(Manga);
@@ -41,7 +41,7 @@ public sealed class ProviderTests {
 
     [TestMethod]
     public async Task GetChapterAsync() {
-        var provider = Globals.Services.GetRequiredService(_provider) as TCBScansProvider;
+        var provider = Globals.Services.GetRequiredService(_provider) as TCBScansSource;
         var chapter = await provider!.GetChapterAsync(Chapter);
 
         Assert.IsNotNull(chapter);
@@ -51,7 +51,7 @@ public sealed class ProviderTests {
 
     [TestMethod]
     public async Task DownloadIconAsync() {
-        var provider = Globals.Services.GetRequiredService(_provider) as IGrimoireProvider;
+        var provider = Globals.Services.GetRequiredService(_provider) as IGrimoireSource;
         await Globals.Services.GetRequiredService<HttpClient>()
             .DownloadAsync(provider!.Icon, Directory.GetCurrentDirectory());
     }
