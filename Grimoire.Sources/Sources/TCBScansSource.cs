@@ -46,7 +46,7 @@ public sealed class TCBScansSource : IGrimoireSource {
                         .FirstOrDefault()
                         .TextContent,
                     Chapters = doc.GetElementsByClassName("block border border-border bg-card mb-3 p-3 rounded")
-                        .Select(c => new MangaChapter {
+                        .Select(c => new Chapter {
                             Name = c.TextContent,
                             Url = $"{BaseUrl}{(c as IHtmlAnchorElement).PathName}"
                         })
@@ -60,18 +60,18 @@ public sealed class TCBScansSource : IGrimoireSource {
         throw new NotImplementedException("Source doesn't have pagination.");
     }
 
-    public async Task<IReadOnlyList<MangaChapter>> FetchChaptersAsync(Manga manga) {
+    public async Task<IReadOnlyList<Chapter>> FetchChaptersAsync(Manga manga) {
         using var document = await _httpClient.ParseAsync(manga.Url);
         _logger.LogDebug("Fetching chapters for {name}", manga.Name);
         return document.GetElementsByClassName("block border border-border bg-card mb-3 p-3 rounded")
-            .Select(x => new MangaChapter {
+            .Select(x => new Chapter {
                 Name = x.TextContent,
                 Url = $"{BaseUrl}{(x as IHtmlAnchorElement).PathName}"
             })
             .ToArray();
     }
 
-    public async Task<MangaChapter> GetChapterAsync(MangaChapter chapter) {
+    public async Task<Chapter> GetChapterAsync(Chapter chapter) {
         using var document = await _httpClient.ParseAsync(chapter.Url);
         chapter.Pages = document
             .QuerySelectorAll("img.fixed-ratio-content")

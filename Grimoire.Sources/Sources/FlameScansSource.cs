@@ -52,7 +52,7 @@ public class FlameScansSource : IGrimoireSource {
                         .Where(c => c is IHtmlListItemElement)
                         .Select(c => {
                             var anchor = (c as IHtmlElement).Children[0] as IHtmlAnchorElement;
-                            return new MangaChapter {
+                            return new Chapter {
                                 Name = anchor.GetElementsByClassName("chapternum").FirstOrDefault().TextContent.Clean(),
                                 Url = anchor.Href,
                                 ReleasedOn = DateOnly.Parse(
@@ -75,7 +75,7 @@ public class FlameScansSource : IGrimoireSource {
         throw new NotSupportedException("Data is fetched via list mode.");
     }
 
-    public async Task<IReadOnlyList<MangaChapter>> FetchChaptersAsync(Manga manga) {
+    public async Task<IReadOnlyList<Chapter>> FetchChaptersAsync(Manga manga) {
         try {
             using var document = await _httpClient.ParseAsync(manga.Url);
             return document.GetElementById("chapterlist")
@@ -84,7 +84,7 @@ public class FlameScansSource : IGrimoireSource {
                 .Where(x => x is IHtmlListItemElement)
                 .Select(x => {
                     var anchor = (x as IHtmlElement).Children[0] as IHtmlAnchorElement;
-                    return new MangaChapter {
+                    return new Chapter {
                         Name = anchor.GetElementsByClassName("chapternum").FirstOrDefault().TextContent.Clean(),
                         Url = anchor.Href,
                         ReleasedOn = DateOnly.Parse(
@@ -97,5 +97,9 @@ public class FlameScansSource : IGrimoireSource {
             _logger.LogError("{exception}\n{message}", exception, exception.Message);
             throw;
         }
+    }
+
+    public async Task<Chapter> GetChapterAsync(Chapter chapter) {
+        throw new NotImplementedException();
     }
 }
