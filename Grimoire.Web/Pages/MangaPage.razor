@@ -1,7 +1,7 @@
 ﻿@page "/{Prov}/{Mang}"
 
 @inject NavigationManager NavigationManager
-@inject AppState AppState
+@inject dynamic AppState
 
 <div class="container p-4">
     <div class="card mb-3 shadow-lg rounded-4">
@@ -28,7 +28,7 @@
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">
                         <span>Genre: </span>
-                        @if (AppState.Manga?.Genre == default || AppState.Manga.Genre.Count == 0) {
+                        @if (AppState.Manga?.Genre == null || AppState.Manga.Genre.Count == 0) {
                             <span>N/A</span>
                         }
                         else {
@@ -42,7 +42,7 @@
                     </li>
                     <li class="list-group-item">
                         <span>Metonyms: </span>
-                        @if (AppState.Manga?.Metonyms == default || AppState.Manga.Metonyms.Count == 0) {
+                        @if (AppState.Manga?.Metonyms == null || AppState.Manga.Metonyms.Count == 0) {
                             <span>N/A</span>
                         }
                         else {
