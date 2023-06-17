@@ -402,5 +402,5 @@ FodyWeavers.xsd
 /.idea/.idea.Grimoire/.idea/.gitignore
 /.idea/.idea.Grimoire/.idea/encodings.xml
 /.idea/.idea.Grimoire/.idea/indexLayout.xml
-/Grimoire.Web/*Provider.json
+*Provider.json
 /Grimoire.Web/Grimoire_Data/
