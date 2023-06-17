@@ -1,0 +1,21 @@
+{
+    "AllowedHosts": "*",
+    "Logging": {
+        "LogLevel": {
+            "Default": "Trace",
+            "Microsoft.AspNetCore": "Warning"
+        }
+    },
+    "Kestrel": {
+        "Endpoints": {
+            "Http": {
+                "Url": "http://0.0.0.0:5000"
+            },
+            "Https": {
+                "Url": "http://0.0.0.0:5001"
+            }
+        }
+    },
+    "SaveTo": "Grimoire_Date",
+    "RefreshEvery": "00:30:00"
+}

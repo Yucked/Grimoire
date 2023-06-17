@@ -1,0 +1,38 @@
+﻿@page "/sources"
+
+@using Grimoire.Web.Cache
+@using Grimoire.Sources.Interfaces
+
+@inject CacheHandler CacheHandler
+@inject NavigationManager NavigationManager
+
+<div class="container p-4">
+    @if (_sources == null || !_sources.Any()) {
+        <WaitingOn/>
+    }
+    else {
+        <div class="container">
+            <ul class="list-group list-group-flush">
+                @foreach (var source in _sources) {
+                    <a class="list-group-item list-group-item-action" @onclick="() => NavTo(source.Name)">
+                        <img src="@CacheHandler.GetStaticPath(source.Icon)" class="img-thumbnail" alt="@source.Name" width="70">
+                        <span>@source.Name</span>
+                    </a>
+                }
+            </ul>
+        </div>
+    }
+</div>
+
+@code {
+    private IReadOnlyList<IGrimoireSource> _sources;
+
+    protected override async Task OnInitializedAsync() {
+        _sources = await CacheHandler.GetSourcesAsync();
+    }
+
+    private void NavTo(string source) {
+        NavigationManager.NavigateTo($"/{source}");
+    }
+
+}
