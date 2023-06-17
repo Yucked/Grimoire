@@ -54,7 +54,7 @@ public class AsuraScansSource : IGrimoireSource {
                 manga.Chapters = doc.GetElementsByClassName("eph-num")
                     .Select(x => {
                         var anchor = x.Children[0] as IHtmlAnchorElement;
-                        return new MangaChapter {
+                        return new Chapter {
                             Name = anchor.Children[0].TextContent,
                             Url = anchor.Href,
                             ReleasedOn = DateOnly.Parse(anchor.Children[1].TextContent)
@@ -91,19 +91,23 @@ public class AsuraScansSource : IGrimoireSource {
             .ToArray();
     }
 
-    public async Task<IReadOnlyList<MangaChapter>> FetchChaptersAsync(Manga manga) {
+    public async Task<IReadOnlyList<Chapter>> FetchChaptersAsync(Manga manga) {
         using var document = await _httpClient.ParseAsync(manga.Url, true);
 
         // TODO: Get it by Id 
         return document.GetElementsByClassName("eph-num")
             .Select(x => {
                 var anchor = x.Children[0] as IHtmlAnchorElement;
-                return new MangaChapter {
+                return new Chapter {
                     Name = anchor.Children[0].TextContent,
                     Url = anchor.Href,
                     ReleasedOn = DateOnly.Parse(anchor.Children[1].TextContent)
                 };
             })
             .ToArray();
+    }
+
+    public async Task<Chapter> GetChapterAsync(Chapter chapter) {
+        throw new NotImplementedException();
     }
 }

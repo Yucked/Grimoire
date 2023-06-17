@@ -58,7 +58,7 @@ public sealed class Manhwa18NetSource : IGrimoireSource {
                         .GetElementsByClassName("chapter-time")
                         .FirstOrDefault()
                         .TextContent.Split('-')[1].Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
-                    return new MangaChapter {
+                    return new Chapter {
                         Name = href.Title,
                         Url = href.Href,
                         ReleasedOn = parsedDate
@@ -98,7 +98,7 @@ public sealed class Manhwa18NetSource : IGrimoireSource {
             .ToArray();
     }
 
-    public async Task<IReadOnlyList<MangaChapter>> FetchChaptersAsync(Manga manga) {
+    public async Task<IReadOnlyList<Chapter>> FetchChaptersAsync(Manga manga) {
         using var document = await _httpClient.ParseAsync(manga.Url);
         _logger.LogInformation("Fetching chapters for {name}", manga.Name);
 
@@ -112,7 +112,7 @@ public sealed class Manhwa18NetSource : IGrimoireSource {
                     .GetElementsByClassName("chapter-time")
                     .FirstOrDefault()
                     .TextContent.Split('-')[1].Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
-                return new MangaChapter {
+                return new Chapter {
                     Name = href.Title,
                     Url = href.Href,
                     ReleasedOn = parsedDate
@@ -120,7 +120,7 @@ public sealed class Manhwa18NetSource : IGrimoireSource {
             }).ToArray();
     }
 
-    public async Task<MangaChapter> GetChapterAsync(MangaChapter chapter) {
+    public async Task<Chapter> GetChapterAsync(Chapter chapter) {
         using var document = await _httpClient.ParseAsync(chapter.Url);
         IElement element;
         do {
