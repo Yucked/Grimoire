@@ -16,6 +16,14 @@
             }
         }
     },
-    "SaveTo": "Grimoire_Date",
-    "RefreshEvery": "00:30:00"
+    "RefreshEvery": "00:30:00",
+    "Save": {
+        "To": "Grimoire_Data",
+        "SourceIcon": true,
+        "MangaCover": true,
+        "MangaChapter": true
+    },
+    "Cache": {
+        "Manga": true
+    }
 }
