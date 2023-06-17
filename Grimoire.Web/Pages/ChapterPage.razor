@@ -1,8 +1,8 @@
 ﻿@page "/{Prov}/{Mang}/{Chap:int}"
-@using Grimoire.Providers.Providers
+@using Grimoire.Sources.Sources
 
 @inject IServiceProvider ServiceProvider
-@inject AppState AppState
+@inject dynamic AppState
 
 <div class="container">
     @if (!ShouldLoad()) {
@@ -28,7 +28,7 @@
 
     protected override async Task OnInitializedAsync() {
         if (!ShouldLoad()) {
-            var provider = ServiceProvider.GetRequiredService<TCBScansProvider>();
+            var provider = ServiceProvider.GetRequiredService<TCBScansSource>();
             AppState.Chapter = await provider.GetChapterAsync(AppState.Chapter);
         }
     }

@@ -1,0 +1,22 @@
+﻿@page "/{Prov}"
+@using Grimoire.Web.Components
+@using Grimoire.Sources.Interfaces
+@using Grimoire.Sources
+
+@inject IServiceProvider Provider
+
+<SourceComponent Provider="_provider"></SourceComponent>
+
+@code {
+
+    [Parameter]
+    public string Prov { get; set; }
+
+    private IGrimoireSource _provider;
+
+    protected override void OnInitialized() {
+        _provider = Provider.GetGrimoireSources().FirstOrDefault(x => x.Name == Prov);
+        base.OnInitialized();
+    }
+
+}

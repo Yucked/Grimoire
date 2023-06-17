@@ -1,10 +1,10 @@
-﻿@using Grimoire.Providers.Interfaces
+﻿@using Grimoire.Sources.Interfaces
 
 @inject NavigationManager NavigationManager
-@inject AppState AppState
+@inject dynamic AppState
 
 <div class="container p-4">
-    @if (AppState.Mangas?.Count == 0 || AppState.Mangas == default) {
+    @if (AppState.Mangas?.Count == 0 || AppState.Mangas == null) {
         <div class="d-flex justify-content-center">
             <div class="spinner-border" role="status">
                 <span class="visually-hidden">Loading...</span>
@@ -89,7 +89,7 @@
 @code {
 
     [Parameter]
-    public IGrimoireProvider Provider { get; set; }
+    public IGrimoireSource Provider { get; set; }
 
     protected override async Task OnInitializedAsync() {
         if (AppState.Mangas is null or null) {
@@ -98,7 +98,7 @@
     }
 
     private void NavTo(string name) {
-        AppState.Manga = AppState.Mangas.FirstOrDefault(x => x.Name == name);
+        //AppState.Manga = AppState.Mangas.FirstOrDefault(x => x.Name == name);
         NavigationManager.NavigateTo($"/{Provider.Name}/{name}");
     }
 
