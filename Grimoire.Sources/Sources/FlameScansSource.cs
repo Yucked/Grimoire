@@ -99,7 +99,7 @@ public class FlameScansSource : IGrimoireSource {
         }
     }
 
-    public async Task<Chapter> GetChapterAsync(Chapter chapter) {
+    public async Task<Chapter> FetchChapterAsync(Chapter chapter) {
         throw new NotImplementedException();
     }
 }
