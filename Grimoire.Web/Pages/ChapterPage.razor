@@ -1,16 +1,17 @@
-﻿@page "/{Prov}/{Mang}/{Chap:int}"
-@using Grimoire.Sources.Sources
+﻿@page "/{SourceId}/{MangaId}/{Chap:int}"
 
-@inject IServiceProvider ServiceProvider
-@inject dynamic AppState
+@using Grimoire.Sources.Models
+@using Grimoire.Web.Cache
+
+@inject CacheHandler CacheHandler
 
 <div class="container">
-    @if (!ShouldLoad()) {
+    @if (_chapter == default) {
         <WaitingOn/>
     }
     else {
-        @foreach (var p in AppState.Chapter.Pages) {
-            <img src="@p.Value" alt="@p.Key">
+        @foreach (var chapterPage in _chapter.Pages) {
+            <img src="@chapterPage.Value" alt="@chapterPage.Key">
         }
     }
 </div>
@@ -18,27 +19,18 @@
 @code {
 
     [Parameter]
-    public string Prov { get; set; }
+    public string SourceId { get; set; }
 
     [Parameter]
-    public string Mang { get; set; }
+    public string MangaId { get; set; }
 
     [Parameter]
     public int Chap { get; set; }
 
+    private Chapter _chapter;
+
     protected override async Task OnInitializedAsync() {
-        if (!ShouldLoad()) {
-            var provider = ServiceProvider.GetRequiredService<TCBScansSource>();
-            AppState.Chapter = await provider.GetChapterAsync(AppState.Chapter);
-        }
-    }
-
-    private bool ShouldLoad() {
-        if (AppState.Chapter?.Pages == null) {
-            return false;
-        }
-
-        return AppState.Chapter.Pages.Count != 0;
+        _chapter = await CacheHandler.GetChapterAsync(SourceId, MangaId, Chap);
     }
 
 }
