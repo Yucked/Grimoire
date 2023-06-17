@@ -1,25 +1,24 @@
-using Grimoire.Providers;
-using Grimoire.Web;
+using Grimoire.Sources.Sources;
 using Grimoire.Web.Cache;
 using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.Sources.Clear();
-builder.Configuration
-    .AddJsonFile("settings.json");
+builder.Configuration.AddJsonFile("config.json", false, true);
 
-builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor();
-builder.Services
+builder
+    .Services
+    .AddRazorPages()
+    .Services
+    .AddServerSideBlazor()
+    .Services
     .AddSingleton<CacheHandler>()
-    .AddSingleton(new CacheOptions {
-        SaveTo = Path.Combine(builder.Environment.ContentRootPath, "static")
-    })
-    .AddSingleton<AppState>()
-    .AddGrimoireProviders()
+    //.AddGrimoireProviders()
+    .AddSingleton<TCBScansSource>()
     .AddResponseCaching()
     .AddHttpClient()
+    .AddMemoryCache()
     .AddLogging(x => {
         x.ClearProviders();
         x.AddConsole();
@@ -32,7 +31,10 @@ if (!app.Environment.IsDevelopment()) {
 
 app.UseHttpsRedirection();
 
-var provider = new PhysicalFileProvider(app.Services.GetRequiredService<CacheOptions>().SaveTo);
+var provider = new PhysicalFileProvider(
+    Path.GetFullPath(app.Configuration["SaveTo"]!)
+);
+
 app.Environment.WebRootFileProvider = new CompositeFileProvider(
     new PhysicalFileProvider(builder.Environment.WebRootPath),
     provider
@@ -41,8 +43,9 @@ app.Environment.WebRootFileProvider = new CompositeFileProvider(
 app.UseStaticFiles();
 app.UseStaticFiles(new StaticFileOptions {
     FileProvider = provider,
-    RequestPath = "/static"
+    RequestPath = $"/{app.Configuration["SaveTo"]!}"
 });
+
 app.UseRouting();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
