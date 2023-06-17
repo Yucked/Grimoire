@@ -1,4 +1,4 @@
-using Grimoire.Sources.Sources;
+using Grimoire.Sources;
 using Grimoire.Web.Cache;
 using Microsoft.Extensions.FileProviders;
 
@@ -20,8 +20,7 @@ builder
         x.ClearProviders();
         x.AddConsole();
     })
-    //.AddGrimoireProviders()
-    .AddSingleton<TCBScansSource>()
+    .AddGrimoireSources()
     .AddSingleton<CacheHandler>();
 
 var app = builder.Build();
@@ -31,10 +30,10 @@ if (!app.Environment.IsDevelopment()) {
 
 app.UseHttpsRedirection();
 
-if (!Directory.Exists(app.Configuration["Save:To"]))
-{
+if (!Directory.Exists(app.Configuration["Save:To"])) {
     Directory.CreateDirectory(app.Configuration["Save:To"]!);
 }
+
 var provider = new PhysicalFileProvider(
     Path.GetFullPath(app.Configuration["Save:To"]!)
 );
