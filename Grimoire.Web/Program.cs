@@ -31,6 +31,10 @@ if (!app.Environment.IsDevelopment()) {
 
 app.UseHttpsRedirection();
 
+if (!Directory.Exists(app.Configuration["Save:To"]))
+{
+    Directory.CreateDirectory(app.Configuration["Save:To"]!);
+}
 var provider = new PhysicalFileProvider(
     Path.GetFullPath(app.Configuration["Save:To"]!)
 );
