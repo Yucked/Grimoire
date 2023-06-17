@@ -397,3 +397,10 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 ./.idea
+/.idea/*
+/.idea/.idea.Grimoire/.idea/vcs.xml
+/.idea/.idea.Grimoire/.idea/.gitignore
+/.idea/.idea.Grimoire/.idea/encodings.xml
+/.idea/.idea.Grimoire/.idea/indexLayout.xml
+/Grimoire.Web/*Provider.json
+/Grimoire.Web/Grimoire_Data/
