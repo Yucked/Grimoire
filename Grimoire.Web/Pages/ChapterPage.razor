@@ -5,15 +5,20 @@
 
 @inject CacheHandler CacheHandler
 
-<div class="container">
-    @if (_chapter == default) {
-        <WaitingOn/>
-    }
-    else {
-        @foreach (var chapterPage in _chapter.Pages) {
-            <img src="@chapterPage.Value" alt="@chapterPage.Key">
+<div class="container p-4">
+    <picture class="p-4">
+        @if (_chapter == default) {
+            <WaitingOn/>
         }
-    }
+        else {
+            @foreach (var chapterPage in _chapter.Pages) {
+                <div class="text-center">
+                    <img src="@chapterPage.Value" alt="@chapterPage.Key" class="img-fluid rounded shadow-lg">
+                </div>
+            }
+        }
+
+    </picture>
 </div>
 
 @code {
