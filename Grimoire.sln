@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grimoire.Providers", "Grimoire.Providers\Grimoire.Providers.csproj", "{050629FC-F2E5-467B-90BA-5D61D568A095}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grimoire.Web", "Grimoire.Web\Grimoire.Web.csproj", "{2DC1EDD2-67E6-41D4-BD79-BBBA96C8D8A9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grimoire.Tests", "Grimoire.Tests\Grimoire.Tests.csproj", "{BC769B6F-1ED8-463B-8CDB-C6FFA96924A7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grimoire.Sources", "Grimoire.Sources\Grimoire.Sources.csproj", "{42EBB619-4B3B-43E1-A634-25B568426772}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,5 +30,9 @@ Global
 		{BC769B6F-1ED8-463B-8CDB-C6FFA96924A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BC769B6F-1ED8-463B-8CDB-C6FFA96924A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BC769B6F-1ED8-463B-8CDB-C6FFA96924A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42EBB619-4B3B-43E1-A634-25B568426772}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42EBB619-4B3B-43E1-A634-25B568426772}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42EBB619-4B3B-43E1-A634-25B568426772}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42EBB619-4B3B-43E1-A634-25B568426772}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
