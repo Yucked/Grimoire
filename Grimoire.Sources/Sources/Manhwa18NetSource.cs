@@ -120,7 +120,7 @@ public sealed class Manhwa18NetSource : IGrimoireSource {
             }).ToArray();
     }
 
-    public async Task<Chapter> GetChapterAsync(Chapter chapter) {
+    public async Task<Chapter> FetchChapterAsync(Chapter chapter) {
         using var document = await _httpClient.ParseAsync(chapter.Url);
         IElement element;
         do {

@@ -71,7 +71,7 @@ public sealed class TCBScansSource : IGrimoireSource {
             .ToArray();
     }
 
-    public async Task<Chapter> GetChapterAsync(Chapter chapter) {
+    public async Task<Chapter> FetchChapterAsync(Chapter chapter) {
         using var document = await _httpClient.ParseAsync(chapter.Url);
         chapter.Pages = document
             .QuerySelectorAll("img.fixed-ratio-content")

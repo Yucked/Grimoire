@@ -40,9 +40,9 @@ public sealed class ProviderTests {
     }
 
     [TestMethod]
-    public async Task GetChapterAsync() {
+    public async Task FetchChapterAsync() {
         var provider = Globals.Services.GetRequiredService(_provider) as TCBScansSource;
-        var chapter = await provider!.GetChapterAsync(Chapter);
+        var chapter = await provider!.FetchChapterAsync(Chapter);
 
         Assert.IsNotNull(chapter);
         Assert.IsNotNull(chapter.Pages);

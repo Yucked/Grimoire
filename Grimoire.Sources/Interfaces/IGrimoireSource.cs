@@ -45,5 +45,5 @@ public interface IGrimoireSource {
     /// </summary>
     /// <param name="chapter"></param>
     /// <returns></returns>
-    Task<Chapter> GetChapterAsync(Chapter chapter);
+    Task<Chapter> FetchChapterAsync(Chapter chapter);
 }
