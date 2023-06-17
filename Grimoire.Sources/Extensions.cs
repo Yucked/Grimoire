@@ -114,16 +114,4 @@ public static partial class Extensions {
     public static string GetNameFromId(this string id) {
         return Encoding.UTF8.GetString(Convert.FromBase64String(id));
     }
-
-    public static string GetBasePath(this string str, string id) {
-        return Path.Combine(str, id);
-    }
-
-    public static string GetIconPath(this string str, string icon) {
-        return Path.Combine(str, icon.Split('/')[^1]);
-    }
-
-    public static string GetIconPath(this string path, string manga, string icon) {
-        return Path.Combine(path, icon.Split('/')[^1]);
-    }
 }
