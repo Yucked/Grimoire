@@ -68,7 +68,7 @@
         <div class="list-group list-group-flush rounded">
             @for (var i = 0; i < _manga.Chapters.Count; i++) {
                 {
-                    var chapter = (_manga.Chapters.Count - i) - 1;
+                    var chapter = i;
                     <a @onclick="() => NavTo(chapter)"
                        class="list-group-item list-group-item-action rounded @(i == 0 ? "active" : string.Empty)"
                        aria-current="@(i == 0 ? "true" : "false")">
