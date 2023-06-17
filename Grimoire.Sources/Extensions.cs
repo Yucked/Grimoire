@@ -75,7 +75,7 @@ public static partial class Extensions {
         await File.WriteAllBytesAsync($"{output}/{fileName}", data);
     }
 
-    public static IServiceCollection AddGrimoireProviders(this IServiceCollection collection) {
+    public static IServiceCollection AddGrimoireSources(this IServiceCollection collection) {
         var providers = typeof(IGrimoireSource).Assembly
             .GetTypes()
             .Where(x => typeof(IGrimoireSource).IsAssignableFrom(x)
@@ -89,7 +89,7 @@ public static partial class Extensions {
         return collection;
     }
 
-    public static IEnumerable<IGrimoireSource> GetGrimoireProviders(this IServiceProvider provider) {
+    public static IEnumerable<IGrimoireSource> GetGrimoireSources(this IServiceProvider provider) {
         /*
         var providers = typeof(IGrimoireSource).Assembly
             .GetTypes()
@@ -107,11 +107,23 @@ public static partial class Extensions {
         };
     }
 
-    public static string GetMangaIdFromName(this string mangaName) {
-        return Convert.ToBase64String(Encoding.UTF8.GetBytes(mangaName));
+    public static string GetIdFromName(this string name) {
+        return Convert.ToBase64String(Encoding.UTF8.GetBytes(name));
     }
 
-    public static string GetMangaNameFromId(this string mangaId) {
-        return Encoding.UTF8.GetString(Convert.FromBase64String(mangaId));
+    public static string GetNameFromId(this string id) {
+        return Encoding.UTF8.GetString(Convert.FromBase64String(id));
+    }
+
+    public static string GetBasePath(this string str, string id) {
+        return Path.Combine(str, id);
+    }
+
+    public static string GetIconPath(this string str, string icon) {
+        return Path.Combine(str, icon.Split('/')[^1]);
+    }
+
+    public static string GetIconPath(this string path, string manga, string icon) {
+        return Path.Combine(path, icon.Split('/')[^1]);
     }
 }

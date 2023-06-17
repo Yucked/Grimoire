@@ -4,7 +4,7 @@ namespace Grimoire.Sources.Interfaces;
 
 public interface IGrimoireSource {
     public string Id
-        => Name.GetMangaIdFromName();
+        => Name.GetIdFromName();
 
     /// <summary>
     /// Name of the provider
