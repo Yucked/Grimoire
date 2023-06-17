@@ -15,7 +15,7 @@ public sealed class ProviderTests {
         Url = "https://flamescans.org/series/1686564121-forty-eight-hours-a-day/"
     };
 
-    private static readonly MangaChapter Chapter = new() {
+    private static readonly Chapter Chapter = new() {
         Url = "https://tcbscans.com/chapters/43/bleach-chapter-686.5"
     };
 
