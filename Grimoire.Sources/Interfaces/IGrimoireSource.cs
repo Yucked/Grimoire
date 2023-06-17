@@ -38,5 +38,12 @@ public interface IGrimoireSource {
     /// </summary>
     /// <param name="manga"></param>
     /// <returns></returns>
-    Task<IReadOnlyList<MangaChapter>> FetchChaptersAsync(Manga manga);
+    Task<IReadOnlyList<Chapter>> FetchChaptersAsync(Manga manga);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="chapter"></param>
+    /// <returns></returns>
+    Task<Chapter> GetChapterAsync(Chapter chapter);
 }
