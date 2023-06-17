@@ -1,6 +1,9 @@
 namespace Grimoire.Sources.Models;
 
 public record Manga {
+    public string Id
+        => Name.GetIdFromName();
+
     public string Name { get; set; }
     public string Url { get; set; }
     public string Cover { get; set; }
