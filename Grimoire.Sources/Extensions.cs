@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
 using AngleSharp;
 using AngleSharp.Dom;
@@ -69,8 +70,8 @@ public static partial class Extensions {
 
         using var content = responseMessage.Content;
         var data = await content.ReadAsByteArrayAsync();
-        var fileName = content.Headers.ContentDisposition?.FileNameStar
-                       ?? url.Split('/')[^1];
+        var fileName = CleanPath(content.Headers.ContentDisposition?.FileNameStar
+                                 ?? url.Split('/')[^1]);
         await File.WriteAllBytesAsync($"{output}/{fileName}", data);
     }
 
@@ -106,5 +107,10 @@ public static partial class Extensions {
 
     public static string GetNameFromId(this string id) {
         return Encoding.UTF8.GetString(Convert.FromBase64String(id));
+    }
+
+    public static string CleanPath(this string str) {
+        return WebUtility.UrlDecode(str)
+            .Replace(' ', '_');
     }
 }
