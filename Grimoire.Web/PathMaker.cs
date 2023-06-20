@@ -1,4 +1,6 @@
-﻿namespace Grimoire.Web;
+﻿using Grimoire.Sources;
+
+namespace Grimoire.Web;
 
 public record struct PathMaker {
     public static PathMaker New(string basePath) => new(basePath);
@@ -25,7 +27,7 @@ public record struct PathMaker {
     }
 
     public string WithIcon(string sourceIcon) {
-        return Path.Combine(Ave, sourceIcon.Split('/')[^1]);
+        return Path.Combine(Ave, sourceIcon.CleanPath().Split('/')[^1]);
     }
 
     public string WithCover(string sourceIcon) {
