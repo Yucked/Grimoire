@@ -1,24 +1,23 @@
 ﻿@page "/{SourceId}"
 
 @using Grimoire.Web.Cache
-@using Grimoire.Sources.Models
 
 @inject CacheHandler CacheHandler
 @inject NavigationManager NavigationManager
 @inject IConfiguration Configuration
 
 <div class="container p-4">
-    @if (_mangas?.Count == 0 || _mangas == null) {
+    @if (!_pagination.HasPages) {
         <WaitingOn/>
     }
     else {
         <div class="container pb-3">
             <div id="carouselExampleSlidesOnly" class="carousel slide carousel-fade shadow-lg" data-bs-ride="carousel">
                 <div class="carousel-inner">
-                    @for (var i = 0; i < _mangas.Take(5).Count(); i++) {
-                        <div class="carousel-item @(i == 0 ? "active" : string.Empty)">
-                            <img src="@Configuration.GetCover(CacheHandler.Get<string>($"{SourceId}@{_mangas[i].Id}"), _mangas[i].Cover)"
-                                 class="rounded-4" alt="@_mangas[i].Name">
+                    @foreach (var manga in _pagination.Active.Items) {
+                        <div class="carousel-item">
+                            <img src="@Configuration.GetCover(CacheHandler.Get<string>($"{SourceId}@{manga.Id}"), manga.Cover)"
+                                 class="rounded-4" alt="@manga.Name">
                         </div>
                     }
                 </div>
@@ -39,17 +38,17 @@
             <div class="row row-cols-1 row-cols-lg-3 g-2">
                 <div class="col">
                     <div class="color-periwinkle rounded shadow-lg p-2 border-dark">
-                        Total Mangas: @_mangas.Count
+                        Total Mangas: @_pagination.Count
                     </div>
                 </div>
                 <div class="col">
                     <div class="color-periwinkle rounded shadow-lg p-2 border-dark">
-                        Last Fetch: @LastFetch()
+                        Last Fetch: @_pagination.Count
                     </div>
                 </div>
                 <div class="col">
                     <div class="color-periwinkle rounded shadow-lg p-2 border-dark">
-                        Total Mangas: @_mangas.Count
+                        Total Mangas: @_pagination.Count
                     </div>
                 </div>
             </div>
@@ -57,56 +56,48 @@
 
         <div class="container pt-2">
             <div class="row row-cols-1 row-cols-lg-4 g-4">
-                @for (var i = 0; i < _mangas.Take(40).Count(); i++) {
-                    {
-                        var index = i;
-                        <div class="col">
-                            <div class="card h-100 shadow-sm" @onclick="() => NavTo(_mangas[index].Id)">
-                                <img src="@Configuration.GetCover(CacheHandler.Get<string>($"{SourceId}@{_mangas[i].Id}"), _mangas[i].Cover)"
-                                     class="card-img-top" alt="@_mangas[i].Name">
-                                <div class="card-body">
-                                    <h5 class="card-title">
-                                        <p>
-                                            @_mangas[i].Name
-                                        </p>
-                                    </h5>
-                                    <p class="card-text">
-                                        <small class="text-body-secondary">
-                                            @Truncate(_mangas[i].Summary)
-                                        </small>
+                @foreach (var manga in _pagination.Active.Items) {
+                    <div class="col">
+                        <div class="card h-100 shadow-sm" @onclick="() => NavTo(manga.Id)">
+                            <img src="@Configuration.GetCover(CacheHandler.Get<string>($"{SourceId}@{manga.Id}"), manga.Cover)"
+                                 class="card-img-top" alt="@manga.Name">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <p>
+                                        @manga.Name
                                     </p>
-                                </div>
-                                <div class="card-footer">
-                                    <small class="text-body-secondary">Last fetched on @(_mangas[i].LastFetch.ToString("D"))</small>
-                                </div>
+                                </h5>
+                                <p class="card-text">
+                                    <small class="text-body-secondary">
+                                        @Truncate(manga.Summary)
+                                    </small>
+                                </p>
+                            </div>
+                            <div class="card-footer">
+                                <small class="text-body-secondary">Last fetched on @(manga.LastFetch.ToString("D"))</small>
                             </div>
                         </div>
-                    }
+                    </div>
                 }
             </div>
         </div>
 
-        <div class="container pt-2">
-            <nav aria-label="Page navigation example">
-                <ul class="pagination justify-content-end">
-                    <li class="page-item disabled">
-                        <a class="page-link">Previous</a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="#">1</a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="#">2</a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="#">3</a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="#">Next</a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
+        if (_pagination.HasPages) {
+            <div class="container pt-2">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-end">
+                        <li class="page-item @(_pagination.Active.Previous == default ? "disabled" : "")">
+                            <a class="page-link" @onclick="() => _pagination.Previous()">Previous</a>
+                        </li>
+
+                        <li class="page-item @(_pagination.Active.Next == default ? "disabled" : "")">
+                            <a class="page-link" @onclick="() => _pagination.Next()">Next</a>
+                        </li>
+
+                    </ul>
+                </nav>
+            </div>
+        }
     }
 </div >
 
@@ -116,10 +107,11 @@
     [Parameter]
     public string SourceId { get; set; }
 
-    private IReadOnlyList<Manga> _mangas;
+    private Pagination _pagination;
 
     protected override async Task OnInitializedAsync() {
-        _mangas = await CacheHandler.GetMangasAsync(SourceId);
+        var mangas = await CacheHandler.GetMangasAsync(SourceId);
+        _pagination = new Pagination(mangas);
     }
 
     private void NavTo(string mangaId) {
@@ -129,12 +121,6 @@
     private static string Truncate(string str) {
         return str.Length > 150 ?
             $"{str[..150]}..." : str;
-    }
-
-    private string LastFetch() {
-        return _mangas.OrderByDescending(x => x.LastFetch).First()
-            .LastFetch
-            .ToString("d");
     }
 
 }
