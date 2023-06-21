@@ -50,7 +50,6 @@ public class AsuraScansSource : IGrimoireSource {
                     ? default
                     : addName.Split(',');
 
-                manga.LastFetch = DateTimeOffset.Now;
                 manga.Chapters = doc.GetElementsByClassName("eph-num")
                     .Select(x => {
                         var anchor = x.Children[0] as IHtmlAnchorElement;

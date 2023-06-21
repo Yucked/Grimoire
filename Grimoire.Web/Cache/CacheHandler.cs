@@ -135,7 +135,7 @@ public sealed class CacheHandler {
         if (!_config.GetValue<bool>("Save:MangaChapter")) {
             return chapter;
         }
-
+        
         var path = PathMaker
             .New(_config["Save:To"])
             .WithSource(sourceId)
