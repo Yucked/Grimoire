@@ -16,6 +16,7 @@
             }
         }
     },
+    "Theme": "light",
     "RefreshEvery": "00:30:00",
     "Save": {
         "To": "Grimoire_Data",
