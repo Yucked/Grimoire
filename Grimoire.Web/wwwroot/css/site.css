@@ -12,6 +12,26 @@ body, html {
     --color-slateblack: #434343;
 }
 
+.color-periwinkle {
+    background: var(--color-periwinkle);
+    color: var(--color-slateblack);
+}
+
+.color-slateblack {
+    background: var(--color-slateblack);
+    color: var(--color-davysgray);
+}
+
+.list-group-item-action, .list-group-item-action {
+    transition: 0.3s;
+}
+
+.list-group-item-action:focus, .list-group-item-action:hover {
+    color: var(--color-slateblack) !important;
+    background: var(--color-periwinkle) !important;
+}
+
+
 .card {
     transition: .3s transform cubic-bezier(.155, 1.105, .295, 1.12), .3s box-shadow, .3s -webkit-transform cubic-bezier(.155, 1.105, .295, 1.12);
     cursor: pointer;
