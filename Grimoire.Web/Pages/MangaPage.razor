@@ -7,83 +7,89 @@
 @inject IConfiguration Configuration
 @inject NavigationManager NavigationManager
 
-<div class="container p-4">
-    <div class="card mb-3 shadow-lg rounded-4">
-        <div class="row g-0">
-            <div class="col-sm-4">
-                <img src="@Configuration.GetCover(CacheHandler.Get<string>($"{SourceId}@{_manga.Id}"), _manga.Cover)"
-                     class="card-img" alt="_manga.Name">
-            </div>
 
-            <div class="col-sm-8">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <p class="display-6">
-                            @_manga.Name
-                        </p>
-                    </h5>
+<div class="container-lg py-4">
+    <div class="row row-cols-1 gy-4">
+        <div class="col">
+            <div class="card mb-3 shadow rounded-4">
+                <div class="row gy-4">
+                    <div class="col-md-4">
+                        <img src="@Configuration.GetCover(CacheHandler.Get<string>($"{SourceId}@{_manga.Id}"), _manga.Cover)"
+                             class="card-img" alt="_manga.Name">
+                    </div>
 
-                    <p class="card-text">
-                        <small class="text-body-secondary">
-                            @_manga.Summary
-                        </small>
-                    </p>
-                </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <p class="display-6">
+                                    @_manga.Name
+                                </p>
+                            </h5>
 
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item">
-                        <span>Genre: </span>
-                        @if (_manga?.Genre == null || _manga.Genre.Count == 0) {
-                            <span>N/A</span>
-                        }
-                        else {
-                            @foreach (var genre in _manga.Genre) {
-                                <span class="badge text-bg-primary mx-1">@genre </span>
-                            }
-                        }
-                    </li>
-                    <li class="list-group-item">
-                        Author: @(_manga?.Author ?? "Unknown")
-                    </li>
-                    <li class="list-group-item">
-                        <span>Metonyms: </span>
-                        @if (_manga?.Metonyms == null || _manga.Metonyms.Count == 0) {
-                            <span>N/A</span>
-                        }
-                        else {
-                            <span>@string.Join(',', _manga.Metonyms)</span>
-                        }
-                    </li>
-                </ul>
+                            <p class="card-text">
+                                <small class="text-body-secondary">
+                                    @_manga.Summary
+                                </small>
+                            </p>
+                        </div>
 
-                <div class="card-body">
-                    <p class="card-text">
-                        <small class="text-body-secondary">Last fetched on @_manga.LastFetch</small>
-                    </p>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">
+                                <span>Genre: </span>
+                                @if (_manga?.Genre == null || _manga.Genre.Count == 0) {
+                                    <span>N/A</span>
+                                }
+                                else {
+                                    @foreach (var genre in _manga.Genre) {
+                                        <span class="badge text-bg-primary mx-1">@genre </span>
+                                    }
+                                }
+                            </li>
+                            <li class="list-group-item">
+                                Author: @(_manga?.Author ?? "Unknown")
+                            </li>
+                            <li class="list-group-item">
+                                <span>Metonyms: </span>
+                                @if (_manga?.Metonyms == null || _manga.Metonyms.Count == 0) {
+                                    <span>N/A</span>
+                                }
+                                else {
+                                    <span>@string.Join(',', _manga.Metonyms)</span>
+                                }
+                            </li>
+                        </ul>
+
+                        <div class="card-body">
+                            <p class="card-text">
+                                <small class="text-body-secondary">Last fetched on @_manga.LastFetch</small>
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="container-md p-3">
-        <div class="list-group list-group-flush rounded">
-            @for (var i = 0; i < _manga.Chapters.Count; i++) {
-                {
-                    var chapter = i;
-                    <a @onclick="() => NavTo(chapter)"
-                       class="list-group-item list-group-item-action rounded @(i == 0 ? "active" : string.Empty)"
-                       aria-current="@(i == 0 ? "true" : "false")">
-                        <div class="d-flex w-100 justify-content-between">
-                            <p>
-                                @_manga.Chapters[i].Name
-                            </p>
-                            <small>
-                                @_manga.Chapters[i].ReleasedOn
-                            </small>
-                        </div>
-                    </a>
-                }
-            }
+        <div class="col">
+            <div class="container-lg border rounded-4 shadow">
+                <div class="list-group list-group-flush">
+                    @for (var i = 0; i < _manga.Chapters.Count; i++) {
+                        {
+                            var chapter = i;
+                            <a @onclick="() => NavTo(chapter)"
+                               class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <p>
+                                        @_manga.Chapters[i].Name
+                                    </p>
+                                    <small>
+                                        @_manga.Chapters[i].ReleasedOn
+                                    </small>
+                                </div>
+                            </a>
+                        }
+                    }
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -95,7 +101,7 @@
 
     [Parameter]
     public string MangaId { get; set; }
-    
+
     private Manga _manga;
 
     protected override async Task OnInitializedAsync() {
