@@ -35,6 +35,26 @@
             </div>
         </div>
 
+        <div class="container py-3 text-center">
+            <div class="row row-cols-1 row-cols-lg-3 g-2">
+                <div class="col">
+                    <div class="color-periwinkle rounded shadow-lg p-2 border-dark">
+                        Total Mangas: @_mangas.Count
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="color-periwinkle rounded shadow-lg p-2 border-dark">
+                        Last Fetch: @LastFetch()
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="color-periwinkle rounded shadow-lg p-2 border-dark">
+                        Total Mangas: @_mangas.Count
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="container pt-2">
             <div class="row row-cols-1 row-cols-lg-4 g-4">
                 @for (var i = 0; i < _mangas.Take(40).Count(); i++) {
@@ -109,6 +129,12 @@
     private static string Truncate(string str) {
         return str.Length > 150 ?
             $"{str[..150]}..." : str;
+    }
+
+    private string LastFetch() {
+        return _mangas.OrderByDescending(x => x.LastFetch).First()
+            .LastFetch
+            .ToString("d");
     }
 
 }
