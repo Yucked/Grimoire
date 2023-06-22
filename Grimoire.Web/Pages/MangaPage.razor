@@ -7,7 +7,6 @@
 @inject IConfiguration Configuration
 @inject NavigationManager NavigationManager
 
-
 <div class="container-lg py-4">
     <div class="row row-cols-1 gy-4">
         <div class="col">
@@ -111,5 +110,6 @@
     private void NavTo(int chapter) {
         NavigationManager.NavigateTo($"/{SourceId}/{MangaId}/{chapter}");
     }
+
 
 }
