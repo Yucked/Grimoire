@@ -125,7 +125,7 @@ public sealed class Manhwa18NetSource : IGrimoireSource {
         IElement element;
         do {
             element = document.All.FirstOrDefault(x => x.LocalName == "div" && x.Id == "chapter-content");
-        } while (element == default && !element.Children.Any());
+        } while (element == default && element.Children.Length == 0);
 
         chapter.Pages = element
             .Children
