@@ -76,27 +76,27 @@ public static partial class Extensions {
     }
 
     public static IServiceCollection AddGrimoireSources(this IServiceCollection collection) {
-        var providers = typeof(IGrimoireSource).Assembly
+        var sources = typeof(IGrimoireSource).Assembly
             .GetTypes()
             .Where(x => typeof(IGrimoireSource).IsAssignableFrom(x)
                         && !x.IsInterface
                         && !x.IsAbstract);
 
-        foreach (var provider in providers) {
-            collection.AddSingleton(provider);
+        foreach (var source in sources) {
+            collection.AddSingleton(source);
         }
 
         return collection;
     }
 
     public static IEnumerable<IGrimoireSource> GetGrimoireSources(this IServiceProvider provider) {
-        var providers = typeof(IGrimoireSource).Assembly
+        var sources = typeof(IGrimoireSource).Assembly
             .GetTypes()
             .Where(x => typeof(IGrimoireSource).IsAssignableFrom(x)
                         && !x.IsInterface
                         && !x.IsAbstract);
 
-        return providers
+        return sources
             .Select(provider.GetRequiredService)
             .OfType<IGrimoireSource>();
     }
