@@ -114,14 +114,7 @@ public class AsuraScansSource : IGrimoireSource {
         }
     }
 
-    public async Task<Chapter> FetchChapterAsync(Chapter chapter) {
-        using var document = await _httpClient.ParseAsync(chapter.Url);
-        chapter.Pages = document
-            .QuerySelectorAll("img.alignnone")
-            .Select((x, index) => new {
-                Key = index, Value = (x as IHtmlImageElement).Source
-            })
-            .ToDictionary(x => x.Key, x => x.Value);
-        return chapter;
+    public Task<Chapter> FetchChapterAsync(Chapter chapter) {
+        return _httpClient.FetchChapterAsync(chapter, "img.alignnone");
     }
 }
