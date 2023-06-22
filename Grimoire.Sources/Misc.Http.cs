@@ -1,14 +1,11 @@
-﻿using System.Net;
-using System.Text;
-using System.Text.RegularExpressions;
-using AngleSharp;
+﻿using AngleSharp;
 using AngleSharp.Dom;
-using Grimoire.Sources.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
+using AngleSharp.Html.Dom;
+using Grimoire.Sources.Models;
 
 namespace Grimoire.Sources;
 
-public static partial class Extensions {
+public static partial class Misc {
     private static readonly IBrowsingContext Context
         = BrowsingContext.New(Configuration.Default.WithDefaultLoader());
 
@@ -22,13 +19,6 @@ public static partial class Extensions {
         "Mozilla/5.0 (Windows; U; Windows NT 10.1;; en-US) AppleWebKit/535.14 (KHTML, like Gecko) Chrome/51.0.2258.396 Safari/600",
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_5; en-US) AppleWebKit/600.21 (KHTML, like Gecko) Chrome/48.0.1544.246 Safari/536"
     };
-
-    [GeneratedRegex("\\r\\n?|\\n")]
-    private static partial Regex CleanRegex();
-
-    public static string Clean(this string str) {
-        return string.IsNullOrWhiteSpace(str) ? str : CleanRegex().Replace(str, string.Empty);
-    }
 
     public static async Task<IDocument> ParseAsync(this HttpClient httpClient, string url, bool withAccept = false) {
         var requestMessage = new HttpRequestMessage {
@@ -75,42 +65,16 @@ public static partial class Extensions {
         await File.WriteAllBytesAsync($"{output}/{fileName}", data);
     }
 
-    public static IServiceCollection AddGrimoireSources(this IServiceCollection collection) {
-        var sources = typeof(IGrimoireSource).Assembly
-            .GetTypes()
-            .Where(x => typeof(IGrimoireSource).IsAssignableFrom(x)
-                        && !x.IsInterface
-                        && !x.IsAbstract);
-
-        foreach (var source in sources) {
-            collection.AddSingleton(source);
-        }
-
-        return collection;
-    }
-
-    public static IEnumerable<IGrimoireSource> GetGrimoireSources(this IServiceProvider provider) {
-        var sources = typeof(IGrimoireSource).Assembly
-            .GetTypes()
-            .Where(x => typeof(IGrimoireSource).IsAssignableFrom(x)
-                        && !x.IsInterface
-                        && !x.IsAbstract);
-
-        return sources
-            .Select(provider.GetRequiredService)
-            .OfType<IGrimoireSource>();
-    }
-
-    public static string GetIdFromName(this string name) {
-        return Convert.ToBase64String(Encoding.UTF8.GetBytes(name));
-    }
-
-    public static string GetNameFromId(this string id) {
-        return Encoding.UTF8.GetString(Convert.FromBase64String(id));
-    }
-
-    public static string CleanPath(this string str) {
-        return WebUtility.UrlDecode(str)
-            .Replace(' ', '_');
+    internal static async Task<Chapter> FetchChapterAsync(this HttpClient httpClient,
+                                                          Chapter chapter,
+                                                          string selector) {
+        using var document = await httpClient.ParseAsync(chapter.Url);
+        chapter.Pages = document
+            .QuerySelectorAll(selector)
+            .Select((x, index) => new {
+                Key = index, Value = (x as IHtmlImageElement).Source
+            })
+            .ToDictionary(x => x.Key, x => x.Value);
+        return chapter;
     }
 }
