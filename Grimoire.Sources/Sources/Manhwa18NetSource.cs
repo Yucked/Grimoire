@@ -92,7 +92,7 @@ public sealed class Manhwa18NetSource : IGrimoireSource {
                         .First()
                         .GetAttribute("data-bg"),
                     LastFetch = DateTimeOffset.Now,
-                    Provider = GetType().Name[..^8]
+                    SourceName = GetType().Name[..^8]
                 };
             })
             .ToArray();

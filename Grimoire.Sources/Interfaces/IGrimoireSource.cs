@@ -7,17 +7,17 @@ public interface IGrimoireSource {
         => Name.GetIdFromName();
 
     /// <summary>
-    /// Name of the provider
+    /// Name of the source
     /// </summary>
     string Name { get; }
 
     /// <summary>
-    /// Base URL of the provider
+    /// Base URL of the source
     /// </summary>
     string BaseUrl { get; }
 
     /// <summary>
-    /// Favicon/Icon of the provider
+    /// Favicon/Icon of the source
     /// </summary>
     string Icon { get; }
 
