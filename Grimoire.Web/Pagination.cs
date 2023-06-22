@@ -3,7 +3,7 @@
 namespace Grimoire.Web;
 
 public record Page {
-    public IReadOnlyList<Manga> Items { get; set; }
+    public IList<Manga> Items { get; set; }
     public Page Previous { get; set; }
     public Page Next { get; set; }
 }
