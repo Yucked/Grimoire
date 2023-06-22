@@ -2,7 +2,7 @@
     "AllowedHosts": "*",
     "Logging": {
         "LogLevel": {
-            "Default": "Trace",
+            "Default": "Information",
             "Microsoft.AspNetCore": "Warning"
         }
     },
@@ -16,7 +16,7 @@
             }
         }
     },
-    "Theme": "light",
+    "Theme": "dark",
     "RefreshEvery": "00:30:00",
     "Save": {
         "To": "Grimoire_Data",
