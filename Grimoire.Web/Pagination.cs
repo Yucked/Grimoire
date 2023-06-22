@@ -12,11 +12,11 @@ public record struct Pagination {
     public Page Active { get; private set; }
 
     public bool HasPages
-        => Count > 0;
+        => Count > 1;
 
     public int Count { get; }
 
-    public Pagination(IReadOnlyList<Manga> mangas) {
+    public Pagination(IEnumerable<Manga> mangas) {
         var index = 0;
         var pages = mangas
             .OrderBy(x => x.Name)
@@ -39,7 +39,7 @@ public record struct Pagination {
             page.Previous = last;
             index++;
         } while (index < pages.Length);
-        
+
         Count = index;
     }
 
