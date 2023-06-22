@@ -5,105 +5,111 @@
 @inject CacheHandler CacheHandler
 @inject NavigationManager NavigationManager
 @inject IConfiguration Configuration
+@inject IJSRuntime JsRuntime
 
-<div class="container p-4">
-    @if (!_pagination.HasPages) {
+<div class="container-lg py-4">
+    @if (_pagination.Active == null) {
         <WaitingOn/>
     }
     else {
-        <div class="container pb-3">
-            <div id="carouselExampleSlidesOnly" class="carousel slide carousel-fade shadow-lg" data-bs-ride="carousel">
-                <div class="carousel-inner">
+        <div class="row row-cols-1 g-5">
+            <div class="col">
+                <div id="carouselExampleSlidesOnly" class="carousel slide carousel-fade shadow-lg" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        @foreach (var manga in _pagination.Active.Items) {
+                            <div class="carousel-item">
+                                <img src="@Configuration.GetCover(CacheHandler.Get<string>($"{SourceId}@{manga.Id}"), manga.Cover)"
+                                     class="rounded-4" alt="@manga.Name">
+                            </div>
+                        }
+                    </div>
+
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleSlidesOnly" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleSlidesOnly" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+
+                </div>
+            </div>
+
+            <div class="col text-center">
+                <div class="row row-cols-1 row-cols-lg-3 g-2">
+                    <div class="col">
+                        <div class="color-periwinkle rounded shadow-lg p-2 border-dark">
+                            Total Mangas: @_pagination.Count
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="color-periwinkle rounded shadow-lg p-2 border-dark">
+                            Last Fetch: @_pagination.Count
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="color-periwinkle rounded shadow-lg p-2 border-dark">
+                            Total Mangas: @_pagination.Count
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="row row-cols-2 row-cols-md-4 g-4">
                     @foreach (var manga in _pagination.Active.Items) {
-                        <div class="carousel-item">
-                            <img src="@Configuration.GetCover(CacheHandler.Get<string>($"{SourceId}@{manga.Id}"), manga.Cover)"
-                                 class="rounded-4" alt="@manga.Name">
+                        <div class="col">
+                            <div class="card h-100 shadow-sm" @onclick="() => NavTo(manga.Id)">
+                                <img src="@Configuration.GetCover(CacheHandler.Get<string>($"{SourceId}@{manga.Id}"), manga.Cover)"
+                                     class="card-img-top" alt="@manga.Name">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <p>
+                                            @manga.Name
+                                        </p>
+                                    </h5>
+                                    <p class="card-text">
+                                        <small class="text-body-secondary">
+                                            @Truncate(manga.Summary)
+                                        </small>
+                                    </p>
+                                </div>
+                                <div class="card-footer">
+                                    <small class="text-body-secondary">Last fetched on @(manga.LastFetch.ToString("D"))</small>
+                                </div>
+                            </div>
                         </div>
                     }
                 </div>
-
-                <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleSlidesOnly" data-bs-slide="prev">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Previous</span>
-                </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleSlidesOnly" data-bs-slide="next">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Next</span>
-                </button>
-
             </div>
-        </div>
 
-        <div class="container py-3 text-center">
-            <div class="row row-cols-1 row-cols-lg-3 g-2">
+            @if (_pagination.HasPages) {
                 <div class="col">
-                    <div class="color-periwinkle rounded shadow-lg p-2 border-dark">
-                        Total Mangas: @_pagination.Count
-                    </div>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-lg justify-content-center">
+                            <li class="page-item @(_pagination.Active.Previous == default ? "disabled" : "")">
+                                <a class="page-link" @onclick="() => NavAsync(false)">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+
+                            <li class="page-item @(_pagination.Active.Next == default ? "disabled" : "")">
+                                <a class="page-link" @onclick="() => NavAsync(true)">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </nav>
                 </div>
-                <div class="col">
-                    <div class="color-periwinkle rounded shadow-lg p-2 border-dark">
-                        Last Fetch: @_pagination.Count
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="color-periwinkle rounded shadow-lg p-2 border-dark">
-                        Total Mangas: @_pagination.Count
-                    </div>
-                </div>
-            </div>
+            }
         </div>
-
-        <div class="container pt-2">
-            <div class="row row-cols-1 row-cols-lg-4 g-4">
-                @foreach (var manga in _pagination.Active.Items) {
-                    <div class="col">
-                        <div class="card h-100 shadow-sm" @onclick="() => NavTo(manga.Id)">
-                            <img src="@Configuration.GetCover(CacheHandler.Get<string>($"{SourceId}@{manga.Id}"), manga.Cover)"
-                                 class="card-img-top" alt="@manga.Name">
-                            <div class="card-body">
-                                <h5 class="card-title">
-                                    <p>
-                                        @manga.Name
-                                    </p>
-                                </h5>
-                                <p class="card-text">
-                                    <small class="text-body-secondary">
-                                        @Truncate(manga.Summary)
-                                    </small>
-                                </p>
-                            </div>
-                            <div class="card-footer">
-                                <small class="text-body-secondary">Last fetched on @(manga.LastFetch.ToString("D"))</small>
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-
-        if (_pagination.HasPages) {
-            <div class="container pt-2">
-                <nav aria-label="Page navigation">
-                    <ul class="pagination justify-content-end">
-                        <li class="page-item @(_pagination.Active.Previous == default ? "disabled" : "")">
-                            <a class="page-link" @onclick="() => _pagination.Previous()">Previous</a>
-                        </li>
-
-                        <li class="page-item @(_pagination.Active.Next == default ? "disabled" : "")">
-                            <a class="page-link" @onclick="() => _pagination.Next()">Next</a>
-                        </li>
-
-                    </ul>
-                </nav>
-            </div>
-        }
     }
-</div >
+</div>
 
-
-@code {
-
+@code
+{
     [Parameter]
     public string SourceId { get; set; }
 
@@ -116,6 +122,17 @@
 
     private void NavTo(string mangaId) {
         NavigationManager.NavigateTo($"/{SourceId}/{mangaId}");
+    }
+
+    private async void NavAsync(bool isNext) {
+        if (isNext) {
+            _pagination.Next();
+        }
+        else {
+            _pagination.Previous();
+        }
+
+        await JsRuntime.InvokeVoidAsync("OnScrollEvent");
     }
 
     private static string Truncate(string str) {
