@@ -7,8 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Grimoire.Tests;
 
 [TestClass]
-public sealed class ProviderTests {
-    private readonly Type _provider
+public sealed class SourceTests {
+    private readonly Type _source
         = typeof(TCBScansSource);
 
     private static readonly Manga Manga = new() {
@@ -21,28 +21,28 @@ public sealed class ProviderTests {
 
     [TestMethod]
     public async Task FetchMangasAsync() {
-        var provider = Globals.Services.GetRequiredService(_provider) as IGrimoireSource;
-        Assert.IsNotNull(provider);
+        var source = Globals.Services.GetRequiredService(_source) as IGrimoireSource;
+        Assert.IsNotNull(source);
 
-        var mangas = await provider.FetchMangasAsync();
+        var mangas = await source.FetchMangasAsync();
         Assert.IsNotNull(mangas);
         Assert.IsTrue(mangas.Count > 0);
     }
 
     [TestMethod]
     public async Task FetchChaptersAsync() {
-        var provider = Globals.Services.GetRequiredService(_provider) as IGrimoireSource;
-        Assert.IsNotNull(provider);
+        var source = Globals.Services.GetRequiredService(_source) as IGrimoireSource;
+        Assert.IsNotNull(source);
 
-        var chapters = await provider.FetchChaptersAsync(Manga);
+        var chapters = await source.FetchChaptersAsync(Manga);
         Assert.IsNotNull(chapters);
         Assert.IsTrue(chapters.Count > 0);
     }
 
     [TestMethod]
     public async Task FetchChapterAsync() {
-        var provider = Globals.Services.GetRequiredService(_provider) as TCBScansSource;
-        var chapter = await provider!.FetchChapterAsync(Chapter);
+        var source = Globals.Services.GetRequiredService(_source) as TCBScansSource;
+        var chapter = await source!.FetchChapterAsync(Chapter);
 
         Assert.IsNotNull(chapter);
         Assert.IsNotNull(chapter.Pages);
@@ -51,8 +51,8 @@ public sealed class ProviderTests {
 
     [TestMethod]
     public async Task DownloadIconAsync() {
-        var provider = Globals.Services.GetRequiredService(_provider) as IGrimoireSource;
+        var source = Globals.Services.GetRequiredService(_source) as IGrimoireSource;
         await Globals.Services.GetRequiredService<HttpClient>()
-            .DownloadAsync(provider!.Icon, Directory.GetCurrentDirectory());
+            .DownloadAsync(source!.Icon, Directory.GetCurrentDirectory());
     }
 }

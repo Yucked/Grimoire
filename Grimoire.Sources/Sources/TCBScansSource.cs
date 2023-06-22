@@ -42,7 +42,7 @@ public sealed class TCBScansSource : IGrimoireSource {
                     Url = $"{BaseUrl}{anchor.PathName}",
                     Cover = img.Source,
                     LastFetch = DateTimeOffset.Now,
-                    Provider = GetType().Name[..^8],
+                    SourceName = GetType().Name[..^8],
                     Summary = doc.GetElementsByClassName("leading-6 my-3")
                         .FirstOrDefault()
                         .TextContent,
