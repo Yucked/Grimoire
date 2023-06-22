@@ -17,7 +17,7 @@
                 <div id="carouselExampleSlidesOnly" class="carousel slide carousel-fade shadow-lg" data-bs-ride="carousel">
                     <div class="carousel-inner">
                         @foreach (var manga in _pagination.Active.Items) {
-                            <div class="carousel-item">
+                            <div class="carousel-item @(_pagination.Active.Items.IndexOf(manga) == 1 ? "active" : "")">
                                 <img src="@Configuration.GetCover(CacheHandler.Get<string>($"{SourceId}@{manga.Id}"), manga.Cover)"
                                      class="rounded-4" alt="@manga.Name">
                             </div>
