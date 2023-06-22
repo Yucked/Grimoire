@@ -84,29 +84,44 @@ public class AsuraScansSource : IGrimoireSource {
                             as IHtmlImageElement)
                         .Source,
                     LastFetch = DateTimeOffset.Now,
-                    Provider = GetType().Name[..^8]
+                    SourceName = GetType().Name[..^8]
                 };
             })
             .ToArray();
     }
 
     public async Task<IReadOnlyList<Chapter>> FetchChaptersAsync(Manga manga) {
-        using var document = await _httpClient.ParseAsync(manga.Url, true);
-
-        // TODO: Get it by Id 
-        return document.GetElementsByClassName("eph-num")
-            .Select(x => {
-                var anchor = x.Children[0] as IHtmlAnchorElement;
-                return new Chapter {
-                    Name = anchor.Children[0].TextContent,
-                    Url = anchor.Href,
-                    ReleasedOn = DateOnly.Parse(anchor.Children[1].TextContent)
-                };
-            })
-            .ToArray();
+        try {
+            using var document = await _httpClient.ParseAsync(manga.Url, true);
+            return document.GetElementById("chapterlist")
+                .FirstChild
+                .ChildNodes
+                .Where(x => x is IHtmlListItemElement)
+                .Select(x => {
+                    var anchor = (x as IHtmlElement).Children[0] as IHtmlAnchorElement;
+                    return new Chapter {
+                        Name = anchor.GetElementsByClassName("chapternum").FirstOrDefault().TextContent.Clean(),
+                        Url = anchor.Href,
+                        ReleasedOn = DateOnly.Parse(
+                            anchor.GetElementsByClassName("chapterdate").FirstOrDefault().TextContent)
+                    };
+                })
+                .ToArray();
+        }
+        catch (Exception exception) {
+            _logger.LogError("{exception}\n{message}", exception, exception.Message);
+            throw;
+        }
     }
 
     public async Task<Chapter> FetchChapterAsync(Chapter chapter) {
-        throw new NotImplementedException();
+        using var document = await _httpClient.ParseAsync(chapter.Url);
+        chapter.Pages = document
+            .QuerySelectorAll("img.alignnone")
+            .Select((x, index) => new {
+                Key = index, Value = (x as IHtmlImageElement).Source
+            })
+            .ToDictionary(x => x.Key, x => x.Value);
+        return chapter;
     }
 }
