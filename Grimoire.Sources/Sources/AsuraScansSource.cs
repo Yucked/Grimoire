@@ -84,7 +84,7 @@ public class AsuraScansSource : IGrimoireSource {
                             as IHtmlImageElement)
                         .Source,
                     LastFetch = DateTimeOffset.Now,
-                    SourceName = GetType().Name[..^8]
+                    SourceName = GetType().Name[..^6]
                 };
             })
             .ToArray();

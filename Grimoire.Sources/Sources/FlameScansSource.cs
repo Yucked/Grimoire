@@ -31,7 +31,7 @@ public class FlameScansSource : IGrimoireSource {
                 var manga = new Manga {
                     Name = x.FirstChild.TextContent,
                     Url = (x.FirstChild as IHtmlAnchorElement).Href,
-                    SourceName = GetType().Name[..^8],
+                    SourceName = GetType().Name[..^6],
                     LastFetch = DateTimeOffset.Now
                 };
 
