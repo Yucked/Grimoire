@@ -20,7 +20,8 @@ public static partial class Misc {
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_5; en-US) AppleWebKit/600.21 (KHTML, like Gecko) Chrome/48.0.1544.246 Safari/536"
     };
 
-    public static async Task<IDocument> ParseAsync(this HttpClient httpClient, string url, bool withAccept = false) {
+    public static async Task<IDocument> ParseAsync(this HttpClient httpClient, string url,
+                                                   bool withAccept = false) {
         var requestMessage = new HttpRequestMessage {
             Method = HttpMethod.Get,
             RequestUri = new Uri(url)
@@ -38,8 +39,7 @@ public static partial class Misc {
         }
 
         await using var stream = await responseMessage.Content.ReadAsStreamAsync();
-        var document = await Context.OpenAsync(x => x.Content(stream));
-        return document;
+        return await Context.OpenAsync(x => x.Content(stream));
     }
 
     public static async Task DownloadAsync(this HttpClient httpClient, string url, string output) {
@@ -65,12 +65,30 @@ public static partial class Misc {
         await File.WriteAllBytesAsync($"{output}/{fileName}", data);
     }
 
+    internal static async Task<IReadOnlyList<Chapter>> FetchChaptersAsync(this HttpClient httpClient,
+                                                                          string mangaUrl) {
+        using var document = await httpClient.ParseAsync(mangaUrl);
+        return document.GetElementById("chapterlist")
+            .FirstChild
+            .ChildNodes
+            .Where(x => x is IHtmlListItemElement)
+            .Select(x => {
+                var element = x as IHtmlElement;
+                return new Chapter {
+                    Name = element.GetElementsByClassName("chapternum").FirstOrDefault().TextContent.Clean(),
+                    Url = x.FindDescendant<IHtmlAnchorElement>().Href,
+                    ReleasedOn = DateOnly.Parse(
+                        element.GetElementsByClassName("chapterdate").FirstOrDefault().TextContent)
+                };
+            })
+            .ToArray();
+    }
+
     internal static async Task<Chapter> FetchChapterAsync(this HttpClient httpClient,
                                                           Chapter chapter,
                                                           string selector) {
         using var document = await httpClient.ParseAsync(chapter.Url);
-        chapter.Pages = document
-            .QuerySelectorAll(selector)
+        chapter.Pages = document.QuerySelectorAll(selector)!
             .Select((x, index) => new {
                 Key = index, Value = (x as IHtmlImageElement).Source
             })
