@@ -90,23 +90,9 @@ public class AsuraScansSource : IGrimoireSource {
             .ToArray();
     }
 
-    public async Task<IReadOnlyList<Chapter>> FetchChaptersAsync(Manga manga) {
+    public Task<IReadOnlyList<Chapter>> FetchChaptersAsync(Manga manga) {
         try {
-            using var document = await _httpClient.ParseAsync(manga.Url, true);
-            return document.GetElementById("chapterlist")
-                .FirstChild
-                .ChildNodes
-                .Where(x => x is IHtmlListItemElement)
-                .Select(x => {
-                    var anchor = (x as IHtmlElement).Children[0] as IHtmlAnchorElement;
-                    return new Chapter {
-                        Name = anchor.GetElementsByClassName("chapternum").FirstOrDefault().TextContent.Clean(),
-                        Url = anchor.Href,
-                        ReleasedOn = DateOnly.Parse(
-                            anchor.GetElementsByClassName("chapterdate").FirstOrDefault().TextContent)
-                    };
-                })
-                .ToArray();
+            return _httpClient.FetchChaptersAsync(manga.Url);
         }
         catch (Exception exception) {
             _logger.LogError("{exception}\n{message}", exception, exception.Message);
@@ -115,6 +101,12 @@ public class AsuraScansSource : IGrimoireSource {
     }
 
     public Task<Chapter> FetchChapterAsync(Chapter chapter) {
-        return _httpClient.FetchChapterAsync(chapter, "img.alignnone");
+        try {
+            return _httpClient.FetchChapterAsync(chapter, "img.alignnone");
+        }
+        catch (Exception exception) {
+            _logger.LogError("{exception}\n{message}", exception, exception.Message);
+            throw;
+        }
     }
 }
