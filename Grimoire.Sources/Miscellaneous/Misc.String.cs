@@ -1,7 +1,8 @@
 ﻿using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 
-namespace Grimoire.Sources;
+namespace Grimoire.Sources.Miscellaneous;
 
 public static partial class Misc {
     public static string GetIdFromName(this string name) {
@@ -15,5 +16,12 @@ public static partial class Misc {
     public static string CleanPath(this string str) {
         return WebUtility.UrlDecode(str)
             .Replace(' ', '_');
+    }
+
+    public static string Clean(this string str) {
+        return
+            string.IsNullOrWhiteSpace(str)
+                ? str
+                : Regex.Replace(str, "\\r\\n?|\\n", string.Empty, RegexOptions.Compiled | RegexOptions.IgnoreCase);
     }
 }
