@@ -1,7 +1,7 @@
 ﻿using Grimoire.Sources.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Grimoire.Sources;
+namespace Grimoire.Sources.Miscellaneous;
 
 public static partial class Misc {
     public static IServiceCollection AddGrimoireSources(this IServiceCollection collection) {
