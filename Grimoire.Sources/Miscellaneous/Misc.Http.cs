@@ -1,9 +1,6 @@
 ﻿using AngleSharp;
 using AngleSharp.Dom;
-using AngleSharp.Html.Dom;
-using Grimoire.Sources.Models;
-
-namespace Grimoire.Sources;
+namespace Grimoire.Sources.Miscellaneous;
 
 public static partial class Misc {
     private static readonly IBrowsingContext Context
@@ -63,25 +60,5 @@ public static partial class Misc {
         var fileName = CleanPath(content.Headers.ContentDisposition?.FileNameStar
                                  ?? url.Split('/')[^1]);
         await File.WriteAllBytesAsync($"{output}/{fileName}", data);
-    }
-
-    internal static async Task<IReadOnlyList<Chapter>>
-        ParseWordPressChaptersAsync(this HttpClient httpClient,
-                                    string mangaUrl) {
-        using var document = await httpClient.ParseAsync(mangaUrl);
-        return document.ParseWordPressChapters();
-    }
-
-    internal static async Task<Chapter>
-        ParseWordPressChapterAsync(this HttpClient httpClient,
-                                   Chapter chapter,
-                                   string selector) {
-        using var document = await httpClient.ParseAsync(chapter.Url);
-        chapter.Pages = document.QuerySelectorAll(selector)!
-            .Select((x, index) => new {
-                Key = index, Value = (x as IHtmlImageElement).Source
-            })
-            .ToDictionary(x => x.Key, x => x.Value);
-        return chapter;
     }
 }
