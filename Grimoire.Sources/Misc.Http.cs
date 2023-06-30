@@ -65,28 +65,17 @@ public static partial class Misc {
         await File.WriteAllBytesAsync($"{output}/{fileName}", data);
     }
 
-    internal static async Task<IReadOnlyList<Chapter>> FetchChaptersAsync(this HttpClient httpClient,
-                                                                          string mangaUrl) {
+    internal static async Task<IReadOnlyList<Chapter>>
+        ParseWordPressChaptersAsync(this HttpClient httpClient,
+                                    string mangaUrl) {
         using var document = await httpClient.ParseAsync(mangaUrl);
-        return document.GetElementById("chapterlist")
-            .FirstChild
-            .ChildNodes
-            .Where(x => x is IHtmlListItemElement)
-            .Select(x => {
-                var element = x as IHtmlElement;
-                return new Chapter {
-                    Name = element.GetElementsByClassName("chapternum").FirstOrDefault().TextContent.Clean(),
-                    Url = x.FindDescendant<IHtmlAnchorElement>().Href,
-                    ReleasedOn = DateOnly.Parse(
-                        element.GetElementsByClassName("chapterdate").FirstOrDefault().TextContent)
-                };
-            })
-            .ToArray();
+        return document.ParseWordPressChapters();
     }
 
-    internal static async Task<Chapter> FetchChapterAsync(this HttpClient httpClient,
-                                                          Chapter chapter,
-                                                          string selector) {
+    internal static async Task<Chapter>
+        ParseWordPressChapterAsync(this HttpClient httpClient,
+                                   Chapter chapter,
+                                   string selector) {
         using var document = await httpClient.ParseAsync(chapter.Url);
         chapter.Pages = document.QuerySelectorAll(selector)!
             .Select((x, index) => new {
