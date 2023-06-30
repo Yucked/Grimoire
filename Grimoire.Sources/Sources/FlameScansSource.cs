@@ -77,7 +77,7 @@ public class FlameScansSource : IGrimoireSource {
 
     public Task<IReadOnlyList<Chapter>> FetchChaptersAsync(Manga manga) {
         try {
-            return _httpClient.FetchChaptersAsync(manga.Url);
+            return _httpClient.ParseWordPressChaptersAsync(manga.Url);
         }
         catch (Exception exception) {
             _logger.LogError("{exception}\n{message}", exception, exception.Message);
@@ -87,7 +87,7 @@ public class FlameScansSource : IGrimoireSource {
 
     public Task<Chapter> FetchChapterAsync(Chapter chapter) {
         try {
-            return _httpClient.FetchChapterAsync(chapter, "img.alignnone");
+            return _httpClient.ParseWordPressChapterAsync(chapter, "img.alignnone");
         }
         catch (Exception exception) {
             _logger.LogError("{exception}\n{message}", exception, exception.Message);
