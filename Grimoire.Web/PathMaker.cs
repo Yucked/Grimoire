@@ -1,4 +1,5 @@
 ﻿using Grimoire.Sources;
+using Grimoire.Sources.Miscellaneous;
 
 namespace Grimoire.Web;
 
@@ -45,5 +46,9 @@ public record struct PathMaker {
 
         Directory.CreateDirectory(Ave!);
         return this;
+    }
+
+    public override string ToString() {
+        return Ave;
     }
 }
