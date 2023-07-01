@@ -16,11 +16,9 @@ public sealed class TCBScansSource : IGrimoireSource {
     public string Icon
         => $"{BaseUrl}/files/apple-touch-icon.png";
 
-    private readonly HttpClient _httpClient;
     private readonly ILogger<TCBScansSource> _logger;
 
-    public TCBScansSource(HttpClient httpClient, ILogger<TCBScansSource> logger) {
-        _httpClient = httpClient;
+    public TCBScansSource(ILogger<TCBScansSource> logger) {
         _logger = logger;
     }
 
@@ -59,7 +57,7 @@ public sealed class TCBScansSource : IGrimoireSource {
     }
 
     public Task<IReadOnlyList<Manga>> PaginateAsync(int page) {
-        throw new NotImplementedException("Source doesn't have pagination.");
+        throw new NotSupportedException("Source doesn't have pagination.");
     }
 
     public async Task<IReadOnlyList<Chapter>> FetchChaptersAsync(Manga manga) {
