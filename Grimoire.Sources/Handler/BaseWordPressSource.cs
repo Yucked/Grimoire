@@ -7,21 +7,28 @@ using Microsoft.Extensions.Logging;
 namespace Grimoire.Sources.Handler;
 
 public class BaseWordPressSource {
-    protected readonly HttpClient HttpClient;
     private readonly ILogger<BaseWordPressSource> _logger;
-    private static readonly char[] Separator = { ',', '|' };
 
-    protected BaseWordPressSource(HttpClient httpClient, ILogger<BaseWordPressSource> logger) {
-        HttpClient = httpClient;
+    protected static readonly char[] Separators = {
+        ',',
+        '|'
+    };
+
+    private static readonly string[] AltStrings = {
+        "Alternative Titles",
+        "desktop-titles"
+    };
+
+    protected BaseWordPressSource(ILogger<BaseWordPressSource> logger) {
         _logger = logger;
     }
 
-    protected async Task<IReadOnlyList<Manga>> FetchMangasAsync(string baseUrl,
-                                                                string path,
-                                                                string selector) {
-        using var document = await HttpClient.ParseAsync($"{baseUrl}/{path}");
+    protected async Task<IReadOnlyList<Manga>> FetchFetchFetchAsync(string baseUrl,
+                                                                    string path,
+                                                                    string selector) {
+        using var document = await Misc.ParseAsync($"{baseUrl}/{path}");
         var results = document
-            .QuerySelectorAll("a.series")
+            .QuerySelectorAll("div.soralist > * a.series")
             .AsParallel()
             .Select(async x => {
                 var manga = new Manga {
@@ -30,37 +37,49 @@ public class BaseWordPressSource {
                     SourceName = GetType().Name[..^6],
                     LastFetch = DateTimeOffset.Now
                 };
+                _logger.LogInformation("Fetching information for: {}", manga.Name);
 
                 try {
-                    using var doc = await HttpClient.ParseAsync(manga.Url);
-                    var info = doc.QuerySelector(selector);
+                    using var doc = await Misc.ParseAsync(manga.Url);
+                    var info = doc.QuerySelector(selector)!
+                        .Descendents<IElement>()
+                        .ToArray();
 
-                    manga.Cover = info.FindDescendant<IHtmlImageElement>(2).Source;
-                    manga.Author = info.Find("Author").LastElementChild!.TextContent.Clean().Trim();
-                    manga.Genre = info!
-                        .Descendents<IHtmlAnchorElement>()
-                        .Where(v => v.HasAttribute("rel"))
+                    manga.Cover = doc.QuerySelector("img.wp-post-image").As<IHtmlImageElement>().Source;
+
+                    manga.Author = (info
+                            .First(v => v.TextContent.Trim() == "Author")
+                            .Parent as IHtmlDivElement)
+                        .LastElementChild!
+                        .TextContent
+                        .Clean()
+                        .Trim();
+
+                    manga.Genre = info
+                        .Where(v =>
+                            v.HasAttribute("rel") &&
+                            v.GetAttribute("rel") == "tag")
                         .Select(v => v.TextContent)
                         .ToArray();
-                    manga.Summary = string.Join(" ", doc
-                        .Descendents<IElement>()
-                        .AsParallel()
-                        .First(v => v.TextContent.Trim() == "Synopsis"
-                                    || v.TextContent.Contains("Synopsis"))
-                        .Parent!
-                        .Descendents<IHtmlParagraphElement>()
+
+                    manga.Summary = string.Join(" ", info
+                        .First(v =>
+                            v.HasAttribute("itemprop") &&
+                            v.GetAttribute("itemprop") == "description")
+                        .ChildNodes
                         .Select(v => v.TextContent.Clean().Trim()));
 
-                    manga.Metonyms = doc
-                        .Descendents<IElement>()
-                        .AsParallel()
-                        .FirstOrDefault(v =>
-                            v.TextContent.Contains("Alternative") ||
-                            v.ClassName == "desktop-titles")
+                    manga.Metonyms = (info
+                            .FirstOrDefault(v =>
+                                AltStrings.Any(a => a == v.TextContent) ||
+                                AltStrings.Any(a => a == v.ClassName)
+                            )
+                            ?.Parent as IHtmlDivElement)
+                        ?.LastElementChild
                         ?.TextContent
-                        .Split(Separator, StringSplitOptions.RemoveEmptyEntries);
+                        .Slice(Separators);
 
-                    manga.Chapters = ParseWordPressChapters(doc).ToArray();
+                    manga.Chapters = ParseChapters(doc).ToArray();
                 }
                 catch (Exception exception) {
                     _logger.LogError("{}: {}\n{}\n{}",
@@ -78,8 +97,8 @@ public class BaseWordPressSource {
 
     protected async Task<IReadOnlyList<Chapter>> FetchChaptersAsync(string mangaUrl) {
         try {
-            using var document = await HttpClient.ParseAsync(mangaUrl);
-            return ParseWordPressChapters(document);
+            using var document = await Misc.ParseAsync(mangaUrl);
+            return ParseChapters(document);
         }
         catch (Exception exception) {
             _logger.LogError("{exception}\n{message}", exception, exception.Message);
@@ -87,9 +106,9 @@ public class BaseWordPressSource {
         }
     }
 
-    internal async Task<Chapter> FetchChapterAsync(Chapter chapter, string selector) {
+    protected async Task<Chapter> FetchChapterAsync(Chapter chapter, string selector) {
         try {
-            using var document = await HttpClient.ParseAsync(chapter.Url);
+            using var document = await Misc.ParseAsync(chapter.Url);
             chapter.Pages = document.QuerySelectorAll(selector)!
                 .Select((x, index) => new {
                     Key = index, Value = (x as IHtmlImageElement).Source
@@ -98,12 +117,16 @@ public class BaseWordPressSource {
             return chapter;
         }
         catch (Exception exception) {
-            _logger.LogError("{exception}\n{message}", exception, exception.Message);
+            _logger.LogError("{}: {}\n{}\n{}",
+                chapter.Name,
+                chapter.Url,
+                exception.Message,
+                exception);
             throw;
         }
     }
 
-    protected static IReadOnlyList<Chapter> ParseWordPressChapters(IDocument document) {
+    protected static IReadOnlyList<Chapter> ParseChapters(IDocument document) {
         return document.GetElementById("chapterlist")
             .FirstChild
             .ChildNodes
