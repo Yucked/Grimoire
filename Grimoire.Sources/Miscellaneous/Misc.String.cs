@@ -25,4 +25,10 @@ public static partial class Misc {
                 : Regex.Replace(str, """\r\n?|\n|\s{2,}""", string.Empty,
                     RegexOptions.Compiled | RegexOptions.IgnoreCase);
     }
+
+    public static string[] Slice(this string str, char[] seperator) {
+        return string.IsNullOrWhiteSpace(str)
+            ? new[] { str }
+            : str.Split(seperator, StringSplitOptions.RemoveEmptyEntries);
+    }
 }

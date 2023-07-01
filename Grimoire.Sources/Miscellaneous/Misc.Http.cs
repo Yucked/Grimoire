@@ -1,12 +1,7 @@
-﻿using AngleSharp;
-using AngleSharp.Dom;
-namespace Grimoire.Sources.Miscellaneous;
+﻿namespace Grimoire.Sources.Miscellaneous;
 
 public static partial class Misc {
-    private static readonly IBrowsingContext Context
-        = BrowsingContext.New(Configuration.Default.WithDefaultLoader());
-
-    private static readonly IReadOnlyList<string> UserAgents = new[] {
+    private static readonly string[] UserAgents = {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/114.0",
         "Mozilla/5.0 (X11; Ubuntu; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) " +
         "Chrome/78.0.3904.108 Safari/537.36 RuxitSynthetic/1.0 v3283331297382284845 t6205049005192687891",
@@ -17,35 +12,13 @@ public static partial class Misc {
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_5; en-US) AppleWebKit/600.21 (KHTML, like Gecko) Chrome/48.0.1544.246 Safari/536"
     };
 
-    public static async Task<IDocument> ParseAsync(this HttpClient httpClient, string url,
-                                                   bool withAccept = false) {
-        var requestMessage = new HttpRequestMessage {
-            Method = HttpMethod.Get,
-            RequestUri = new Uri(url)
-        };
-
-        requestMessage.Headers.Add("User-Agent", UserAgents[Random.Shared.Next(UserAgents.Count - 1)]);
-        if (withAccept) {
-            requestMessage.Headers.Add("Accept",
-                "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8");
-        }
-
-        var responseMessage = await httpClient.SendAsync(requestMessage);
-        if (!responseMessage.IsSuccessStatusCode) {
-            throw new Exception(responseMessage.ReasonPhrase);
-        }
-
-        await using var stream = await responseMessage.Content.ReadAsStreamAsync();
-        return await Context.OpenAsync(x => x.Content(stream));
-    }
-
     public static async Task DownloadAsync(this HttpClient httpClient, string url, string output) {
         var requestMessage = new HttpRequestMessage {
             Method = HttpMethod.Get,
             RequestUri = new Uri(url),
             Headers = {
                 {
-                    "User-Agent", UserAgents[Random.Shared.Next(UserAgents.Count - 1)]
+                    "User-Agent", UserAgents[Random.Shared.Next(UserAgents.Length - 1)]
                 }
             }
         };
