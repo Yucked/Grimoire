@@ -9,27 +9,11 @@ namespace Grimoire.Sources.Handler;
 public class BaseWordPressSource {
     protected readonly HttpClient HttpClient;
     private readonly ILogger<BaseWordPressSource> _logger;
+    private static readonly char[] Separator = { ',', '|' };
 
     protected BaseWordPressSource(HttpClient httpClient, ILogger<BaseWordPressSource> logger) {
         HttpClient = httpClient;
         _logger = logger;
-    }
-
-    protected static IReadOnlyList<Chapter> ParseWordPressChapters(IDocument document) {
-        return document.GetElementById("chapterlist")
-            .FirstChild
-            .ChildNodes
-            .Where(x => x is IHtmlListItemElement)
-            .Select(x => {
-                var element = x as IHtmlElement;
-                return new Chapter {
-                    Name = element.GetElementsByClassName("chapternum").FirstOrDefault().TextContent.Clean(),
-                    Url = x.FindDescendant<IHtmlAnchorElement>().Href,
-                    ReleasedOn = DateOnly.Parse(
-                        element.GetElementsByClassName("chapterdate").FirstOrDefault().TextContent)
-                };
-            })
-            .ToArray();
     }
 
     protected async Task<IReadOnlyList<Manga>> FetchMangasAsync(string baseUrl,
@@ -49,13 +33,33 @@ public class BaseWordPressSource {
 
                 try {
                     using var doc = await HttpClient.ParseAsync(manga.Url);
-                    var infoDiv = doc.QuerySelector(selector);
+                    var info = doc.QuerySelector(selector);
 
-                    manga.Cover = infoDiv.FindDescendant<IHtmlImageElement>(2).Source;
-                    manga.Metonyms = infoDiv.Find<IHtmlSpanElement>("B", "Alternative")?.Split(',');
-                    manga.Summary = infoDiv.Find<IHtmlParagraphElement>("H2", "Synopsis")?.TextContent;
-                    manga.Author = infoDiv.Find<IHtmlSpanElement>("B", "Author")?.TextContent.Clean();
-                    manga.Genre = infoDiv.Find<IHtmlSpanElement>("B", "Genres")?.Split(' ');
+                    manga.Cover = info.FindDescendant<IHtmlImageElement>(2).Source;
+                    manga.Author = info.Find("Author").LastElementChild!.TextContent.Clean().Trim();
+                    manga.Genre = info!
+                        .Descendents<IHtmlAnchorElement>()
+                        .Where(v => v.HasAttribute("rel"))
+                        .Select(v => v.TextContent)
+                        .ToArray();
+                    manga.Summary = string.Join(" ", doc
+                        .Descendents<IElement>()
+                        .AsParallel()
+                        .First(v => v.TextContent.Trim() == "Synopsis"
+                                    || v.TextContent.Contains("Synopsis"))
+                        .Parent!
+                        .Descendents<IHtmlParagraphElement>()
+                        .Select(v => v.TextContent.Clean().Trim()));
+
+                    manga.Metonyms = doc
+                        .Descendents<IElement>()
+                        .AsParallel()
+                        .FirstOrDefault(v =>
+                            v.TextContent.Contains("Alternative") ||
+                            v.ClassName == "desktop-titles")
+                        ?.TextContent
+                        .Split(Separator, StringSplitOptions.RemoveEmptyEntries);
+
                     manga.Chapters = ParseWordPressChapters(doc).ToArray();
                 }
                 catch (Exception exception) {
@@ -97,5 +101,22 @@ public class BaseWordPressSource {
             _logger.LogError("{exception}\n{message}", exception, exception.Message);
             throw;
         }
+    }
+
+    protected static IReadOnlyList<Chapter> ParseWordPressChapters(IDocument document) {
+        return document.GetElementById("chapterlist")
+            .FirstChild
+            .ChildNodes
+            .Where(x => x is IHtmlListItemElement)
+            .Select(x => {
+                var element = x as IHtmlElement;
+                return new Chapter {
+                    Name = element.GetElementsByClassName("chapternum").FirstOrDefault().TextContent.Clean(),
+                    Url = x.FindDescendant<IHtmlAnchorElement>().Href,
+                    ReleasedOn = DateOnly.Parse(
+                        element.GetElementsByClassName("chapterdate").FirstOrDefault().TextContent)
+                };
+            })
+            .ToArray();
     }
 }
