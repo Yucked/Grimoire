@@ -7,8 +7,8 @@
 
 <div class="container-lg py-4">
     <picture class="p-4">
-        @if (_chapter == default) {
-            <WaitingOn/>
+        @if (_chapter == default || _chapter?.Pages?.Count == 0) {
+            <Waiting/>
         }
         else {
             @foreach (var chapterPage in _chapter.Pages) {

@@ -8,8 +8,8 @@
 @inject IJSRuntime JsRuntime
 
 <div class="container-lg py-4">
-    @if (_pagination.Active == null) {
-        <WaitingOn/>
+    @if (_pagination == default || _pagination.Active == default) {
+        <Waiting/>
     }
     else {
         <div class="row row-cols-1 g-5">
