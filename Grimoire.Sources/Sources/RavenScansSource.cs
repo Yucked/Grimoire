@@ -21,33 +21,8 @@ public class RavenScansSource : BaseWordPressSource, IGrimoireSource {
     public RavenScansSource(HttpClient httpClient, ILogger<RavenScansSource> logger)
         : base(httpClient, logger) { }
 
-    public async Task<IReadOnlyList<Manga>> FetchMangasAsync() {
-        using var document = await HttpClient.ParseAsync($"{BaseUrl}/manga/list-mode/");
-        var results = document
-            .QuerySelectorAll("a.series")
-            .AsParallel()
-            .Select(async x => {
-                var manga = new Manga {
-                    Name = x.TextContent,
-                    Url = (x as IHtmlAnchorElement).Href,
-                    SourceName = GetType().Name[..^6],
-                    LastFetch = DateTimeOffset.Now
-                };
-
-                using var doc = await HttpClient.ParseAsync(manga.Url);
-                var infoDiv = doc.QuerySelector("div.bigcontent");
-
-                manga.Cover = infoDiv.FindDescendant<IHtmlImageElement>(2).Source;
-                manga.Metonyms = infoDiv.Find<IHtmlSpanElement>("B", "Alternative").Split(',');
-                manga.Summary = infoDiv.Find<IHtmlParagraphElement>("H2", "Synopsis").TextContent;
-                manga.Author = infoDiv.Find<IHtmlSpanElement>("B", "Author").TextContent.Clean();
-                manga.Genre = infoDiv.Find<IHtmlSpanElement>("B", "Genres").Split(' ');
-                manga.Chapters = ParseWordPressChapters(doc).ToArray();
-
-                return manga;
-            });
-
-        return await Task.WhenAll(results);
+    public Task<IReadOnlyList<Manga>> FetchMangasAsync() {
+        return base.FetchMangasAsync(BaseUrl, "manga/list-mode", "div.bigcontent");
     }
 
     public Task<IReadOnlyList<Manga>> PaginateAsync(int page) {
