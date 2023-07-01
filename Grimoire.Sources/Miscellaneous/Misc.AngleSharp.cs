@@ -1,16 +1,23 @@
 ﻿using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
 
 namespace Grimoire.Sources.Miscellaneous;
 
 public static partial class Misc {
-    public static T Find<T>(this INode node, string nodeName, string query) where T : class, INode {
-        return node
+    public static IHtmlDivElement Find(this INode node, string query) {
+        return (node
             .Descendents()
-            .FirstOrDefault(x =>
-                x.NodeName == nodeName &&
-                x.TextContent.Contains(query))
-            ?.Parent
-            ?.FindDescendant<T>();
+            .AsParallel()
+            .First(x => x.TextContent.Trim() == query)
+            ?.Parent as IHtmlDivElement)!;
+    }
+
+    public static T As<T>(this IElement element) {
+        return (T)element;
+    }
+
+    public static T As<T>(this INode node) {
+        return (T)node;
     }
 
     public static string[] Split(this INode node, char slice) {

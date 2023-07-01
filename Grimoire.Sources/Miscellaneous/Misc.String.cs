@@ -22,6 +22,7 @@ public static partial class Misc {
         return
             string.IsNullOrWhiteSpace(str)
                 ? str
-                : Regex.Replace(str, "\\r\\n?|\\n", string.Empty, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                : Regex.Replace(str, """\r\n?|\n|\s{2,}""", string.Empty,
+                    RegexOptions.Compiled | RegexOptions.IgnoreCase);
     }
 }
