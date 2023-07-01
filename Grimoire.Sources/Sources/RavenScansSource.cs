@@ -1,8 +1,5 @@
-﻿using AngleSharp.Dom;
-using AngleSharp.Html.Dom;
-using Grimoire.Sources.Handler;
+﻿using Grimoire.Sources.Handler;
 using Grimoire.Sources.Interfaces;
-using Grimoire.Sources.Miscellaneous;
 using Grimoire.Sources.Models;
 using Microsoft.Extensions.Logging;
 
@@ -18,11 +15,11 @@ public class RavenScansSource : BaseWordPressSource, IGrimoireSource {
     public string Icon
         => "https://i0.wp.com/ravenscans.com/wp-content/uploads/2022/12/cropped-33.png";
 
-    public RavenScansSource(HttpClient httpClient, ILogger<RavenScansSource> logger)
-        : base(httpClient, logger) { }
+    public RavenScansSource(ILogger<RavenScansSource> logger)
+        : base(logger) { }
 
     public Task<IReadOnlyList<Manga>> FetchMangasAsync() {
-        return base.FetchMangasAsync(BaseUrl, "manga/list-mode", "div.bigcontent");
+        return base.FetchFetchFetchAsync(BaseUrl, "manga/list-mode", "div.bigcontent");
     }
 
     public Task<IReadOnlyList<Manga>> PaginateAsync(int page) {
