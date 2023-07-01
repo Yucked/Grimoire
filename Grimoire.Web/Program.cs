@@ -1,6 +1,24 @@
-using Grimoire.Sources;
+using System.Drawing;
+using Grimoire.Sources.Miscellaneous;
 using Grimoire.Web.Cache;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Logging.Colorful;
+
+LoggingExtensions.ChangeConsoleMode();
+LoggingExtensions.PrintHeader(
+    Color.Orchid,
+    """
+
+        ._____  .______  .___ ._____.___ ._______  .___ .______  ._______
+        :_ ___\ : __   \ : __|:         |: .___  \ : __|: __   \ : .____/
+        |   |___|  \____|| : ||   \  /  || :   |  || : ||  \____|| : _/\ 
+        |   /  ||   :  \ |   ||   |\/   ||     :  ||   ||   :  \ |   /  \
+        |. __  ||   |___\|   ||___| |   | \_. ___/ |   ||   |___\|_.: __/
+        :/ |. ||___|    |___|      |___|   :/     |___||___|       :/   
+        :   :/                             :                            
+             :                                                           
+                                                                 
+""");
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +36,7 @@ builder
     .AddMemoryCache()
     .AddLogging(x => {
         x.ClearProviders();
-        x.AddConsole();
+        x.AddColorfulConsole();
     })
     .AddGrimoireSources()
     .AddSingleton<CacheHandler>();
