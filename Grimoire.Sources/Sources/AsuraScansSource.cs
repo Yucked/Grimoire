@@ -1,4 +1,5 @@
-﻿using AngleSharp.Html.Dom;
+﻿using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
 using Grimoire.Sources.Handler;
 using Grimoire.Sources.Interfaces;
 using Grimoire.Sources.Miscellaneous;
@@ -21,45 +22,33 @@ public class AsuraScansSource : BaseWordPressSource, IGrimoireSource {
         : base(httpClient, logger) { }
 
     public async Task<IReadOnlyList<Manga>> FetchMangasAsync() {
-        using var document = await HttpClient.ParseAsync($"{BaseUrl}/?s=", true);
-        var lastPage = (document.GetElementsByClassName("page-numbers").Skip(4).FirstOrDefault() as IHtmlAnchorElement)
-            .Href[^4..^3];
-
-        var results = await Task.WhenAll(Enumerable
-            .Range(1, int.Parse(lastPage))
-            .Select(PaginateAsync));
-
-        var populate = results
-            .SelectMany(x => x)
+        using var document = await HttpClient.ParseAsync($"{BaseUrl}/manga/list-mode/", true);
+        var results = document
+            .QuerySelectorAll("a.series")
             .AsParallel()
-            .Select(async manga => {
+            .Select(async x => {
+                var manga = new Manga {
+                    Name = x.TextContent,
+                    Url = (x as IHtmlAnchorElement).Href,
+                    SourceName = GetType().Name[..^6],
+                    LastFetch = DateTimeOffset.Now
+                };
+
                 using var doc = await HttpClient.ParseAsync(manga.Url);
-
-                // TODO: Summary and Author messing up. Probably better to use Contains to check data
+                manga.Cover = doc.QuerySelector("img.wp-post-image").As<IHtmlImageElement>().Source;
                 var info = doc.QuerySelector("div.infox");
-                manga.Author = info.Children[3].Children[1].Children[1].TextContent.Clean();
-                manga.Summary = info.QuerySelector("div.entry-content").TextContent.Clean();
-                manga.Genre = info.QuerySelector("span.mgen").TextContent.Split(' ');
+                var summary = info
+                    .Descendents()
+                    .First(n => n.NodeName == "H2" &&
+                                n.TextContent.Contains("Synopsis")
+                    )
+                    .ParentElement
+                    .FindDescendant<IHtmlParagraphElement>();
 
-                var addName = info.QuerySelector("div.wd-full > span").TextContent;
-                manga.Metonyms = manga.Genre.Count == addName.Split(' ').Length
-                    ? default
-                    : addName.Split(',');
-
-                manga.Chapters = doc.GetElementsByClassName("eph-num")
-                    .Select(x => {
-                        var anchor = x.Children[0] as IHtmlAnchorElement;
-                        return new Chapter {
-                            Name = anchor.Children[0].TextContent,
-                            Url = anchor.Href,
-                            ReleasedOn = DateOnly.Parse(anchor.Children[1].TextContent)
-                        };
-                    })
-                    .ToArray();
                 return manga;
             });
 
-        return await Task.WhenAll(populate);
+        return await Task.WhenAll(results);
     }
 
     public Task<IReadOnlyList<Manga>> PaginateAsync(int page) {
