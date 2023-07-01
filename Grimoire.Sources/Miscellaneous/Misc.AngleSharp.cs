@@ -1,16 +1,15 @@
-﻿using AngleSharp.Dom;
-using AngleSharp.Html.Dom;
+﻿using AngleSharp;
+using AngleSharp.Dom;
 
 namespace Grimoire.Sources.Miscellaneous;
 
 public static partial class Misc {
-    public static IHtmlDivElement Find(this INode node, string query) {
-        return (node
-            .Descendents()
-            .AsParallel()
-            .First(x => x.TextContent.Trim() == query)
-            ?.Parent as IHtmlDivElement)!;
-    }
+    private static readonly IBrowsingContext Context = BrowsingContext.New(
+        Configuration.Default
+            .WithDefaultLoader()
+            .WithDefaultCookies()
+            .WithLocaleBasedEncoding()
+    );
 
     public static T As<T>(this IElement element) {
         return (T)element;
@@ -24,5 +23,9 @@ public static partial class Misc {
         return node == null || string.IsNullOrWhiteSpace(node.TextContent)
             ? default
             : node.TextContent?.Split(slice);
+    }
+
+    public static Task<IDocument> ParseAsync(string url) {
+        return Context.OpenAsync(url);
     }
 }
