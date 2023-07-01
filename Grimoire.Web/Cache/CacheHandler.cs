@@ -113,12 +113,10 @@ public sealed class CacheHandler {
     }
 
     public async Task<Manga> GetMangaAsync(string sourceId, string mangaId) {
-        if (_memoryCache.TryGetValue($"{sourceId}@Mangas", out IReadOnlyCollection<Manga> mangas)) {
-            return mangas.First(x => x.Id == mangaId);
+        if (!_memoryCache.TryGetValue($"{sourceId}@Mangas", out IReadOnlyCollection<Manga> mangas)) {
+            //TODO: Fetch individual manga?
+            return default;
         }
-
-        mangas = await GetMangasAsync(sourceId);
-        _memoryCache.Set($"{sourceId}@Mangas", mangas);
 
         return mangas.First(x => x.Id == mangaId);
     }
@@ -135,8 +133,8 @@ public sealed class CacheHandler {
         }
 
         if (!_memoryCache.TryGetValue($"{sourceId}@Mangas", out IReadOnlyList<Manga> mangas)) {
-            mangas = await GetMangasAsync(sourceId);
-            _memoryCache.Set($"{sourceId}@Mangas", mangas);
+            //TODO: Fetch individual manga?
+            return default;
         }
 
         var manga = mangas.FirstOrDefault(x => x.Id == mangaId);
