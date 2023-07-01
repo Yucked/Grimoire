@@ -27,7 +27,7 @@ public sealed class Manhwa18NetSource : IGrimoireSource {
     }
 
     public async Task<IReadOnlyList<Manga>> FetchMangasAsync() {
-        using var document = await _httpClient.ParseAsync($"{BaseUrl}/manga-list");
+        using var document = await Misc.ParseAsync($"{BaseUrl}/manga-list");
         var lastPage = int.Parse((document
             .GetElementsByClassName("paging_item paging_prevnext next")
             .FirstOrDefault() as IHtmlAnchorElement).Href[^2..]);
@@ -40,7 +40,7 @@ public sealed class Manhwa18NetSource : IGrimoireSource {
         var mangas = new List<Manga>();
         await Parallel.ForEachAsync(results.SelectMany(x => x), async (manga, _) => {
             _logger.LogDebug("Getting additional information for {manga}", manga.Name);
-            using var doc = await _httpClient.ParseAsync(manga.Url);
+            using var doc = await Misc.ParseAsync(manga.Url);
             var extras = doc.GetElementsByClassName("info-item");
 
             manga.Author = GetTagData(extras, "Author");
@@ -48,7 +48,7 @@ public sealed class Manhwa18NetSource : IGrimoireSource {
                 .Split(' ')
                 .Where(x => !string.IsNullOrWhiteSpace(x))
                 .ToArray();
-            manga.Summary = doc.GetElementsByClassName("summary-content")[0].TextContent;
+            manga.Summary = doc.GetElementsByClassName("summary-content").FirstOrDefault()?.TextContent;
             manga.Chapters = doc
                 .GetElementsByClassName("list-chapters at-series")
                 .FirstOrDefault()
@@ -77,7 +77,7 @@ public sealed class Manhwa18NetSource : IGrimoireSource {
     }
 
     public async Task<IReadOnlyList<Manga>> PaginateAsync(int page) {
-        using var document = await _httpClient.ParseAsync($"{BaseUrl}/manga-list?page={page}");
+        using var document = await Misc.ParseAsync($"{BaseUrl}/manga-list?page={page}");
         var titles = document.GetElementsByClassName("thumb-item-flow col-6 col-md-3");
         _logger.LogDebug("Parsing page #{page} with {titlesCount} titles", page, titles.Length);
 
@@ -100,7 +100,7 @@ public sealed class Manhwa18NetSource : IGrimoireSource {
     }
 
     public async Task<IReadOnlyList<Chapter>> FetchChaptersAsync(Manga manga) {
-        using var document = await _httpClient.ParseAsync(manga.Url);
+        using var document = await Misc.ParseAsync(manga.Url);
         _logger.LogInformation("Fetching chapters for {name}", manga.Name);
 
         return document
@@ -122,7 +122,7 @@ public sealed class Manhwa18NetSource : IGrimoireSource {
     }
 
     public async Task<Chapter> FetchChapterAsync(Chapter chapter) {
-        using var document = await _httpClient.ParseAsync(chapter.Url);
+        using var document = await Misc.ParseAsync(chapter.Url);
         IElement element;
         do {
             element = document.All.FirstOrDefault(x => x.LocalName == "div" && x.Id == "chapter-content");

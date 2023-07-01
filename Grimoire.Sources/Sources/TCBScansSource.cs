@@ -25,7 +25,7 @@ public sealed class TCBScansSource : IGrimoireSource {
     }
 
     public async Task<IReadOnlyList<Manga>> FetchMangasAsync() {
-        using var document = await _httpClient.ParseAsync($"{BaseUrl}/projects");
+        using var document = await Misc.ParseAsync($"{BaseUrl}/projects");
         var items = document.GetElementsByClassName("flex flex-col items-center md:flex-row md:items-start");
         var result = items.AsParallel()
             .Select(async x => {
@@ -35,7 +35,7 @@ public sealed class TCBScansSource : IGrimoireSource {
                     .Children[0] as IHtmlAnchorElement;
 
                 var img = anchor.Children[0] as IHtmlImageElement;
-                using var doc = await _httpClient.ParseAsync($"{BaseUrl}{anchor.PathName}");
+                using var doc = await Misc.ParseAsync($"{BaseUrl}{anchor.PathName}");
                 _logger.LogInformation("Getting additional information for {manga}", img.Attributes[1].Value);
 
                 return new Manga {
@@ -63,7 +63,7 @@ public sealed class TCBScansSource : IGrimoireSource {
     }
 
     public async Task<IReadOnlyList<Chapter>> FetchChaptersAsync(Manga manga) {
-        using var document = await _httpClient.ParseAsync(manga.Url);
+        using var document = await Misc.ParseAsync(manga.Url);
         _logger.LogDebug("Fetching chapters for {name}", manga.Name);
         return document.GetElementsByClassName("block border border-border bg-card mb-3 p-3 rounded")
             .Select(x => new Chapter {
@@ -74,7 +74,7 @@ public sealed class TCBScansSource : IGrimoireSource {
     }
 
     public async Task<Chapter> FetchChapterAsync(Chapter chapter) {
-        using var document = await _httpClient.ParseAsync(chapter.Url);
+        using var document = await Misc.ParseAsync(chapter.Url);
         chapter.Pages = document
             .QuerySelectorAll("img.fixed-ratio-content")
             .Select((x, index) => new {
