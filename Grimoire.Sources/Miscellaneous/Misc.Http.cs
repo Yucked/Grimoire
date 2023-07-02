@@ -1,4 +1,8 @@
-﻿namespace Grimoire.Sources.Miscellaneous;
+﻿using System.Text.Json;
+using AngleSharp;
+using AngleSharp.Dom;
+
+namespace Grimoire.Sources.Miscellaneous;
 
 public static partial class Misc {
     private static readonly string[] UserAgents = {
@@ -33,5 +37,33 @@ public static partial class Misc {
         var fileName = CleanPath(content.Headers.ContentDisposition?.FileNameStar
                                  ?? url.Split('/')[^1]);
         await File.WriteAllBytesAsync($"{output}/{fileName}", data);
+    }
+
+    public static async Task<IDocument>
+        FetchChapterHTMLAsync(this HttpClient httpClient, string baseUrl, string chapterId) {
+        var requestMessage = new HttpRequestMessage {
+            Method = HttpMethod.Get,
+            RequestUri = new Uri($"{baseUrl}/wp-json/wp/v2/posts/{chapterId}"),
+            Headers = {
+                {
+                    "User-Agent", UserAgents[Random.Shared.Next(UserAgents.Length - 1)]
+                }
+            }
+        };
+
+        var responseMessage = await httpClient.SendAsync(requestMessage);
+        if (!responseMessage.IsSuccessStatusCode) {
+            throw new Exception(responseMessage.ReasonPhrase);
+        }
+
+        using var content = responseMessage.Content;
+        await using var stream = await content.ReadAsStreamAsync();
+        using var document = await JsonDocument.ParseAsync(stream);
+        var html = document.RootElement
+            .GetProperty("content")
+            .GetProperty("rendered")
+            .GetString();
+
+        return await Context.OpenAsync(x => x.Content(html));
     }
 }

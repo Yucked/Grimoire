@@ -19,7 +19,10 @@ public class BaseWordPressSource {
         "desktop-titles"
     };
 
-    protected BaseWordPressSource(ILogger<BaseWordPressSource> logger) {
+    private readonly HttpClient _httpClient;
+
+    protected BaseWordPressSource(HttpClient httpClient, ILogger<BaseWordPressSource> logger) {
+        _httpClient = httpClient;
         _logger = logger;
     }
 
@@ -109,11 +112,35 @@ public class BaseWordPressSource {
     protected async Task<Chapter> FetchChapterAsync(Chapter chapter, string selector) {
         try {
             using var document = await Misc.ParseAsync(chapter.Url);
-            chapter.Pages = document.QuerySelectorAll(selector)!
+            var chapterId = document.Head
+                .Descendents<IHtmlLinkElement>()
+                .First(x =>
+                    x.Type == "application/json" &&
+                    x.Relation == "alternate")
+                .Href
+                .Split('/')[^1];
+
+            var chapterDoc = await _httpClient.FetchChapterHTMLAsync(document.Head.BaseUrl.Origin, chapterId);
+
+            var parsedChapters = document
+                .GetElementById("readerarea")!
+                .Descendents<IHtmlImageElement>()
                 .Select((x, index) => new {
-                    Key = index, Value = (x as IHtmlImageElement).Source
+                    Key = index, Value = x.Source
                 })
                 .ToDictionary(x => x.Key, x => x.Value);
+
+            var htmlChapters = chapterDoc
+                .Descendents<IHtmlImageElement>()
+                .Select((x, index) => new {
+                    Key = index, Value = x.Source
+                })
+                .ToDictionary(x => x.Key, x => x.Value);
+
+            chapter.Pages = htmlChapters.Count > parsedChapters.Count
+                ? htmlChapters
+                : parsedChapters;
+
             return chapter;
         }
         catch (Exception exception) {
