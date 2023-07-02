@@ -32,6 +32,7 @@ body, html {
 }
 
 
+/*
 .card {
     transition: .3s transform cubic-bezier(.155, 1.105, .295, 1.12), .3s box-shadow, .3s -webkit-transform cubic-bezier(.155, 1.105, .295, 1.12);
     cursor: pointer;
@@ -39,6 +40,26 @@ body, html {
 
 .card:hover {
     transform: scale(1.07);
+}
+
+ */
+
+.col > .card {
+    cursor: pointer;
+    transition: border .5s ease-in-out, .3s transform;
+}
+
+.col > .card:hover {
+    border: 1.2px solid var(--color-periwinkle);
+    transform: scale(1.03);
+}
+
+.card-footer {
+    transition: border .5s ease-in-out, .3s transform;
+}
+
+.card:hover > .card-footer {
+    border-top: 1.2px solid var(--color-periwinkle);
 }
 
 .card-img-top {
