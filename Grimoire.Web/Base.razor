@@ -1,14 +1,42 @@
 ﻿@inherits LayoutComponentBase
 
-<nav class="navbar border-bottom navbar-expand-lg">
+<nav class="navbar border-bottom navbar-expand-lg p-2">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">
-            <img src="favicon.png" alt="Bootstrap" width="40">
+        <a class="navbar-brand" href="/">
+            <img src="favicon.png" alt="Grimoire" width="50">
             <span>Grimoire</span>
         </a>
-        <form class="d-flex" role="search">
-            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-        </form>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#support" aria-controls="support"
+                aria-expanded="false"
+                aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="support">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 nav-underline">
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="home">
+                        <span>🌍 Home</span>
+                    </NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="sources">
+                        <span>🔮 Sources</span>
+                    </NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="settings">
+                        <span>🛠️ Settings</span>
+                    </NavLink>
+                </li>
+            </ul>
+
+            <form class="d-flex" role="search">
+                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+            </form>
+        </div>
+
     </div>
 </nav>
 
