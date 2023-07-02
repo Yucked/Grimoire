@@ -12,7 +12,7 @@
         <Waiting/>
     }
     else {
-        <div class="container">
+        <div class="border rounded-4 shadow">
             <ul class="list-group list-group-flush">
                 @foreach (var source in _sources) {
                     <a class="list-group-item list-group-item-action" @onclick="() => NavTo(source.Id)">

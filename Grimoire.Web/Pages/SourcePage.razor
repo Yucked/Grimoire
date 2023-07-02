@@ -36,26 +36,6 @@
                 </div>
             </div>
 
-            <div class="col text-center">
-                <div class="row row-cols-1 row-cols-lg-3 g-2">
-                    <div class="col">
-                        <div class="color-periwinkle rounded shadow-lg p-2 border-dark">
-                            Total Mangas: @_pagination.Count
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="color-periwinkle rounded shadow-lg p-2 border-dark">
-                            Last Fetch: @_pagination.Count
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="color-periwinkle rounded shadow-lg p-2 border-dark">
-                            Total Mangas: @_pagination.Count
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <div class="col">
                 <div class="row row-cols-2 row-cols-md-4 g-4">
                     @foreach (var manga in _pagination.Active.Items) {
@@ -69,6 +49,7 @@
                                             @manga.Name
                                         </p>
                                     </h5>
+
                                     <p class="card-text">
                                         <small class="text-body-secondary">
                                             @Truncate(manga.Summary)
@@ -76,7 +57,14 @@
                                     </p>
                                 </div>
                                 <div class="card-footer">
-                                    <small class="text-body-secondary">Last fetched on @(manga.LastFetch.ToString("D"))</small>
+                                    <small class="text-body-secondary">
+                                        @if (manga.Chapters?.FirstOrDefault()?.ReleasedOn != null) {
+                                            <span>⌛ Latest Chapter: @manga.Chapters?.FirstOrDefault()?.ReleasedOn</span>
+                                        }
+                                        else {
+                                            <span>⚠️ No information on latest release</span>
+                                        }
+                                    </small>
                                 </div>
                             </div>
                         </div>

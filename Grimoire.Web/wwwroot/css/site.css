@@ -23,10 +23,11 @@ body, html {
 }
 
 .list-group-item-action, .list-group-item-action {
-    transition: 0.3s;
+    transition: 0.35s ease-in-out;
 }
 
 .list-group-item-action:focus, .list-group-item-action:hover {
+    border-radius: var(--bs-border-radius-xl) !important;
     color: var(--color-slateblack) !important;
     background: var(--color-periwinkle) !important;
 }
@@ -60,6 +61,14 @@ body, html {
 
 .card:hover > .card-footer {
     border-top: 1.2px solid var(--color-periwinkle);
+}
+
+.card-header {
+    transition: border .5s ease-in-out, .3s transform;
+}
+
+.card:hover > .card-header {
+    border-bottom: 1.2px solid var(--color-periwinkle);
 }
 
 .card-img-top {
