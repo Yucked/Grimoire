@@ -1,6 +1,95 @@
-﻿@page "/Settings"
-<h3>Config</h3>
+﻿@page "/settings"
+
+@inject IConfiguration Configuration
+
+<div class="container-md py-4" xmlns="http://www.w3.org/1999/html">
+    <div class="card">
+        <h4 class="card-header py-3">⚙️ Settings</h4>
+        <div class="card-body">
+            <form>
+                <fieldset>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="allowedHosts">Allowed Hosts</span>
+                        <input type="text" class="form-control" aria-describedby="allowedHosts" value="@Configuration["AllowedHosts"]">
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="cacheRefresh">Refresh Cache Every</span>
+                        <input type="text" class="form-control" aria-describedby="cacheRefresh" value="@Configuration["RefreshEvery"]">
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <label class="input-group-text" for="defaultLogging">Log Level</label>
+                        <select class="form-select" id="defaultLogging">
+                            <option selected>@Configuration["Logging:LogLevel:Default"]</option>
+                            <option value="None">None</option>
+                            <option value="Trace">Trace</option>
+                            <option value="Debug">Debug</option>
+                            <option value="Information">Information</option>
+                            <option value="Warning">Warning</option>
+                            <option value="Error">Error</option>
+                            <option value="Critical">Critical</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <label class="input-group-text" for="themeSelect">Themes</label>
+                        <select class="form-select" id="themeSelect">
+                            <option selected>@Configuration["Theme"]</option>
+                            <option value="light">Light</option>
+                            <option value="dark">Dark</option>
+                        </select>
+                    </div>
+
+                    <hr/>
+
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="saveDir">Save Directory</span>
+                        <input type="text" class="form-control" aria-describedby="saveDir" value="@Configuration["Save:To"]">
+                    </div>
+
+                    <div class=" mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="sourceCheck"
+                                   checked="@(Configuration.GetValue<bool>("Save:SourceIcon"))">
+                            <label class="form-check-label" for="sourceCheck">
+                                Save Source's Icon
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="mangaCheck"
+                                   checked="@(Configuration.GetValue<bool>("Save:MangaCover"))">
+                            <label class="form-check-label" for="mangaCheck">
+                                Download Manga Cover
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="chapterCheck"
+                                   checked="@(Configuration.GetValue<bool>("Save:MangaChapter"))">
+                            <label class="form-check-label" for="chapterCheck">
+                                Download Chapter
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class=" mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="cacheManga"
+                                   checked="@(Configuration.GetValue<bool>("Cache:Manga"))">
+                            <label class="form-check-label" for="cacheManga">
+                                Cache Mangas to Database
+                            </label>
+                        </div>
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+    </div>
+</div>
 
 @code {
-    
+
+
 }

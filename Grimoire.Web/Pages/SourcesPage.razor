@@ -3,13 +3,14 @@
 @using Grimoire.Web.Cache
 @using Grimoire.Sources.Interfaces
 
+
 @inject CacheHandler CacheHandler
 @inject IConfiguration Configuration
 @inject NavigationManager NavigationManager
 
 <div class="container p-4">
     @if (_sources == null || !_sources.Any()) {
-        <Waiting/>
+        <Waiting Message="Loading mangas"/>
     }
     else {
         <div class="border rounded-4 shadow">
