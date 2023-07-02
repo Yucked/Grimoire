@@ -8,27 +8,14 @@
                 <h4 class="card-header py-3">🥳 Recent Updates</h4>
                 <div class="card-body">
 
-                    <div class="row g-3 flex-nowrap overflow-x-auto">
-                        @for (var i = 0; i < 10; i++) {
-                            <div class="col-md-3">
-                                <div class="card h-100 shadow-sm" aria-hidden="true">
-                                    <img src="" class="card-img-top" alt=" ">
-                                    <div class="card-body">
-                                        <h5 class="card-title placeholder-glow">
-                                            <span class="placeholder col-6"></span>
-                                        </h5>
-                                        <p class="card-text placeholder-glow">
-                                            <span class="placeholder col-7"></span>
-                                            <span class="placeholder col-4"></span>
-                                            <span class="placeholder col-4"></span>
-                                            <span class="placeholder col-6"></span>
-                                            <span class="placeholder col-8"></span>
-                                        </p>
-                                        <a class="btn btn-primary disabled placeholder col-6"></a>
-                                    </div>
-                                </div>
-                            </div>
-                        }
+                    <div class="row g-3 flex-nowrap">
+                        <ul class="list-group overflow-auto shadow">
+                            @for (var i = 0; i < 20; i++) {
+                                <NavLink href="#" class="list-group-item list-group-item-action placeholder">
+                                    P L A C E H O L D E R
+                                </NavLink>
+                            }
+                        </ul>
                     </div>
 
                 </div>
