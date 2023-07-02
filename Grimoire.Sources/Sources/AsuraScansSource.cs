@@ -15,8 +15,8 @@ public class AsuraScansSource : BaseWordPressSource, IGrimoireSource {
     public string Icon
         => $"{BaseUrl}/wp-content/uploads/2021/03/Group_1.png";
 
-    public AsuraScansSource(ILogger<AsuraScansSource> logger)
-        : base(logger) { }
+    public AsuraScansSource(HttpClient httpClient, ILogger<AsuraScansSource> logger)
+        : base(httpClient, logger) { }
 
     public Task<IReadOnlyList<Manga>> FetchMangasAsync() {
         return FetchFetchFetchAsync(BaseUrl, "manga/list-mode", "div.bigcontent");

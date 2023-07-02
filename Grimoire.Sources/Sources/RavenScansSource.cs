@@ -14,9 +14,9 @@ public class RavenScansSource : BaseWordPressSource, IGrimoireSource {
 
     public string Icon
         => "https://i0.wp.com/ravenscans.com/wp-content/uploads/2022/12/cropped-33.png";
-
-    public RavenScansSource(ILogger<RavenScansSource> logger)
-        : base(logger) { }
+    
+    public RavenScansSource(HttpClient httpClient, ILogger<RavenScansSource> logger)
+        : base(httpClient, logger) { }
 
     public Task<IReadOnlyList<Manga>> FetchMangasAsync() {
         return base.FetchFetchFetchAsync(BaseUrl, "manga/list-mode", "div.bigcontent");

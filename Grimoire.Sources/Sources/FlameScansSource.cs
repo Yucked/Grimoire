@@ -15,8 +15,8 @@ public class FlameScansSource : BaseWordPressSource, IGrimoireSource {
     public string Icon
         => $"{BaseUrl}/favicon.ico";
 
-    public FlameScansSource(ILogger<FlameScansSource> logger)
-        : base(logger) { }
+    public FlameScansSource(HttpClient httpClient, ILogger<FlameScansSource> logger)
+        : base(httpClient, logger) { }
 
     public Task<IReadOnlyList<Manga>> FetchMangasAsync() {
         return FetchFetchFetchAsync(BaseUrl, "series/list-mode", "div.main-info");
