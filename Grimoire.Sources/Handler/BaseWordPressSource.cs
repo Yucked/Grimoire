@@ -125,19 +125,15 @@ public class BaseWordPressSource {
             var parsedChapters = document
                 .GetElementById("readerarea")!
                 .Descendents<IHtmlImageElement>()
-                .Select((x, index) => new {
-                    Key = index, Value = x.Source
-                })
-                .ToDictionary(x => x.Key, x => x.Value);
+                .Select(x => x.Source)
+                .ToArray();
 
             var htmlChapters = chapterDoc
                 .Descendents<IHtmlImageElement>()
-                .Select((x, index) => new {
-                    Key = index, Value = x.Source
-                })
-                .ToDictionary(x => x.Key, x => x.Value);
+                .Select(x => x.Source)
+                .ToArray();
 
-            chapter.Pages = htmlChapters.Count > parsedChapters.Count
+            chapter.Pages = htmlChapters.Length > parsedChapters.Length
                 ? htmlChapters
                 : parsedChapters;
 

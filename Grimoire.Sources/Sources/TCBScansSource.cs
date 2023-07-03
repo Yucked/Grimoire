@@ -75,10 +75,8 @@ public sealed class TCBScansSource : IGrimoireSource {
         using var document = await Misc.ParseAsync(chapter.Url);
         chapter.Pages = document
             .QuerySelectorAll("img.fixed-ratio-content")
-            .Select((x, index) => new {
-                Key = index, Value = (x as IHtmlImageElement).Source
-            })
-            .ToDictionary(x => x.Key, x => x.Value);
+            .Select(x => (x as IHtmlImageElement).Source)
+            .ToArray();
         return chapter;
     }
 }

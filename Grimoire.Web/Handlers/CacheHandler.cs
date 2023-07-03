@@ -67,18 +67,21 @@ public sealed class CacheHandler {
         return await Task.WhenAll(tasks);
     }
 
-    public async Task<IReadOnlyList<Manga>> GetMangasAsync(string sourceId) {
-        if (await _dbHandler.SourceExistsAsync(sourceId)) {
-            return await _dbHandler.GetSourceAsync(sourceId);
+    public async Task<IReadOnlyList<Manga>> GetMangasAsync(string sourceId, bool refresh) {
+        IReadOnlyList<Manga> mangas;
+        if (!refresh && await _dbHandler.SourceExistsAsync(sourceId)) {
+            mangas = await _dbHandler.GetSourceAsync(sourceId);
+        }
+        else {
+            mangas = await _sources
+                .First(x => x.Id == sourceId)
+                .FetchMangasAsync();
         }
 
-        var source = _sources.First(x => x.Id == sourceId);
-        var mangas = await source.FetchMangasAsync();
-        
         if (_config.GetValue<bool>("Save:MangaCover")) {
             var tasks = mangas
                 .Select(async manga => {
-                    if (_memoryCache.TryGetValue($"{sourceId}@{manga.Id}", out _)) {
+                    if (!refresh && _memoryCache.TryGetValue($"{sourceId}@{manga.Id}", out _)) {
                         return manga;
                     }
 
@@ -108,30 +111,53 @@ public sealed class CacheHandler {
             await Task.WhenAll(tasks);
         }
 
-        if (_config.GetValue<bool>("Cache:Manga")) {
+        if (_config.GetValue<bool>("Cache:Manga") &&
+            !await _dbHandler.SourceExistsAsync(sourceId)) {
             await _dbHandler.SaveMangasAsync(sourceId, mangas);
         }
 
         return mangas;
     }
 
-    public Task<Manga> GetMangaAsync(string sourceId, string mangaId) {
-        return _dbHandler.GetMangaAsync(sourceId, mangaId);
+    public async Task<Manga> GetMangaAsync(string sourceId, string mangaId) {
+        var manga = await _dbHandler.GetMangaAsync(sourceId, mangaId);
+        if (_memoryCache.TryGetValue($"{sourceId}@{mangaId}", out _)) {
+            return manga;
+        }
+
+        var path = PathMaker
+            .New(_config["Save:To"])
+            .WithSource(sourceId)
+            .WithSource(manga.Id)
+            .Verify();
+
+        try {
+            if (!File.Exists(path.WithCover(manga.Cover))) {
+                await _httpClient.DownloadAsync(manga.Cover, path.Ave);
+            }
+        }
+        catch {
+            _logger.LogError("{}:{}\n{}\n{}",
+                manga.Name,
+                manga.Url,
+                manga.Cover,
+                path);
+        }
+
+        _memoryCache.Set($"{sourceId}@{manga.Id}", path.WithCover(manga.Cover));
+
+        return manga;
     }
 
     public async Task<Chapter> GetChapterAsync(string sourceId, string mangaId, int chapterIndex) {
         if (_memoryCache.TryGetValue($"{sourceId}@{mangaId}@{chapterIndex}", out string[] pages)) {
             return new Chapter {
                 Pages = pages
-                    .Select((x, index) => new {
-                        Key = index, Value = x
-                    })
-                    .ToDictionary(x => x.Key, x => x.Value)
             };
         }
 
         var manga = await GetMangaAsync(sourceId, mangaId);
-        if (manga.Chapters?[chapterIndex].Pages.IsNullOrEmpty() == false) {
+        if (manga.Chapters[chapterIndex].Pages?.Any() == false) {
             return manga.Chapters[chapterIndex];
         }
 
@@ -154,8 +180,8 @@ public sealed class CacheHandler {
         var tasks = chapter.Pages
             .Select(async x => {
                 try {
-                    if (!File.Exists(path.WithPage(x.Value))) {
-                        await _httpClient.DownloadAsync(x.Value, path.Ave);
+                    if (!File.Exists(path.WithPage(x))) {
+                        await _httpClient.DownloadAsync(x, path.Ave);
                     }
                 }
                 catch {
@@ -166,7 +192,7 @@ public sealed class CacheHandler {
                         path);
                 }
 
-                return path.WithPage(x.Value);
+                return path.WithPage(x);
             });
 
         pages = await Task.WhenAll(tasks);
