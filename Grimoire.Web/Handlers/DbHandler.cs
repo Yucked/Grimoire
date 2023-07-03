@@ -48,8 +48,7 @@ public sealed class DbHandler {
                      Builders<Manga>.Filter.Eq(x => x.Chapters, manga.Chapters);
         manga.Chapters[chapterIndex] = chapter;
         var update = Builders<Manga>.Update.Set(x => x.Chapters, manga.Chapters);
-        
-        
+
         var collection = _database.GetCollection<Manga>(sourceId);
         await collection.UpdateOneAsync(filter, update);
     }

@@ -1,5 +1,6 @@
 ﻿@page "/sources/{SourceId}"
 @using Grimoire.Web.Handlers
+@using Grimoire.Sources.Miscellaneous
 
 @inject CacheHandler CacheHandler
 @inject NavigationManager NavigationManager
@@ -8,10 +9,24 @@
 
 <div class="container-lg py-4">
     @if (_pagination == default || _pagination.Active == default) {
-        <Waiting/>
+        <Waiting Message="Loading sources"/>
     }
     else {
         <div class="row row-cols-1 g-5">
+            <div class="col">
+                <div class="card text-center">
+                    <div class="card-header">
+                        <h3 class="card-title">🕹️ @SourceId.GetNameFromId() 🕹️</h3>
+                    </div>
+
+                    <div class="card-body">
+                        <NavLink class="btn btn-primary" onclick="@RefreshAsync">
+                            🔃 Refresh
+                        </NavLink>
+                    </div>
+                </div>
+            </div>
+
             <div class="col">
                 <div id="carouselExampleSlidesOnly" class="carousel slide carousel-fade shadow-lg" data-bs-ride="carousel">
                     <div class="carousel-inner">
@@ -103,7 +118,12 @@
     private Pagination _pagination;
 
     protected override async Task OnInitializedAsync() {
-        var mangas = await CacheHandler.GetMangasAsync(SourceId);
+        var mangas = await CacheHandler.GetMangasAsync(SourceId, false);
+        _pagination = new Pagination(mangas);
+    }
+
+    private async Task RefreshAsync() {
+        var mangas = await CacheHandler.GetMangasAsync(SourceId, true);
         _pagination = new Pagination(mangas);
     }
 
