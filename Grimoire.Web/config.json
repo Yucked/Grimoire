@@ -10,10 +10,10 @@
     "Kestrel": {
         "Endpoints": {
             "Http": {
-                "Url": "http://0.0.0.0:5000"
+                "Url": "http://0.0.0.0:9000"
             },
             "Https": {
-                "Url": "http://0.0.0.0:5001"
+                "Url": "http://0.0.0.0:9001"
             }
         }
     },
@@ -27,5 +27,6 @@
     },
     "Cache": {
         "Manga": true
-    }
+    },
+    "Mongo": "mongodb://grimoire:grimoire@localhost:27017"
 }
