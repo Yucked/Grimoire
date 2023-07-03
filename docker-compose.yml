@@ -1,0 +1,42 @@
+version: '3.9'
+name: grimoire_stack
+
+services:
+    grimoire:
+        build: .
+        container_name: grimoire
+        restart: unless-stopped
+        ports:
+            - 5000:5000
+            - 5001:5001
+        networks:
+            - net-grim
+        volumes:
+            - ./data/grimoire:/Grimoire_Data
+                
+    mongodb:
+        image: mongo:latest
+        container_name: db_mongo
+        restart: unless-stopped
+        ports:
+            - 27017:27017
+        networks:
+            - net-grim
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: grimoire
+            MONGO_INITDB_ROOT_PASSWORD: grimoire
+        volumes:
+            - ./data/mongo:/data/db
+    
+    mongo-express:
+        image: mongo-express
+        container_name: mongo_express
+        restart: always
+        ports:
+            - 8081:8081
+        networks:
+            - net-grim
+        environment:
+            ME_CONFIG_MONGODB_ADMINUSERNAME: grimoire
+            ME_CONFIG_MONGODB_ADMINPASSWORD: grimoire
+            ME_CONFIG_MONGODB_URL: mongodb://grimoire:grimoire@db_mongo:27017/
