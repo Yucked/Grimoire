@@ -145,10 +145,8 @@ public sealed class Manhwa18NetSource : IGrimoireSource {
 
         chapter.Pages = element
             .Children
-            .Select((x, index) => new {
-                Key = index, x.Attributes[1].Value
-            })
-            .ToDictionary(x => x.Key, x => x.Value);
+            .Select(x => x.Attributes[1].Value)
+            .ToArray();
         return chapter;
     }
 
