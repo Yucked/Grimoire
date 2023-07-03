@@ -73,7 +73,22 @@ public sealed class Manhwa18NetSource : IGrimoireSource {
             mangas.Add(manga);
         });
 
-        return mangas;
+        return mangas
+            .GroupBy(x => x.Id)
+            .Select(x => {
+                if (x.Count() == 1) {
+                    return x.FirstOrDefault();
+                }
+
+                var lst = x.ToArray();
+                return lst[0].Chapters.Count == lst[1].Chapters.Count &&
+                       lst[0].Genre.Count > lst[1].Genre.Count ||
+                       lst[0].Chapters.Count > lst[1].Chapters.Count
+                    ? lst[0]
+                    : lst[1];
+            })
+            .ToArray();
+        //return mangas;
     }
 
     public async Task<IReadOnlyList<Manga>> PaginateAsync(int page) {
