@@ -22,14 +22,9 @@ builder
         x.AddConsole();
     })
     .AddGrimoireSources()
-    .AddSingleton(new MongoClient {
-        Settings = {
-            Server = new MongoServerAddress(builder.Configuration["Mongo"]),
-            ApplicationName = nameof(Grimoire),
-            ConnectTimeout = TimeSpan.FromSeconds(30),
-            RetryWrites = true
-        }
-    }.GetDatabase(nameof(Grimoire)))
+    .AddSingleton(new 
+        MongoClient(builder.Configuration["Mongo"])
+        .GetDatabase(nameof(Grimoire)))
     .AddSingleton<CacheHandler>()
     .AddSingleton<DbHandler>();
 
