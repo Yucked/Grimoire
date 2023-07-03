@@ -3,7 +3,7 @@ using Grimoire.Sources.Miscellaneous;
 using Grimoire.Sources.Models;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace Grimoire.Web.Cache;
+namespace Grimoire.Web.Handlers;
 
 public sealed class CacheHandler {
     private readonly IMemoryCache _memoryCache;
