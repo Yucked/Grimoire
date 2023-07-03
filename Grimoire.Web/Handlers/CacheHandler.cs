@@ -6,17 +6,20 @@ using Microsoft.Extensions.Caching.Memory;
 namespace Grimoire.Web.Handlers;
 
 public sealed class CacheHandler {
+    private readonly DbHandler _dbHandler;
     private readonly IMemoryCache _memoryCache;
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _config;
     private readonly IEnumerable<IGrimoireSource> _sources;
     private readonly ILogger<CacheHandler> _logger;
 
-    public CacheHandler(IMemoryCache memoryCache,
+    public CacheHandler(DbHandler dbHandler,
+                        IMemoryCache memoryCache,
                         IServiceProvider serviceProvider,
                         HttpClient httpClient,
                         IConfiguration config,
                         ILogger<CacheHandler> logger) {
+        _dbHandler = dbHandler;
         _memoryCache = memoryCache;
         _sources = serviceProvider.GetGrimoireSources();
         _httpClient = httpClient;
@@ -65,12 +68,13 @@ public sealed class CacheHandler {
     }
 
     public async Task<IReadOnlyList<Manga>> GetMangasAsync(string sourceId) {
-        var source = _sources.First(x => x.Id == sourceId);
-        if (_memoryCache.TryGetValue($"{sourceId}@Mangas", out IReadOnlyList<Manga> mangas)) {
-            return mangas;
+        if (await _dbHandler.SourceExistsAsync(sourceId)) {
+            return await _dbHandler.GetSourceAsync(sourceId);
         }
 
-        mangas = await source.FetchMangasAsync();
+        var source = _sources.First(x => x.Id == sourceId);
+        var mangas = await source.FetchMangasAsync();
+        
         if (_config.GetValue<bool>("Save:MangaCover")) {
             var tasks = mangas
                 .Select(async manga => {
@@ -104,21 +108,15 @@ public sealed class CacheHandler {
             await Task.WhenAll(tasks);
         }
 
-        if (!_config.GetValue<bool>("Cache:Manga")) {
-            return mangas;
+        if (_config.GetValue<bool>("Cache:Manga")) {
+            await _dbHandler.SaveMangasAsync(sourceId, mangas);
         }
 
-        _memoryCache.Set($"{sourceId}@Mangas", mangas);
         return mangas;
     }
 
-    public async Task<Manga> GetMangaAsync(string sourceId, string mangaId) {
-        if (!_memoryCache.TryGetValue($"{sourceId}@Mangas", out IReadOnlyCollection<Manga> mangas)) {
-            //TODO: Fetch individual manga?
-            return default;
-        }
-
-        return mangas.First(x => x.Id == mangaId);
+    public Task<Manga> GetMangaAsync(string sourceId, string mangaId) {
+        return _dbHandler.GetMangaAsync(sourceId, mangaId);
     }
 
     public async Task<Chapter> GetChapterAsync(string sourceId, string mangaId, int chapterIndex) {
@@ -132,12 +130,7 @@ public sealed class CacheHandler {
             };
         }
 
-        if (!_memoryCache.TryGetValue($"{sourceId}@Mangas", out IReadOnlyList<Manga> mangas)) {
-            //TODO: Fetch individual manga?
-            return default;
-        }
-
-        var manga = mangas.FirstOrDefault(x => x.Id == mangaId);
+        var manga = await GetMangaAsync(sourceId, mangaId);
         if (manga.Chapters?[chapterIndex].Pages.IsNullOrEmpty() == false) {
             return manga.Chapters[chapterIndex];
         }
@@ -145,15 +138,7 @@ public sealed class CacheHandler {
         var source = _sources.First(x => x.Id == sourceId);
         var chapters = await source.FetchChaptersAsync(manga);
         var chapter = await source.FetchChapterAsync(chapters[chapterIndex]);
-
-        mangas
-            .Where(x => x.Id == mangaId)
-            .ToList()
-            .ForEach(x => {
-                x.Chapters = chapters.ToArray();
-                x.Chapters[chapterIndex] = chapter;
-            });
-        _memoryCache.Set($"{sourceId}@Mangas", mangas);
+        await _dbHandler.UpdateMangaWithChapter(sourceId, mangaId, chapterIndex, chapter);
 
         if (!_config.GetValue<bool>("Save:MangaChapter")) {
             return chapter;
