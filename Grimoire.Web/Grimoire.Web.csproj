@@ -7,8 +7,11 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Grimoire.Sources\Grimoire.Sources.csproj" />
-		<ProjectReference Include="D:\Projects\Microsoft.Extensions.Logging.Colorful\Microsoft.Extensions.Logging.Colorful.csproj" />
+		
 	</ItemGroup>
-	
+
+	<ItemGroup>
+	  <PackageReference Include="MongoDB.Driver" Version="2.20.0" />
+	</ItemGroup>
 
 </Project>

@@ -1,24 +1,7 @@
-using System.Drawing;
 using Grimoire.Sources.Miscellaneous;
-using Grimoire.Web.Cache;
+using Grimoire.Web.Handlers;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Logging.Colorful;
-
-LoggingExtensions.ChangeConsoleMode();
-LoggingExtensions.PrintHeader(
-    Color.Orchid,
-    """
-
-        ._____  .______  .___ ._____.___ ._______  .___ .______  ._______
-        :_ ___\ : __   \ : __|:         |: .___  \ : __|: __   \ : .____/
-        |   |___|  \____|| : ||   \  /  || :   |  || : ||  \____|| : _/\ 
-        |   /  ||   :  \ |   ||   |\/   ||     :  ||   ||   :  \ |   /  \
-        |. __  ||   |___\|   ||___| |   | \_. ___/ |   ||   |___\|_.: __/
-        :/ |. ||___|    |___|      |___|   :/     |___||___|       :/   
-        :   :/                             :                            
-             :                                                           
-                                                                 
-""");
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,10 +19,19 @@ builder
     .AddMemoryCache()
     .AddLogging(x => {
         x.ClearProviders();
-        x.AddColorfulConsole();
+        x.AddConsole();
     })
     .AddGrimoireSources()
-    .AddSingleton<CacheHandler>();
+    .AddSingleton(new MongoClient {
+        Settings = {
+            Server = new MongoServerAddress(builder.Configuration["Mongo"]),
+            ApplicationName = nameof(Grimoire),
+            ConnectTimeout = TimeSpan.FromSeconds(30),
+            RetryWrites = true
+        }
+    }.GetDatabase(nameof(Grimoire)))
+    .AddSingleton<CacheHandler>()
+    .AddSingleton<DbHandler>();
 
 var app = builder.Build();
 if (!app.Environment.IsDevelopment()) {
