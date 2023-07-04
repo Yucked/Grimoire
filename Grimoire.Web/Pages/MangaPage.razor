@@ -3,6 +3,7 @@
 @using Grimoire.Web.Handlers
 @using Grimoire.Sources.Miscellaneous
 
+@inject LibraryHandler LibraryHandler
 @inject CacheHandler CacheHandler
 @inject IConfiguration Configuration
 @inject NavigationManager NavigationManager
@@ -67,6 +68,15 @@ else {
                                     <small class="text-body-secondary">Last fetched on @_manga.LastFetch</small>
                                 </p>
                             </div>
+
+                            <div class="card-footer">
+                                <div class="d-grid d-md-flex justify-content-md-end">
+                                    <NavLink type="button" class="btn btn-dark w-100" onclick="@AddToLibraryAsync">
+                                        ❤️‍🔥Add to Library
+                                    </NavLink>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -119,5 +129,8 @@ else {
         NavigationManager.NavigateTo($"/{SourceId}/{MangaId}/{chapter}");
     }
 
+    private Task AddToLibraryAsync() {
+        return LibraryHandler.AddToLibraryAsync(SourceId, MangaId);
+    }
 
 }
