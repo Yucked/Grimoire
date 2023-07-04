@@ -1,0 +1,53 @@
+﻿@using Grimoire.Sources.Models
+@using Grimoire.Web.Handlers
+
+@inject CacheHandler CacheHandler
+@inject NavigationManager NavigationManager
+@inject IConfiguration Configuration
+
+<div class="card h-100 shadow-sm" @onclick="() => NavTo(Manga.Id)">
+    <img src="@Configuration.GetCover(CacheHandler.Get<string>($"{SourceId}@{Manga.Id}"), Manga.Cover)"
+         class="card-img-top" alt="@Manga.Name">
+    <div class="card-body">
+        <h5 class="card-title">
+            <p>
+                @Manga.Name
+            </p>
+        </h5>
+
+        <p class="card-text">
+            <small class="text-body-secondary">
+                @Truncate(Manga.Summary)
+            </small>
+        </p>
+    </div>
+    <div class="card-footer">
+        <small class="text-body-secondary">
+            @if (Manga.Chapters?.FirstOrDefault()?.ReleasedOn != null) {
+                <span>⌛ Latest Chapter: @Manga.Chapters?.FirstOrDefault()?.ReleasedOn</span>
+            }
+            else {
+                <span>⚠️ No information on latest release</span>
+            }
+        </small>
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public string SourceId { get; set; }
+
+    [Parameter]
+    public Manga Manga { get; set; }
+
+    private void NavTo(string mangaId) {
+        NavigationManager.NavigateTo($"/{SourceId}/{mangaId}");
+    }
+
+    private static string Truncate(string str) {
+        return str.Length > 150 ?
+            $"{str[..150]}..." : str;
+    }
+
+}
