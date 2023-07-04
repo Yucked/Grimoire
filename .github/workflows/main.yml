@@ -13,12 +13,3 @@ jobs:
       uses: actions/setup-dotnet@v3.2.0
       with:
         dotnet-version: 8.x
-        
-    - name: WebHook
-      if: always()
-      shell: pwsh
-      env: 
-        GITHUB: ${{ toJson(github) }}
-      run: |
-        wget https://raw.githubusercontent.com/Yucked/Scripy/master/Powershell/ActionSend.ps1
-        pwsh .\ActionSend.ps1 ${{ secrets.WEBHOOK }} ${{ job.status }}
