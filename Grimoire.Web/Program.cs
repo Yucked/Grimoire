@@ -22,11 +22,12 @@ builder
         x.AddConsole();
     })
     .AddGrimoireSources()
-    .AddSingleton(new 
-        MongoClient(builder.Configuration["Mongo"])
+    .AddSingleton(new
+            MongoClient(builder.Configuration["Mongo"])
         .GetDatabase(nameof(Grimoire)))
     .AddSingleton<CacheHandler>()
-    .AddSingleton<DbHandler>();
+    .AddSingleton<DbHandler>()
+    .AddSingleton<LibraryHandler>();
 
 var app = builder.Build();
 if (!app.Environment.IsDevelopment()) {
