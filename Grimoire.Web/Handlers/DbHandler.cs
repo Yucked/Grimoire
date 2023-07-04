@@ -1,6 +1,4 @@
-using Grimoire.Sources.Interfaces;
 using Grimoire.Sources.Models;
-using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Grimoire.Web.Handlers;
@@ -30,8 +28,8 @@ public sealed class DbHandler {
         return manga.Chapters[chapter];
     }
 
-    public async Task SaveMangasAsync(string sourceId, IReadOnlyCollection<Manga> mangas) {
-        if (!await SourceExistsAsync(sourceId)) {
+    public async Task SaveMangasAsync(string sourceId, IEnumerable<Manga> mangas) {
+        if (!await _database.DoesCollectionExistAsync(sourceId)) {
             await _database.CreateCollectionAsync(sourceId);
         }
 
@@ -53,16 +51,7 @@ public sealed class DbHandler {
         await collection.UpdateOneAsync(filter, update);
     }
 
-    public Task<bool> SourceExistsAsync(IGrimoireSource source) {
-        return SourceExistsAsync(source.Id);
-    }
-
-    public async Task<bool> SourceExistsAsync(string sourceId) {
-        var filter = new BsonDocument("name", sourceId);
-        var collections = await _database.ListCollectionsAsync(
-            new ListCollectionsOptions {
-                Filter = filter
-            });
-        return await collections.AnyAsync();
+    public Task<bool> SourceExistsAsync(string sourceId) {
+        return _database.DoesCollectionExistAsync(sourceId);
     }
 }
