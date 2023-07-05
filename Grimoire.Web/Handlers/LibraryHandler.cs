@@ -44,7 +44,7 @@ public sealed class LibraryHandler {
         return await Task.WhenAll(tasks);
     }
 
-    public async Task<IEnumerable<Manga>> GetRecentUpdatesAsync() {
+    public async Task<IReadOnlyCollection<Chapter>> GetRecentUpdatesAsync() {
         var library = await GetUserLibraryAsync();
         var tasks = library
             .Favourites
@@ -56,8 +56,10 @@ public sealed class LibraryHandler {
 
         var mangas = await Task.WhenAll(tasks);
         return mangas
-            .OrderBy(x => x.Chapters.OrderBy(y => y.ReleasedOn))
-            .Take(10);
+            .Select(x => x.Chapters.FirstOrDefault())
+            .OrderBy(x => x.ReleasedOn)
+            .Take(10)
+            .ToArray();
     }
 
     public async Task AddToLibraryAsync(string sourceId, string mangaId) {
