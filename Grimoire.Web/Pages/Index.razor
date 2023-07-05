@@ -14,11 +14,16 @@
                 <div class="card-body">
 
                     <div class="row g-3 flex-nowrap">
-                        <ul class="list-group overflow-auto shadow">
-                            @for (var i = 0; i < 10; i++) {
-                                <NavLink href="#" class="list-group-item list-group-item-action placeholder">
-                                    P L A C E H O L D E R
-                                </NavLink>
+                        <ul class="list-group shadow">
+                            @if (_chapters == null || _chapters.Any()) {
+                                <Waiting Message="Loading recent releases"/>
+                            }
+                            else {
+                                @foreach(var chapter in _chapters) {
+                                    <NavLink href="#" class="list-group-item list-group-item-action placeholder">
+                                        @chapter.Name
+                                    </NavLink>
+                                }
                             }
                         </ul>
                     </div>
@@ -31,7 +36,7 @@
             <div class="card">
                 <h4 class="card-header py-3">📑 Favorites</h4>
                 <div class="card-body">
-                    @if (_mangas == null || _mangas.Count == 0) {
+                    @if (_mangas == null || !_mangas.Any()) {
                         <Waiting Message="Loading user library"/>
                     }
                     else {
@@ -52,9 +57,11 @@
 
 @code {
     private IReadOnlyCollection<Manga> _mangas;
+    private IReadOnlyCollection<Chapter> _chapters;
 
     protected override async Task OnInitializedAsync() {
         _mangas = await Handler.GetLibraryAsync();
+        _chapters = await Handler.GetRecentUpdatesAsync();
     }
 
 }

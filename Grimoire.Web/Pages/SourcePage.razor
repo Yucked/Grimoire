@@ -9,7 +9,7 @@
 
 <div class="container-lg py-4">
     @if (_pagination == default || _pagination.Active == default) {
-        <Waiting Message="Loading sources"/>
+        <Waiting Message=@LoadingMessage/>
     }
     else {
         <div class="row row-cols-1 g-5">
@@ -114,6 +114,9 @@
 {
     [Parameter]
     public string SourceId { get; set; }
+
+    private string LoadingMessage
+        => $"Loading {SourceId.GetNameFromId()} content";
 
     private Pagination _pagination;
 
