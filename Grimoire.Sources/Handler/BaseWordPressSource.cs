@@ -53,6 +53,7 @@ public abstract class BaseWordPressSource {
 
                     manga.Cover = doc.QuerySelector("img.wp-post-image").As<IHtmlImageElement>().Source;
 
+                    // TODO: Arena Scans
                     manga.Author = (info
                             .First(v => v.TextContent.Trim() == "Author")
                             .Parent as IHtmlDivElement)
