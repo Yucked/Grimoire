@@ -1,11 +1,15 @@
-FROM mcr.microsoft.com/dotnet/nightly/sdk:8.0-preview AS build
-WORKDIR /App
-COPY . ./
-RUN dotnet restore
-RUN dotnet publish -c Release -o out
+FROM mcr.microsoft.com/dotnet/sdk:8.0-preview-alpine
+RUN apk add --no-cache curl unzip
 
-# Build runtime image
-FROM mcr.microsoft.com/dotnet/nightly/aspnet:8.0-preview
-WORKDIR /App
-COPY --from=build /App/out .
-ENTRYPOINT ["dotnet", "Grimoire.dll"]
+FROM build
+RUN curl -OJL https://github.com/Yucked/Grimoire/archive/refs/heads/main.zip && \
+    unzip '*.zip' && \
+    mkdir app && mv Grimoire-main/* app/ && \
+    rm *.zip  && rm -rf Grimoire-main
+
+WORKDIR app
+RUN dotnet restore && \
+    dotnet publish -c Release -o out
+
+WORKDIR out
+ENTRYPOINT ["dotnet", "Grimoire.Web.dll"]

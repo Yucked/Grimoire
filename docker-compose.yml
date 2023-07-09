@@ -7,19 +7,22 @@ services:
         container_name: grimoire
         restart: unless-stopped
         ports:
-            - 5000:5000
-            - 5001:5001
+            - 9000:9000
+            - 9001:9001
         networks:
             - net-grim
         volumes:
-            - ./data/grimoire:/Grimoire_Data
-                
+            - ./data/grimoire:/app/out/Grimoire_Data
+            - ./data/config.json:/app/out/config.json
+        deploy:
+            resources:
+                limits:
+                    memory: 2G
+
     mongodb:
         image: mongo:latest
-        container_name: db_mongo
+        container_name: mongodb
         restart: unless-stopped
-        ports:
-            - 27017:27017
         networks:
             - net-grim
         environment:
@@ -39,4 +42,7 @@ services:
         environment:
             ME_CONFIG_MONGODB_ADMINUSERNAME: grimoire
             ME_CONFIG_MONGODB_ADMINPASSWORD: grimoire
-            ME_CONFIG_MONGODB_URL: mongodb://grimoire:grimoire@db_mongo:27017/
+            ME_CONFIG_MONGODB_URL: mongodb://grimoire:grimoire@mongodb:27017/
+
+networks:
+    net-grim:
