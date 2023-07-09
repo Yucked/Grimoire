@@ -19,7 +19,7 @@ public sealed class ArenaScansSource : BaseWordPressSource, IGrimoireSource {
         : base(httpClient, logger) { }
 
     public Task<IReadOnlyList<Manga>> FetchMangasAsync() {
-        return FetchFetchFetchAsync(BaseUrl, "manga/list-mode", "div.main-info");
+        return FetchMangasAsync(BaseUrl, "manga/list-mode", "div.main-info");
     }
 
     public Task<IReadOnlyList<Manga>> PaginateAsync(int page) {

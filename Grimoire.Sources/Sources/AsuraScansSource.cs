@@ -19,7 +19,7 @@ public class AsuraScansSource : BaseWordPressSource, IGrimoireSource {
         : base(httpClient, logger) { }
 
     public Task<IReadOnlyList<Manga>> FetchMangasAsync() {
-        return FetchFetchFetchAsync(BaseUrl, "manga/list-mode", "div.bigcontent");
+        return FetchMangasAsync(BaseUrl, "manga/list-mode", "div.bigcontent");
     }
 
     public Task<IReadOnlyList<Manga>> PaginateAsync(int page) {
