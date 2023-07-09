@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Grimoire.Sources.Handler;
 
-public class BaseWordPressSource {
+public abstract class BaseWordPressSource {
     private readonly ILogger<BaseWordPressSource> _logger;
 
     protected static readonly char[] Separators = {
@@ -21,7 +21,10 @@ public class BaseWordPressSource {
 
     private readonly HttpClient _httpClient;
 
-    protected BaseWordPressSource(HttpClient httpClient, ILogger<BaseWordPressSource> logger) {
+    public abstract string Name { get; }
+
+    protected BaseWordPressSource(HttpClient httpClient,
+                                  ILogger<BaseWordPressSource> logger) {
         _httpClient = httpClient;
         _logger = logger;
     }
@@ -37,7 +40,7 @@ public class BaseWordPressSource {
                 var manga = new Manga {
                     Name = x.TextContent,
                     Url = (x as IHtmlAnchorElement).Href,
-                    SourceName = GetType().Name[..^6],
+                    SourceId = Name.GetIdFromName(),
                     LastFetch = DateTimeOffset.Now
                 };
                 _logger.LogInformation("Fetching information for: {}", manga.Name);

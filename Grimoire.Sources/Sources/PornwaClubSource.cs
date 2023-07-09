@@ -18,11 +18,9 @@ public sealed class PornwaClubSource : IGrimoireSource {
     public string Icon
         => $"{BaseUrl}/favicon1.ico";
 
-    private readonly HttpClient _httpClient;
     private readonly ILogger<PornwaClubSource> _logger;
 
-    public PornwaClubSource(HttpClient httpClient, ILogger<PornwaClubSource> logger) {
-        _httpClient = httpClient;
+    public PornwaClubSource(ILogger<PornwaClubSource> logger) {
         _logger = logger;
     }
 
@@ -108,7 +106,7 @@ public sealed class PornwaClubSource : IGrimoireSource {
                         .First()
                         .GetAttribute("data-bg"),
                     LastFetch = DateTimeOffset.Now,
-                    SourceName = GetType().Name[..^6]
+                    SourceId = Name.GetIdFromName()
                 };
             })
             .ToArray();
