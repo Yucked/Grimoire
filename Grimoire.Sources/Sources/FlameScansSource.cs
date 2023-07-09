@@ -19,7 +19,7 @@ public class FlameScansSource : BaseWordPressSource, IGrimoireSource {
         : base(httpClient, logger) { }
 
     public Task<IReadOnlyList<Manga>> FetchMangasAsync() {
-        return FetchFetchFetchAsync(BaseUrl, "series/list-mode", "div.main-info");
+        return FetchMangasAsync(BaseUrl, "series/list-mode", "div.main-info");
     }
 
     public Task<IReadOnlyList<Manga>> PaginateAsync(int page) {

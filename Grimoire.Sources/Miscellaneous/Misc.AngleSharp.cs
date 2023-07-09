@@ -22,7 +22,7 @@ public static partial class Misc {
     public static string[] Split(this INode node, char slice) {
         return node == null || string.IsNullOrWhiteSpace(node.TextContent)
             ? default
-            : node.TextContent?.Split(slice);
+            : node.TextContent.Split(slice);
     }
 
     public static Task<IDocument> ParseAsync(string url) {
