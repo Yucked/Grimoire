@@ -1,4 +1,6 @@
 ﻿@page "/{SourceId}/{MangaId}/{Chap:int}"
+@page "/{SourceId}/{MangaId}/{Chapter}"
+
 
 @using Grimoire.Sources.Models
 @using Grimoire.Web.Handlers
@@ -33,6 +35,9 @@
     [Parameter]
     public int Chap { get; set; }
 
+    [Parameter]
+    public string Chapter { get; set; }
+
     private Chapter _chapter;
 
     private string LoadingMessage
@@ -40,6 +45,9 @@
 
     protected override async Task OnInitializedAsync() {
         _chapter = await CacheHandler.GetChapterAsync(SourceId, MangaId, Chap);
+        _chapter = string.IsNullOrWhiteSpace(Chapter) ?
+            await CacheHandler.GetChapterAsync(SourceId, MangaId, Chapter) :
+            await CacheHandler.GetChapterAsync(SourceId, MangaId, Chap);
     }
 
 }
