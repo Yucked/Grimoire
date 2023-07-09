@@ -54,4 +54,24 @@ public sealed class DbHandler {
     public Task<bool> SourceExistsAsync(string sourceId) {
         return _database.DoesCollectionExistAsync(sourceId);
     }
+
+    public Task AddToLibraryAsync(string sourceId, string mangaId) {
+        return _database.GetCollection<Manga>(sourceId)
+            .FindOneAndUpdateAsync(
+                Builders<Manga>.Filter.Eq(x => x.Id, mangaId),
+                Builders<Manga>.Update.Set(x => x.IsInLibrary, true));
+    }
+
+    public async Task<IEnumerable<Manga>> GetLibraryAsync() {
+        var collections = await (await _database.ListCollectionsAsync()).ToListAsync();
+        var tasks = collections
+            .Select(collection => {
+                return _database.GetCollection<Manga>(collection.Elements.First().Value.AsString)
+                    .Find(Builders<Manga>.Filter.Eq(x => x.IsInLibrary, true))
+                    .ToListAsync();
+            });
+
+        var result = await Task.WhenAll(tasks);
+        return result.SelectMany(x => x);
+    }
 }
