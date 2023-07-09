@@ -38,8 +38,8 @@
             : _sources.First(x => x.Id == sourceId).Icon;
     }
 
-    private void NavTo(string source) {
-        NavigationManager.NavigateTo($"/sources/{source}");
+    private void NavTo(string sourceId) {
+        NavigationManager.NavigateTo($"/sources/{sourceId}");
     }
 
 }
