@@ -3,7 +3,6 @@
 @using Grimoire.Sources.Miscellaneous
 
 @inject CacheHandler CacheHandler
-@inject NavigationManager NavigationManager
 @inject IConfiguration Configuration
 @inject IJSRuntime JsRuntime
 
@@ -54,33 +53,7 @@
                 <div class="row row-cols-2 row-cols-md-4 g-4">
                     @foreach (var manga in _pagination.Active.Items) {
                         <div class="col">
-                            <div class="card h-100 shadow-sm" @onclick="() => NavTo(manga.Id)">
-                                <img src="@Configuration.GetCover(CacheHandler.Get<string>($"{SourceId}@{manga.Id}"), manga.Cover)"
-                                     class="card-img-top" alt="@manga.Name">
-                                <div class="card-body">
-                                    <h5 class="card-title">
-                                        <p>
-                                            @manga.Name
-                                        </p>
-                                    </h5>
-
-                                    <p class="card-text">
-                                        <small class="text-body-secondary">
-                                            @Truncate(manga.Summary)
-                                        </small>
-                                    </p>
-                                </div>
-                                <div class="card-footer">
-                                    <small class="text-body-secondary">
-                                        @if (manga.Chapters?.FirstOrDefault()?.ReleasedOn != null) {
-                                            <span>⌛ Latest Chapter: @manga.Chapters?.FirstOrDefault()?.ReleasedOn</span>
-                                        }
-                                        else {
-                                            <span>⚠️ No information on latest release</span>
-                                        }
-                                    </small>
-                                </div>
-                            </div>
+                            <MangaCard SourceId="@SourceId" Manga="@manga"/>
                         </div>
                     }
                 </div>
@@ -130,10 +103,6 @@
         _pagination = new Pagination(mangas);
     }
 
-    private void NavTo(string mangaId) {
-        NavigationManager.NavigateTo($"/{SourceId}/{mangaId}");
-    }
-
     private async void NavAsync(bool isNext) {
         if (isNext) {
             _pagination.Next();
@@ -143,11 +112,6 @@
         }
 
         await JsRuntime.InvokeVoidAsync("OnScrollEvent");
-    }
-
-    private static string Truncate(string str) {
-        return str.Length > 150 ?
-            $"{str[..150]}..." : str;
     }
 
 }
