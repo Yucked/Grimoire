@@ -30,7 +30,7 @@ public sealed class CacheHandler {
     }
 
     public T Get<T>(string key) {
-        return  _memoryCache.Get<T>(key);
+        return _memoryCache.Get<T>(key);
     }
 
     public async Task<IReadOnlyList<IGrimoireSource>> GetSourcesAsync() {
@@ -149,6 +149,14 @@ public sealed class CacheHandler {
         _memoryCache.Set($"{sourceId}@{manga.Id}", path.WithCover(manga.Cover));
 
         return manga;
+    }
+
+    public async Task<Chapter> GetChapterAsync(string sourceId, string mangaId, string chapterName) {
+        var manga = await GetMangaAsync(sourceId, mangaId);
+        var chapter = manga.Chapters.First(x => x.Name == chapterName);
+        var index = manga.Chapters.IndexOf(chapter);
+
+        return await GetChapterAsync(sourceId, mangaId, index);
     }
 
     public async Task<Chapter> GetChapterAsync(string sourceId, string mangaId, int chapterIndex) {
