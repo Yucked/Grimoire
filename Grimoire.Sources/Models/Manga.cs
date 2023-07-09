@@ -11,7 +11,7 @@ public record Manga {
     public string Cover { get; set; }
     public string Summary { get; set; }
     public string Author { get; set; }
-    public string SourceName { get; set; }
+    public string SourceId { get; set; }
     public DateTimeOffset LastFetch { get; set; }
     public IReadOnlyList<string> Metonyms { get; set; }
     public IReadOnlyList<string> Genre { get; set; }

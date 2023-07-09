@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 namespace Grimoire.Sources.Sources;
 
 public class RavenScansSource : BaseWordPressSource, IGrimoireSource {
-    public string Name
+    public override string Name
         => "Raven Scans";
 
     public string BaseUrl
@@ -19,7 +19,7 @@ public class RavenScansSource : BaseWordPressSource, IGrimoireSource {
         : base(httpClient, logger) { }
 
     public Task<IReadOnlyList<Manga>> FetchMangasAsync() {
-        return base.FetchFetchFetchAsync(BaseUrl, "manga/list-mode", "div.bigcontent");
+        return FetchFetchFetchAsync(BaseUrl, "manga/list-mode", "div.bigcontent");
     }
 
     public Task<IReadOnlyList<Manga>> PaginateAsync(int page) {

@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 namespace Grimoire.Sources.Sources;
 
 public class FlameScansSource : BaseWordPressSource, IGrimoireSource {
-    public string Name
+    public override string Name
         => "Flame Scans";
 
     public string BaseUrl
