@@ -56,10 +56,16 @@ public sealed class DbHandler {
     }
 
     public Task AddToLibraryAsync(string sourceId, string mangaId) {
-        return _database.GetCollection<Manga>(sourceId)
-            .FindOneAndUpdateAsync(
-                Builders<Manga>.Filter.Eq(x => x.Id, mangaId),
-                Builders<Manga>.Update.Set(x => x.IsInLibrary, true));
+        var collection = _database.GetCollection<Manga>(sourceId);
+        if (collection
+            .Find(Builders<Manga>.Filter.Eq(x => x.Id, mangaId))
+            .Any()) {
+            return Task.CompletedTask;
+        }
+
+        return collection.FindOneAndUpdateAsync(
+            Builders<Manga>.Filter.Eq(x => x.Id, mangaId),
+            Builders<Manga>.Update.Set(x => x.IsInLibrary, true));
     }
 
     public async Task<IEnumerable<Manga>> GetLibraryAsync() {
