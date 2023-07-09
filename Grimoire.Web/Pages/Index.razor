@@ -1,7 +1,7 @@
 ﻿@page "/"
+
 @using Grimoire.Web.Handlers
 @using Grimoire.Sources.Models
-@using Grimoire.Sources.Miscellaneous
 
 @inject LibraryHandler Handler
 
@@ -15,12 +15,12 @@
 
                     <div class="row g-3 flex-nowrap">
                         <ul class="list-group shadow">
-                            @if (_chapters == null || _chapters.Any()) {
+                            @if (_chapters == null || !_chapters.Any()) {
                                 <Waiting Message="Loading recent releases"/>
                             }
                             else {
                                 @foreach(var chapter in _chapters) {
-                                    <NavLink href="#" class="list-group-item list-group-item-action placeholder">
+                                    <NavLink href="#" class="list-group-item list-group-item-action">
                                         @chapter.Name
                                     </NavLink>
                                 }
@@ -43,7 +43,7 @@
                         <div class="row row-cols-2 row-cols-md-4 g-4">
                             @foreach (var manga in _mangas) {
                                 <div class="col">
-                                    <MangaCard SourceId="@manga.SourceName.GetIdFromName()" Manga="@manga"></MangaCard>
+                                    <MangaCard SourceId="@manga.SourceId" Manga="@manga"></MangaCard>
                                 </div>
                             }
                         </div>
