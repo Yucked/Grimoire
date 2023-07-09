@@ -18,11 +18,9 @@ public sealed class Manhwa18NetSource : IGrimoireSource {
     public string Icon
         => $"{BaseUrl}/favicon1.ico";
 
-    private readonly HttpClient _httpClient;
     private readonly ILogger<Manhwa18NetSource> _logger;
 
-    public Manhwa18NetSource(HttpClient httpClient, ILogger<Manhwa18NetSource> logger) {
-        _httpClient = httpClient;
+    public Manhwa18NetSource(ILogger<Manhwa18NetSource> logger) {
         _logger = logger;
     }
 
@@ -108,7 +106,7 @@ public sealed class Manhwa18NetSource : IGrimoireSource {
                         .First()
                         .GetAttribute("data-bg"),
                     LastFetch = DateTimeOffset.Now,
-                    SourceName = GetType().Name[..^6]
+                    SourceId = Name.GetIdFromName()
                 };
             })
             .ToArray();

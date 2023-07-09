@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 namespace Grimoire.Sources.Sources;
 
 public class AsuraScansSource : BaseWordPressSource, IGrimoireSource {
-    public string Name
+    public override string Name
         => "Asura Scans";
 
     public string BaseUrl
