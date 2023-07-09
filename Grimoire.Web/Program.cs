@@ -26,8 +26,7 @@ builder
             MongoClient(builder.Configuration["Mongo"])
         .GetDatabase(nameof(Grimoire)))
     .AddSingleton<CacheHandler>()
-    .AddSingleton<DbHandler>()
-    .AddSingleton<LibraryHandler>();
+    .AddSingleton<DbHandler>();
 
 var app = builder.Build();
 if (!app.Environment.IsDevelopment()) {
