@@ -25,10 +25,12 @@ public sealed class CacheHandler {
         _httpClient = httpClient;
         _config = config;
         _logger = logger;
+
+        PopulateCache();
     }
 
     public T Get<T>(string key) {
-        return _memoryCache.Get<T>(key);
+        return  _memoryCache.Get<T>(key);
     }
 
     public async Task<IReadOnlyList<IGrimoireSource>> GetSourcesAsync() {
@@ -199,5 +201,22 @@ public sealed class CacheHandler {
         _memoryCache.Set($"{sourceId}@{manga.Id}@{chapterIndex}", pages);
 
         return chapter;
+    }
+
+    private void PopulateCache() {
+        Directory.GetDirectories(_config["Save:To"]!)
+            .ToList()
+            .AsParallel()
+            .ForAll(sourcePath => {
+                var source = sourcePath.Split('\\')[^1];
+                Directory.GetDirectories(sourcePath)
+                    .AsParallel()
+                    .ForAll(mangaPath => {
+                        var manga = mangaPath.Split('\\')[^1];
+                        foreach (var file in Directory.GetFiles(mangaPath)) {
+                            _memoryCache.Set($"{source}@{manga}", file);
+                        }
+                    });
+            });
     }
 }
