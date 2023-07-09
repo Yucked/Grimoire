@@ -29,7 +29,7 @@ public abstract class BaseWordPressSource {
         _logger = logger;
     }
 
-    protected async Task<IReadOnlyList<Manga>> FetchFetchFetchAsync(string baseUrl,
+    protected async Task<IReadOnlyList<Manga>> FetchMangasAsync(string baseUrl,
                                                                     string path,
                                                                     string selector) {
         using var document = await Misc.ParseAsync($"{baseUrl}/{path}");
