@@ -3,7 +3,7 @@
 @using Grimoire.Web.Handlers
 @using Grimoire.Sources.Miscellaneous
 
-@inject LibraryHandler LibraryHandler
+@inject DbHandler DbHandler
 @inject CacheHandler CacheHandler
 @inject IConfiguration Configuration
 @inject NavigationManager NavigationManager
@@ -71,9 +71,10 @@ else {
 
                             <div class="card-footer">
                                 <div class="d-grid d-md-flex justify-content-md-end">
-                                    <NavLink type="button" class="btn btn-dark w-100" onclick="@AddToLibraryAsync">
-                                        ❤️‍🔥Add to Library
-                                    </NavLink>
+                                    <button type="button" class="btn btn-dark w-100" onclick="@AddToLibraryAsync"
+                                            disabled="@_manga.IsInLibrary">
+                                        @(!_manga.IsInLibrary ? "❤️‍🔥 Add to library" : "🪅 Already added to library!")
+                                    </button>
                                 </div>
                             </div>
 
@@ -130,7 +131,7 @@ else {
     }
 
     private Task AddToLibraryAsync() {
-        return LibraryHandler.AddToLibraryAsync(SourceId, MangaId);
+        return DbHandler.AddToLibraryAsync(SourceId, MangaId);
     }
 
 }
