@@ -19,7 +19,7 @@ else {
                     <div class="row gy-4">
                         <div class="col-md-4">
                             <img src="@Configuration.GetCover(CacheHandler.Get<string>($"{SourceId}@{_manga.Id}"), _manga.Cover)"
-                                 class="card-img" alt="_manga.Name">
+                                 class="card-img" alt="@_manga.Name">
                         </div>
 
                         <div class="col-md-8">
@@ -71,9 +71,8 @@ else {
 
                             <div class="card-footer">
                                 <div class="d-grid d-md-flex justify-content-md-end">
-                                    <button type="button" class="btn btn-dark w-100" onclick="@AddToLibraryAsync"
-                                            disabled="@_manga.IsInLibrary">
-                                        @(!_manga.IsInLibrary ? "❤️‍🔥 Add to library" : "🪅 Already added to library!")
+                                    <button type="button" class="btn btn-dark w-100" onclick="@AddToLibraryAsync">
+                                        @(!_manga.IsInLibrary ? "❤️‍🔥 Add to library" : "🪅 Remove from library")
                                     </button>
                                 </div>
                             </div>
