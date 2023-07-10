@@ -46,7 +46,7 @@
     }
 
     private static string Truncate(string str) {
-        return str.Length > 150 ?
+        return str?.Length > 150 ?
             $"{str[..150]}..." : str;
     }
 
