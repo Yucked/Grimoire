@@ -26,9 +26,19 @@ public static partial class Misc {
                     RegexOptions.Compiled | RegexOptions.IgnoreCase);
     }
 
+    public static string[] Slice(this string str, char seperator) {
+        return string.IsNullOrWhiteSpace(str)
+            ? new[] { str }
+            : str.Split(seperator, StringSplitOptions.RemoveEmptyEntries);
+    }
+
     public static string[] Slice(this string str, char[] seperator) {
         return string.IsNullOrWhiteSpace(str)
             ? new[] { str }
             : str.Split(seperator, StringSplitOptions.RemoveEmptyEntries);
+    }
+
+    public static string Join(this IEnumerable<string> strs) {
+        return string.Join(" ", strs);
     }
 }

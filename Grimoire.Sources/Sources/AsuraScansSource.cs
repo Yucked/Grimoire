@@ -23,7 +23,7 @@ public class AsuraScansSource : BaseWordPressSource, IGrimoireSource {
     }
 
     public Task<IReadOnlyList<Manga>> PaginateAsync(int page) {
-        throw new NotSupportedException("");
+        throw new NotSupportedException("Data is fetched via list mode.");
     }
 
     public Task<IReadOnlyList<Chapter>> FetchChaptersAsync(Manga manga) {
