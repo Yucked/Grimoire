@@ -1,5 +1,8 @@
+using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
 using Grimoire.Sources.Handler;
 using Grimoire.Sources.Interfaces;
+using Grimoire.Sources.Miscellaneous;
 using Grimoire.Sources.Models;
 using Microsoft.Extensions.Logging;
 
@@ -15,11 +18,71 @@ public sealed class ArenaScansSource : BaseWordPressSource, IGrimoireSource {
     public string Icon
         => $"{BaseUrl}/favicon.ico";
 
-    public ArenaScansSource(HttpClient httpClient, ILogger<ArenaScansSource> logger)
-        : base(httpClient, logger) { }
+    private readonly ILogger<ArenaScansSource> _logger;
 
-    public Task<IReadOnlyList<Manga>> FetchMangasAsync() {
-        return FetchMangasAsync(BaseUrl, "manga/list-mode", "div.main-info");
+    public ArenaScansSource(HttpClient httpClient, ILogger<ArenaScansSource> logger)
+        : base(httpClient, logger) {
+        _logger = logger;
+    }
+
+    public async Task<IReadOnlyList<Manga>> FetchMangasAsync() {
+        using var document = await Misc.ParseAsync($"{BaseUrl}/manga/list-mode");
+        var results = document
+            .QuerySelectorAll("div.soralist > * a.series")
+            .AsParallel()
+            .Select(x => GetMangaAsync((x as IHtmlAnchorElement).Href));
+        return await Task.WhenAll(results);
+    }
+
+    public async Task<Manga> GetMangaAsync(string url) {
+        using var document = await Misc.ParseAsync(url);
+        var titleElement = document.GetElementById("titlemove");
+
+        _logger.LogInformation("Fetching information for: {}", titleElement.Children[0].TextContent);
+        var manga = new Manga {
+            Name = titleElement.Children[0].TextContent,
+            Url = url,
+            SourceId = Name.GetIdFromName(),
+            LastFetch = DateTimeOffset.Now,
+            Cover = document.QuerySelector("img.wp-post-image").As<IHtmlImageElement>().Source,
+            Chapters = ParseChapters(document).ToArray()
+        };
+
+        try {
+            manga.Metonyms = titleElement
+                .GetElementsByClassName("alternative")
+                .FirstOrDefault()
+                ?.TextContent
+                .Slice(Separators);
+
+            manga.Summary = document.QuerySelector("*[itemprop='description']")
+                !.Descendents<IHtmlParagraphElement>()
+                .Select(x => x.TextContent.Clean().Trim())
+                .Join();
+
+            manga.Genre = document
+                .QuerySelector("div.wd-full > span.mgen")
+                ?.TextContent
+                .Slice(' ');
+
+            manga.Author = document
+                .QuerySelectorAll("div.tsinfo > div.imptdt")
+                .FirstOrDefault(x => x.TextContent.Clean().Trim()[..6] == "Author")
+                ?.TextContent
+                .Slice(' ')[1..]
+                .Join()
+                .Clean()
+                ?.Trim();
+        }
+        catch (Exception exception) {
+            _logger.LogError("{}: {}\n{}\n{}",
+                manga.Name,
+                manga.Url,
+                exception.Message,
+                exception);
+        }
+
+        return manga;
     }
 
     public Task<IReadOnlyList<Manga>> PaginateAsync(int page) {
