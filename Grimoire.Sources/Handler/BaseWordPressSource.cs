@@ -7,31 +7,21 @@ using Microsoft.Extensions.Logging;
 namespace Grimoire.Sources.Handler;
 
 public abstract class BaseWordPressSource {
-    private readonly ILogger<BaseWordPressSource> _logger;
-
-    protected static readonly char[] Separators = {
-        ',',
-        '|'
-    };
-
-    private static readonly string[] AltStrings = {
-        "Alternative Titles",
-        "desktop-titles"
-    };
-
-    private readonly HttpClient _httpClient;
-
     public abstract string Name { get; }
 
-    protected BaseWordPressSource(HttpClient httpClient,
-                                  ILogger<BaseWordPressSource> logger) {
+    private readonly HttpClient _httpClient;
+    private readonly ILogger<BaseWordPressSource> _logger;
+    protected static readonly char[] Separators = { ',', '|' };
+    private static readonly string[] AltStrings = { "Alternative Titles", "desktop-titles" };
+
+    protected BaseWordPressSource(HttpClient httpClient, ILogger<BaseWordPressSource> logger) {
         _httpClient = httpClient;
         _logger = logger;
     }
 
     protected async Task<IReadOnlyList<Manga>> FetchMangasAsync(string baseUrl,
-                                                                    string path,
-                                                                    string selector) {
+                                                                string path,
+                                                                string selector) {
         using var document = await Misc.ParseAsync($"{baseUrl}/{path}");
         var results = document
             .QuerySelectorAll("div.soralist > * a.series")
