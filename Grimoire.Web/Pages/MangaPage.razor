@@ -130,7 +130,7 @@ else {
     }
 
     private Task AddToLibraryAsync() {
-        return DbHandler.AddToLibraryAsync(SourceId, MangaId);
+        return DbHandler.AddToLibraryAsync(SourceId, MangaId, !_manga.IsInLibrary);
     }
 
 }
