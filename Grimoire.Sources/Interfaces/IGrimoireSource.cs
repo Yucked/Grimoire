@@ -32,7 +32,15 @@ public interface IGrimoireSource {
     /// 
     /// </summary>
     /// <returns></returns>
-    Task<IReadOnlyList<Manga>> PaginateAsync(int page);
+    Task<Manga> GetMangaAsync(string url);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="manga"></param>
+    /// <returns></returns>
+    Task<Manga> GetMangaAsync(Manga manga)
+        => GetMangaAsync(manga.Url);
 
     /// <summary>
     /// 
