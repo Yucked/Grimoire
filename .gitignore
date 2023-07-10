@@ -394,7 +394,7 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
-# JetBrains Rider
+
 *.sln.iml
 ./.idea
 /.idea/*
@@ -404,3 +404,4 @@ FodyWeavers.xsd
 /.idea/.idea.Grimoire/.idea/indexLayout.xml
 *Provider.json
 /Grimoire.Web/Grimoire_Data/
+/Grimoire.Tests/*
