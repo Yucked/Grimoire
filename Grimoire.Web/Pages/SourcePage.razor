@@ -17,7 +17,12 @@
                 <div class="card text-center">
                     <div class="card-header">
                         <div class="d-flex justify-content-between align-items-start">
-                            <h3 class="card-title">🕹️ @SourceId.GetNameFromId()</h3>
+                            <h3 class="card-title">
+                                <img src="@CacheHandler.GetSourceIcon(SourceId)"
+                                     alt="@SourceId" width="20">
+                                <span>@SourceId.GetNameFromId() | <span class="badge bg-dark">Mangas: @_book.ItemCount</span></span>
+                                
+                            </h3>
                             <button class="btn btn-dark" onclick="@RefreshAsync">Refresh 👀</button>
                         </div>
                     </div>

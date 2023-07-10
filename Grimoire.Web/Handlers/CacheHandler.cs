@@ -33,6 +33,12 @@ public sealed class CacheHandler {
         return _memoryCache.Get<T>(key);
     }
 
+    public string GetSourceIcon(string sourceId) {
+        return _config.GetValue<bool>("Save:SourceIcon")
+            ? Get<string>(sourceId)
+            : _sources.First(x => x.Id == sourceId).Icon;
+    }
+
     public async Task<IReadOnlyList<IGrimoireSource>> GetSourcesAsync() {
         if (!_config.GetValue<bool>("Save:SourceIcon")) {
             return _sources.ToArray();
