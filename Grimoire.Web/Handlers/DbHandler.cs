@@ -55,17 +55,11 @@ public sealed class DbHandler {
         return _database.DoesCollectionExistAsync(sourceId);
     }
 
-    public Task AddToLibraryAsync(string sourceId, string mangaId) {
+    public Task AddToLibraryAsync(string sourceId, string mangaId, bool add) {
         var collection = _database.GetCollection<Manga>(sourceId);
-        if (collection
-            .Find(Builders<Manga>.Filter.Eq(x => x.Id, mangaId))
-            .Any()) {
-            return Task.CompletedTask;
-        }
-
         return collection.FindOneAndUpdateAsync(
             Builders<Manga>.Filter.Eq(x => x.Id, mangaId),
-            Builders<Manga>.Update.Set(x => x.IsInLibrary, true));
+            Builders<Manga>.Update.Set(x => x.IsInLibrary, add));
     }
 
     public async Task<IEnumerable<Manga>> GetLibraryAsync() {
