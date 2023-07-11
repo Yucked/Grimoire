@@ -24,36 +24,31 @@ public sealed class TCBScansSource : IGrimoireSource {
 
     public async Task<IReadOnlyList<Manga>> FetchMangasAsync() {
         using var document = await Misc.ParseAsync($"{BaseUrl}/projects");
-        var items = document.GetElementsByClassName("flex flex-col items-center md:flex-row md:items-start");
-        var result = items.AsParallel()
-            .Select(async x => {
-                var anchor = x
-                    .GetElementsByClassName("relative h-24 w-24 sm:mb-0 mb-3")
-                    .FirstOrDefault()
-                    .Children[0] as IHtmlAnchorElement;
+        var tasks = document
+            .QuerySelectorAll("a.mb-3.text-white")
+            .AsParallel()
+            .Select(x => GetMangaAsync(x.As<IHtmlAnchorElement>().Href));
+        return await Task.WhenAll(tasks);
+    }
 
-                var img = anchor.Children[0] as IHtmlImageElement;
-                using var doc = await Misc.ParseAsync($"{BaseUrl}{anchor.PathName}");
-                _logger.LogInformation("Getting additional information for {manga}", img.Attributes[1].Value);
-
-                return new Manga {
-                    Name = img.AlternativeText,
-                    Url = $"{BaseUrl}{anchor.PathName}",
-                    Cover = img.Source,
-                    LastFetch = DateTimeOffset.Now,
-                    SourceId = Name.GetIdFromName(),
-                    Summary = doc.GetElementsByClassName("leading-6 my-3")
-                        .FirstOrDefault()
-                        .TextContent,
-                    Chapters = doc.GetElementsByClassName("block border border-border bg-card mb-3 p-3 rounded")
-                        .Select(c => new Chapter {
-                            Name = c.TextContent,
-                            Url = $"{BaseUrl}{(c as IHtmlAnchorElement).PathName}"
-                        })
-                        .ToArray()
-                };
-            });
-        return await Task.WhenAll(result);
+    public async Task<Manga> GetMangaAsync(string url) {
+        using var document = await Misc.ParseAsync(url);
+        return new Manga {
+            Name = document.QuerySelector("div.px-4 > h1").TextContent.Clean(),
+            Url = url,
+            Cover = document.QuerySelector("div.flex > img").As<IHtmlImageElement>().Source,
+            LastFetch = DateTimeOffset.Now,
+            SourceId = Name.GetIdFromName(),
+            Summary = document.QuerySelector("p.leading-6")
+                .TextContent
+                .Clean(),
+            Chapters = document.QuerySelectorAll("a.block.border")
+                .Select(c => new Chapter {
+                    Name = c.TextContent,
+                    Url = $"{BaseUrl}{(c as IHtmlAnchorElement).PathName}"
+                })
+                .ToArray()
+        };
     }
 
     public Task<IReadOnlyList<Manga>> PaginateAsync(int page) {
