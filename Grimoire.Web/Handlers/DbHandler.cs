@@ -1,3 +1,4 @@
+using Grimoire.Sources.Miscellaneous;
 using Grimoire.Sources.Models;
 using MongoDB.Driver;
 
@@ -5,9 +6,11 @@ namespace Grimoire.Web.Handlers;
 
 public sealed class DbHandler {
     private readonly IMongoDatabase _database;
+    private readonly IServiceProvider _serviceProvider;
 
-    public DbHandler(IMongoDatabase database) {
+    public DbHandler(IMongoDatabase database, IServiceProvider serviceProvider) {
         _database = database;
+        _serviceProvider = serviceProvider;
     }
 
     public Task<List<Manga>> GetSourceAsync(string sourceId) {
@@ -73,5 +76,18 @@ public sealed class DbHandler {
 
         var result = await Task.WhenAll(tasks);
         return result.SelectMany(x => x);
+    }
+
+    public async Task UpdateLibraryAsync() {
+        var sources = _serviceProvider.GetGrimoireSources().ToArray();
+        var library = await GetLibraryAsync();
+
+        foreach (var manga in library) {
+            var source = sources.First(x => x.Id == manga.SourceId);
+            var update = await source.GetMangaAsync(manga.Url);
+
+            var collection = _database.GetCollection<Manga>(source.Id);
+            await collection.ReplaceOneAsync(Builders<Manga>.Filter.Eq(x => x.Id, manga.Id), update);
+        }
     }
 }
