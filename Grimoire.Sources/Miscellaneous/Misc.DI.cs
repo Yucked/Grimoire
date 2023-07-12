@@ -29,4 +29,8 @@ public static partial class Misc {
             .Select(provider.GetRequiredService)
             .OfType<IGrimoireSource>();
     }
+
+    public static Task<T[]> AwaitAsync<T>(this IEnumerable<Task<T>> results) {
+        return Task.WhenAll(results);
+    }
 }
