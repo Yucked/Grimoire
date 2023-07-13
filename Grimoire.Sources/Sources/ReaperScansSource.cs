@@ -1,4 +1,4 @@
-﻿using Grimoire.Sources.Models;
+﻿using Grimoire.Commons.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Grimoire.Sources.Sources;

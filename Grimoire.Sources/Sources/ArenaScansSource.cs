@@ -1,9 +1,10 @@
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
+using Grimoire.Commons;
+using Grimoire.Commons.Interfaces;
+using Grimoire.Commons.Models;
 using Grimoire.Sources.Handler;
-using Grimoire.Sources.Interfaces;
 using Grimoire.Sources.Miscellaneous;
-using Grimoire.Sources.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Grimoire.Sources.Sources;
@@ -36,11 +37,10 @@ public sealed class ArenaScansSource : BaseWordPressSource, IGrimoireSource {
 
     public async Task<Manga> GetMangaAsync(string url) {
         using var document = await Misc.ParseAsync(url);
-        var titleElement = document.GetElementById("titlemove");
 
-        _logger.LogInformation("Fetching information for: {}", titleElement.Children[0].TextContent);
+        _logger.LogInformation("Fetching information for: {}", url);
         var manga = new Manga {
-            Name = titleElement.Children[0].TextContent,
+            Name = document.QuerySelector("h1.entry-title[itemprop='name']").TextContent,
             Url = url,
             SourceId = Name.GetIdFromName(),
             LastFetch = DateTimeOffset.Now,
@@ -49,7 +49,7 @@ public sealed class ArenaScansSource : BaseWordPressSource, IGrimoireSource {
         };
 
         try {
-            manga.Metonyms = titleElement
+            manga.Metonyms = document
                 .GetElementsByClassName("alternative")
                 .FirstOrDefault()
                 ?.TextContent
