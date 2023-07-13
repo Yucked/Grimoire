@@ -1,3 +1,5 @@
+using Grimoire.Commons;
+using Grimoire.Commons.Parsing;
 using Grimoire.Sources.Miscellaneous;
 using Grimoire.Web.Handlers;
 using Microsoft.Extensions.FileProviders;
@@ -20,6 +22,12 @@ builder
     .AddLogging(x => {
         x.ClearProviders();
         x.AddConsole();
+    })
+    .AddHtmlParser(new ParserOptions {
+        MaxDelay = builder.Configuration.GetValue<int>("MaxDelay"),
+        MaxRetries = builder.Configuration.GetValue<int>("MaxRetries"),
+        Proxies = builder.Configuration.GetValue<string[]>("Proxies"),
+        UserAgents = builder.Configuration.GetValue<string[]>("UserAgents")
     })
     .AddGrimoireSources()
     .AddSingleton(new

@@ -1,4 +1,4 @@
-﻿using Grimoire.Sources.Models;
+﻿using Grimoire.Commons.Models;
 
 namespace Grimoire.Web;
 

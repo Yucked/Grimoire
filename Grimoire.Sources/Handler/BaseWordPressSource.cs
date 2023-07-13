@@ -1,7 +1,8 @@
 ﻿using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
+using Grimoire.Commons;
+using Grimoire.Commons.Models;
 using Grimoire.Sources.Miscellaneous;
-using Grimoire.Sources.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Grimoire.Sources.Handler;
@@ -12,7 +13,7 @@ public abstract class BaseWordPressSource {
     private readonly HttpClient _httpClient;
     private readonly ILogger<BaseWordPressSource> _logger;
     protected static readonly char[] Separators = { ',', '|' };
-    private static readonly string[] AltStrings = { "Alternative Titles", "desktop-titles" };
+    protected static readonly string[] AltStrings = { "Alternative Titles", "desktop-titles" };
 
     protected BaseWordPressSource(HttpClient httpClient, ILogger<BaseWordPressSource> logger) {
         _httpClient = httpClient;

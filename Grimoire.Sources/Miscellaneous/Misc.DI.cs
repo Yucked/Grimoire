@@ -1,4 +1,4 @@
-﻿using Grimoire.Sources.Interfaces;
+﻿using Grimoire.Commons.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Grimoire.Sources.Miscellaneous;

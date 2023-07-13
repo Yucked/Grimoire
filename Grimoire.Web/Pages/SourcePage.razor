@@ -2,7 +2,7 @@
 @page "/sources/{SourceId}/{PageNumber:int}"
 
 @using Grimoire.Web.Handlers
-@using Grimoire.Sources.Miscellaneous
+@using Grimoire.Commons
 
 @inject CacheHandler CacheHandler
 @inject NavigationManager NavigationManager
@@ -21,7 +21,7 @@
                                 <img src="@CacheHandler.GetSourceIcon(SourceId)"
                                      alt="@SourceId" width="20">
                                 <span>@SourceId.GetNameFromId() | <span class="badge bg-dark">Mangas: @_book.ItemCount</span></span>
-                                
+
                             </h3>
                             <button class="btn btn-dark" onclick="@RefreshAsync">Refresh 👀</button>
                         </div>
