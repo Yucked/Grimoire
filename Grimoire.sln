@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grimoire.Web", "Grimoire.We
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grimoire.Sources", "Grimoire.Sources\Grimoire.Sources.csproj", "{42EBB619-4B3B-43E1-A634-25B568426772}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grimoire.Commons", "Grimoire.Commons\Grimoire.Commons.csproj", "{61718AFA-9C78-4E15-9047-D3B09002759E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,5 +30,9 @@ Global
 		{42EBB619-4B3B-43E1-A634-25B568426772}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{42EBB619-4B3B-43E1-A634-25B568426772}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{42EBB619-4B3B-43E1-A634-25B568426772}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61718AFA-9C78-4E15-9047-D3B09002759E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61718AFA-9C78-4E15-9047-D3B09002759E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61718AFA-9C78-4E15-9047-D3B09002759E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61718AFA-9C78-4E15-9047-D3B09002759E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
