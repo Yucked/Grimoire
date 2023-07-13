@@ -1,9 +1,14 @@
-using Grimoire.Sources.Miscellaneous;
-using Grimoire.Sources.Models;
+using Grimoire.Commons.Models;
 
-namespace Grimoire.Sources.Interfaces;
+namespace Grimoire.Commons.Interfaces;
 
+/// <summary>
+/// 
+/// </summary>
 public interface IGrimoireSource {
+    /// <summary>
+    /// 
+    /// </summary>
     public string Id
         => Name.GetIdFromName();
 
