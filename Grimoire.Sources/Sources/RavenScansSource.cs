@@ -1,6 +1,6 @@
-﻿using Grimoire.Sources.Handler;
-using Grimoire.Sources.Interfaces;
-using Grimoire.Sources.Models;
+﻿using Grimoire.Commons.Interfaces;
+using Grimoire.Commons.Models;
+using Grimoire.Sources.Handler;
 using Microsoft.Extensions.Logging;
 
 namespace Grimoire.Sources.Sources;
@@ -20,6 +20,10 @@ public class RavenScansSource : BaseWordPressSource, IGrimoireSource {
 
     public Task<IReadOnlyList<Manga>> FetchMangasAsync() {
         return FetchMangasAsync(BaseUrl, "manga/list-mode", "div.bigcontent");
+    }
+
+    public Task<Manga> GetMangaAsync(string url) {
+        throw new NotImplementedException();
     }
 
     public Task<IReadOnlyList<Manga>> PaginateAsync(int page) {
