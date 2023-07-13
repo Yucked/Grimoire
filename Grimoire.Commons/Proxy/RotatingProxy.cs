@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace Grimoire.Commons.Parsing;
+namespace Grimoire.Commons.Proxy;
 
 public sealed class RotatingProxy : IWebProxy {
     public ICredentials? Credentials { get; set; }
