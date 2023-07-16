@@ -2,7 +2,6 @@ using Grimoire.Commons.Parsing;
 using Grimoire.Commons.Proxy;
 using Grimoire.Web;
 using Grimoire.Web.Handlers;
-using Microsoft.Extensions.FileProviders;
 using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,9 +15,11 @@ builder
     .Services
     .AddServerSideBlazor()
     .Services
+    .AddOutputCache()
     .AddResponseCaching()
-    .AddHttpClient()
+    .AddResponseCompression()
     .AddMemoryCache()
+    .AddHttpClient()
     .AddLogging(x => {
         x.ClearProviders();
         x.AddConsole();
@@ -39,30 +40,13 @@ builder
     .AddSingleton<DbHandler>();
 
 var app = builder.Build();
-if (!app.Environment.IsDevelopment()) {
-    app.UseHsts();
-}
-
-app.UseHttpsRedirection();
-
-if (!Directory.Exists(app.Configuration["Save:To"])) {
-    Directory.CreateDirectory(app.Configuration["Save:To"]!);
-}
-
-var provider = new PhysicalFileProvider(
-    Path.GetFullPath(app.Configuration["Save:To"]!)
-);
-
-app.Environment.WebRootFileProvider = new CompositeFileProvider(
-    new PhysicalFileProvider(builder.Environment.WebRootPath),
-    provider
-);
-
-app.UseStaticFiles();
-app.UseStaticFiles(new StaticFileOptions {
-    FileProvider = provider,
-    RequestPath = $"/{app.Configuration["Save:To"]!}"
-});
+app.UseHttpsRedirection()
+    .UseStaticFiles()
+    .UseCustomStaticFiles(app)
+    .UseRouting()
+    .UseResponseCaching()
+    .UseResponseCompression()
+    .UseOutputCache();
 
 app.UseRouting();
 app.MapBlazorHub();

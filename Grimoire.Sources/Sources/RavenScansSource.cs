@@ -9,7 +9,7 @@ public class RavenScansSource : BaseWordPressSource, IGrimoireSource {
     public override string Name
         => "Raven Scans";
 
-    public string BaseUrl
+    public string Url
         => "https://ravenscans.com";
 
     public string Icon
@@ -18,8 +18,8 @@ public class RavenScansSource : BaseWordPressSource, IGrimoireSource {
     public RavenScansSource(HttpClient httpClient, ILogger<RavenScansSource> logger)
         : base(httpClient, logger) { }
 
-    public Task<IReadOnlyList<Manga>> FetchMangasAsync() {
-        return FetchMangasAsync(BaseUrl, "manga/list-mode", "div.bigcontent");
+    public Task<IReadOnlyList<Manga>> GetMangasAsync() {
+        return FetchMangasAsync(Url, "manga/list-mode", "div.bigcontent");
     }
 
     public Task<Manga> GetMangaAsync(string url) {

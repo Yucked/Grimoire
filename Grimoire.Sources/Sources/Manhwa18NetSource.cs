@@ -14,11 +14,11 @@ public class Manhwa18NetSource : IGrimoireSource {
     public string Name
         => "Manhwa 18";
 
-    public string BaseUrl
+    public string Url
         => "https://manhwa18.net";
 
     public string Icon
-        => $"{BaseUrl}/favicon1.ico";
+        => $"{Url}/favicon1.ico";
 
     private readonly ILogger<Manhwa18NetSource> _logger;
 
@@ -26,8 +26,8 @@ public class Manhwa18NetSource : IGrimoireSource {
         _logger = logger;
     }
 
-    public async Task<IReadOnlyList<Manga>> FetchMangasAsync() {
-        using var document = await Misc.ParseAsync($"{BaseUrl}/manga-list");
+    public async Task<IReadOnlyList<Manga>> GetMangasAsync() {
+        using var document = await Misc.ParseAsync($"{Url}/manga-list");
         var lastPage = int.Parse(document
             .QuerySelector("a.paging_prevnext.next")
             .As<IHtmlAnchorElement>().Href[^2..]);
@@ -35,7 +35,7 @@ public class Manhwa18NetSource : IGrimoireSource {
         var urls = await Enumerable
             .Range(1, lastPage)
             .Select(async page => {
-                using var doc = await Misc.ParseAsync($"{BaseUrl}/manga-list?page={page}");
+                using var doc = await Misc.ParseAsync($"{Url}/manga-list?page={page}");
                 return doc
                     .QuerySelectorAll("div.thumb_attr.series-title > a")
                     .Select(x => x.As<IHtmlAnchorElement>().Href);

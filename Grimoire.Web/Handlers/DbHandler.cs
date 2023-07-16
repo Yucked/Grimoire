@@ -30,7 +30,11 @@ public sealed class DbHandler {
         return manga.Chapters[chapter];
     }
 
-    public async Task SaveMangasAsync(string sourceId, IEnumerable<Manga> mangas) {
+    public async Task SaveMangasAsync(string sourceId, IReadOnlyList<Manga> mangas) {
+        if (!mangas.Any()) {
+            return;
+        }
+
         if (!await _database.DoesCollectionExistAsync(sourceId)) {
             await _database.CreateCollectionAsync(sourceId);
         }
@@ -57,11 +61,11 @@ public sealed class DbHandler {
         return _database.DoesCollectionExistAsync(sourceId);
     }
 
-    public Task AddToLibraryAsync(string sourceId, string mangaId, bool add) {
+    public Task AddToLibraryAsync(string sourceId, string mangaId, bool shouldAdd) {
         var collection = _database.GetCollection<Manga>(sourceId);
         return collection.FindOneAndUpdateAsync(
             Builders<Manga>.Filter.Eq(x => x.Id, mangaId),
-            Builders<Manga>.Update.Set(x => x.IsInLibrary, add));
+            Builders<Manga>.Update.Set(x => x.IsInLibrary, shouldAdd));
     }
 
     public async Task<IEnumerable<Manga>> GetLibraryAsync() {
