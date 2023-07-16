@@ -1,4 +1,4 @@
-﻿@page "/"
+@page "/"
 
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.AspNetCore.Mvc.TagHelpers
@@ -20,11 +20,11 @@
     <link rel="stylesheet" href="css/bootstrap.min.css"/>
     <link rel="icon" type="image/x-icon" href="favicon_outline.png">
 
-    <component type="typeof(HeadOutlet)" render-mode="Server"/>
+    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered"/>
 </head>
 
 <body>
-<component type="typeof(App)" render-mode="Server"/>
+<component type="typeof(App)" render-mode="ServerPrerendered"/>
 
 <div id="blazor-error-ui">
     <environment include="Staging,Production">

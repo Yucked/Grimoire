@@ -1,6 +1,6 @@
-using Grimoire.Commons;
 using Grimoire.Commons.Parsing;
-using Grimoire.Sources.Miscellaneous;
+using Grimoire.Commons.Proxy;
+using Grimoire.Web;
 using Grimoire.Web.Handlers;
 using Microsoft.Extensions.FileProviders;
 using MongoDB.Driver;
@@ -23,12 +23,14 @@ builder
         x.ClearProviders();
         x.AddConsole();
     })
-    .AddHtmlParser(new ParserOptions {
-        MaxDelay = builder.Configuration.GetValue<int>("MaxDelay"),
-        MaxRetries = builder.Configuration.GetValue<int>("MaxRetries"),
-        Proxies = builder.Configuration.GetValue<string[]>("Proxies"),
-        UserAgents = builder.Configuration.GetValue<string[]>("UserAgents")
-    })
+    .AddSingleton(new ParserOptions(
+        builder.Configuration.GetValue<int>("MaxDelay"),
+        builder.Configuration.GetValue<int>("MaxRetries"),
+        builder.Configuration.GetSection("Proxies").Get<string[]>(),
+        builder.Configuration.GetSection("UserAgents").Get<string[]>()
+    ))
+    .AddSingleton<ProxiesHandler>()
+    .AddSingleton<HtmlParser>()
     .AddGrimoireSources()
     .AddSingleton(new
             MongoClient(builder.Configuration["Mongo"])

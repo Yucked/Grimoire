@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grimoire.Web", "Grimoire.Web\Grimoire.Web.csproj", "{2DC1EDD2-67E6-41D4-BD79-BBBA96C8D8A9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grimoire.Commons", "Grimoire.Commons\Grimoire.Commons.csproj", "{C972B813-FFBB-484A-A83E-97F421D9C546}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grimoire.Sources", "Grimoire.Sources\Grimoire.Sources.csproj", "{42EBB619-4B3B-43E1-A634-25B568426772}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grimoire.Sources", "Grimoire.Sources\Grimoire.Sources.csproj", "{C7D88C9B-4E9F-4BF6-A79C-300AA34D595C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grimoire.Commons", "Grimoire.Commons\Grimoire.Commons.csproj", "{61718AFA-9C78-4E15-9047-D3B09002759E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grimoire.Web", "Grimoire.Web\Grimoire.Web.csproj", "{3E3CBB12-7973-41F1-8597-21E650A096DA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,21 +18,17 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{050629FC-F2E5-467B-90BA-5D61D568A095}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{050629FC-F2E5-467B-90BA-5D61D568A095}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{050629FC-F2E5-467B-90BA-5D61D568A095}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{050629FC-F2E5-467B-90BA-5D61D568A095}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2DC1EDD2-67E6-41D4-BD79-BBBA96C8D8A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2DC1EDD2-67E6-41D4-BD79-BBBA96C8D8A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2DC1EDD2-67E6-41D4-BD79-BBBA96C8D8A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2DC1EDD2-67E6-41D4-BD79-BBBA96C8D8A9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{42EBB619-4B3B-43E1-A634-25B568426772}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{42EBB619-4B3B-43E1-A634-25B568426772}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{42EBB619-4B3B-43E1-A634-25B568426772}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{42EBB619-4B3B-43E1-A634-25B568426772}.Release|Any CPU.Build.0 = Release|Any CPU
-		{61718AFA-9C78-4E15-9047-D3B09002759E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{61718AFA-9C78-4E15-9047-D3B09002759E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{61718AFA-9C78-4E15-9047-D3B09002759E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{61718AFA-9C78-4E15-9047-D3B09002759E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C972B813-FFBB-484A-A83E-97F421D9C546}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C972B813-FFBB-484A-A83E-97F421D9C546}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C972B813-FFBB-484A-A83E-97F421D9C546}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C972B813-FFBB-484A-A83E-97F421D9C546}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7D88C9B-4E9F-4BF6-A79C-300AA34D595C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7D88C9B-4E9F-4BF6-A79C-300AA34D595C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7D88C9B-4E9F-4BF6-A79C-300AA34D595C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7D88C9B-4E9F-4BF6-A79C-300AA34D595C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E3CBB12-7973-41F1-8597-21E650A096DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E3CBB12-7973-41F1-8597-21E650A096DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E3CBB12-7973-41F1-8597-21E650A096DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E3CBB12-7973-41F1-8597-21E650A096DA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
