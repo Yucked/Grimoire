@@ -28,7 +28,7 @@ public sealed class ProxiesHandler {
         try {
             using var requestMessage = new HttpRequestMessage {
                 Method = HttpMethod.Head,
-                RequestUri = new Uri(proxy),
+                RequestUri = new Uri($"http://{proxy}"),
                 Headers = {
                     {
                         "User-Agent", userAgent
@@ -38,7 +38,7 @@ public sealed class ProxiesHandler {
 
             using var responseMessage = await _httpClient.SendAsync(requestMessage);
             if (!responseMessage.IsSuccessStatusCode) {
-                _logger.LogError("{}\n{}", responseMessage.StatusCode, responseMessage.ReasonPhrase);
+                _logger.LogTrace("Proxy Bad {}", proxy);
                 return (proxy, false);
             }
 
@@ -46,6 +46,7 @@ public sealed class ProxiesHandler {
             return (proxy, responseMessage.StatusCode == HttpStatusCode.OK);
         }
         catch {
+            _logger.LogTrace("Proxy Bad {}", proxy);
             return (proxy, false);
         }
     }
