@@ -1,5 +1,6 @@
 ﻿using Grimoire.Commons.Interfaces;
 using Grimoire.Sources.Sources;
+using Microsoft.Extensions.FileProviders;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
@@ -36,5 +37,27 @@ public static class Misc {
 
     public static IEnumerable<IGrimoireSource> GetGrimoireSources(this IServiceProvider provider) {
         return provider.GetServices<IGrimoireSource>();
+    }
+
+    public static IApplicationBuilder UseCustomStaticFiles(this IApplicationBuilder builder, WebApplication app) {
+        if (!Directory.Exists(app.Configuration["Save:To"])) {
+            Directory.CreateDirectory(app.Configuration["Save:To"]!);
+        }
+
+        var provider = new PhysicalFileProvider(
+            Path.GetFullPath(app.Configuration["Save:To"]!)
+        );
+
+        app.Environment.WebRootFileProvider = new CompositeFileProvider(
+            new PhysicalFileProvider(app.Environment.WebRootPath),
+            provider
+        );
+
+        app.UseStaticFiles(new StaticFileOptions {
+            FileProvider = provider,
+            RequestPath = $"/{app.Configuration["Save:To"]!}"
+        });
+
+        return builder;
     }
 }

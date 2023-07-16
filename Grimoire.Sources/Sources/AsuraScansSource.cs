@@ -15,11 +15,11 @@ public class AsuraScansSource : BaseWordPressSource, IGrimoireSource {
     public override string Name
         => "Asura Scans";
 
-    public string BaseUrl
+    public string Url
         => "https://www.asurascans.com";
 
     public string Icon
-        => $"{BaseUrl}/wp-content/uploads/2021/03/Group_1.png";
+        => $"{Url}/wp-content/uploads/2021/03/Group_1.png";
 
     private readonly ILogger<AsuraScansSource> _logger;
 
@@ -29,11 +29,11 @@ public class AsuraScansSource : BaseWordPressSource, IGrimoireSource {
     }
 
     public Task<IReadOnlyList<Manga>> FetchMangasAsyncs() {
-        return FetchMangasAsync(BaseUrl, "manga/list-mode", "div.bigcontent");
+        return FetchMangasAsync(Url, "manga/list-mode", "div.bigcontent");
     }
 
-    public async Task<IReadOnlyList<Manga>> FetchMangasAsync() {
-        using var document = await Misc.ParseAsync($"{BaseUrl}/manga/list-mode");
+    public async Task<IReadOnlyList<Manga>> GetMangasAsync() {
+        using var document = await Misc.ParseAsync($"{Url}/manga/list-mode");
         var results = document
             .QuerySelectorAll("div.soralist > * a.series")
             .AsParallel()

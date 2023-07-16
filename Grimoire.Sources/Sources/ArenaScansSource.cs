@@ -13,11 +13,11 @@ public sealed class ArenaScansSource : BaseWordPressSource, IGrimoireSource {
     public override string Name
         => "Arena Scans";
 
-    public string BaseUrl
+    public string Url
         => "https://arenascans.net";
 
     public string Icon
-        => $"{BaseUrl}/favicon.ico";
+        => $"{Url}/favicon.ico";
 
     private readonly ILogger<ArenaScansSource> _logger;
 
@@ -26,8 +26,8 @@ public sealed class ArenaScansSource : BaseWordPressSource, IGrimoireSource {
         _logger = logger;
     }
 
-    public async Task<IReadOnlyList<Manga>> FetchMangasAsync() {
-        using var document = await Misc.ParseAsync($"{BaseUrl}/manga/list-mode");
+    public async Task<IReadOnlyList<Manga>> GetMangasAsync() {
+        using var document = await Misc.ParseAsync($"{Url}/manga/list-mode");
         var results = document
             .QuerySelectorAll("div.soralist > * a.series")
             .AsParallel()
