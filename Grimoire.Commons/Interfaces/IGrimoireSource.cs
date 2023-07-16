@@ -20,7 +20,7 @@ public interface IGrimoireSource {
     /// <summary>
     /// Base URL of the source
     /// </summary>
-    string BaseUrl { get; }
+    string Url { get; }
 
     /// <summary>
     /// Favicon/Icon of the source
@@ -31,7 +31,7 @@ public interface IGrimoireSource {
     /// 
     /// </summary>
     /// <returns></returns>
-    Task<IReadOnlyList<Manga>> FetchMangasAsync();
+    Task<IReadOnlyList<Manga>> GetMangasAsync();
 
     /// <summary>
     /// 
@@ -46,13 +46,6 @@ public interface IGrimoireSource {
     /// <returns></returns>
     Task<Manga> GetMangaAsync(Manga manga)
         => GetMangaAsync(manga.Url);
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="manga"></param>
-    /// <returns></returns>
-    Task<IReadOnlyList<Chapter>> FetchChaptersAsync(Manga manga);
 
     /// <summary>
     /// 

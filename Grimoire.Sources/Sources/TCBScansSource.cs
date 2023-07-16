@@ -12,11 +12,11 @@ public sealed class TCBScansSource : IGrimoireSource {
     public string Name
         => "TCB Scans";
 
-    public string BaseUrl
+    public string Url
         => "https://tcbscans.com";
 
     public string Icon
-        => $"{BaseUrl}/files/apple-touch-icon.png";
+        => $"{Url}/files/apple-touch-icon.png";
 
     private readonly ILogger<TCBScansSource> _logger;
     private readonly HtmlParser _htmlParser;
@@ -26,12 +26,12 @@ public sealed class TCBScansSource : IGrimoireSource {
         _htmlParser = htmlParser;
     }
 
-    public async Task<IReadOnlyList<Manga>> FetchMangasAsync() {
-        using var document = await _htmlParser.ParseAsync($"{BaseUrl}/projects");
+    public async Task<IReadOnlyList<Manga>> GetMangasAsync() {
+        using var document = await _htmlParser.ParseAsync($"{Url}/projects");
         var tasks = document
             .QuerySelectorAll("a.mb-3.text-white")
             .AsParallel()
-            .Select(x => GetMangaAsync(x.As<IHtmlAnchorElement>().Href));
+            .Select(x => GetMangaAsync($"{Url}{x.As<IHtmlAnchorElement>().PathName}"));
         return await Task.WhenAll(tasks);
     }
 
@@ -49,25 +49,10 @@ public sealed class TCBScansSource : IGrimoireSource {
             Chapters = document.QuerySelectorAll("a.block.border")
                 .Select(c => new Chapter {
                     Name = c.TextContent,
-                    Url = $"{BaseUrl}{(c as IHtmlAnchorElement).PathName}"
+                    Url = $"{Url}{(c as IHtmlAnchorElement).PathName}"
                 })
                 .ToArray()
         };
-    }
-
-    public Task<IReadOnlyList<Manga>> PaginateAsync(int page) {
-        throw new NotSupportedException("Source doesn't have pagination.");
-    }
-
-    public async Task<IReadOnlyList<Chapter>> FetchChaptersAsync(Manga manga) {
-        using var document = await _htmlParser.ParseAsync(manga.Url);
-        _logger.LogDebug("Fetching chapters for {name}", manga.Name);
-        return document.GetElementsByClassName("block border border-border bg-card mb-3 p-3 rounded")
-            .Select(x => new Chapter {
-                Name = x.TextContent,
-                Url = $"{BaseUrl}{(x as IHtmlAnchorElement).PathName}"
-            })
-            .ToArray();
     }
 
     public async Task<Chapter> FetchChapterAsync(Chapter chapter) {

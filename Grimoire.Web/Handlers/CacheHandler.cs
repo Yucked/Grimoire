@@ -63,7 +63,7 @@ public sealed class CacheHandler {
                 catch {
                     _logger.LogError("{}:{}\n{}\n{}",
                         source.Name,
-                        source.BaseUrl,
+                        source.Url,
                         source.Icon,
                         path);
                 }
@@ -83,7 +83,7 @@ public sealed class CacheHandler {
         else {
             mangas = await _sources
                 .First(x => x.Id == sourceId)
-                .FetchMangasAsync();
+                .GetMangasAsync();
         }
 
         if (_config.GetValue<bool>("Save:MangaCover")) {
@@ -153,7 +153,6 @@ public sealed class CacheHandler {
         }
 
         _memoryCache.Set($"{sourceId}@{manga.Id}", path.WithCover(manga.Cover));
-
         return manga;
     }
 
@@ -178,8 +177,8 @@ public sealed class CacheHandler {
         }
 
         var source = _sources.First(x => x.Id == sourceId);
-        var chapters = await source.FetchChaptersAsync(manga);
-        var chapter = await source.FetchChapterAsync(chapters[chapterIndex]);
+        manga = await source.GetMangaAsync(manga);
+        var chapter = await source.FetchChapterAsync(manga.Chapters[chapterIndex]);
         await _dbHandler.UpdateMangaWithChapter(sourceId, mangaId, chapterIndex, chapter);
 
         if (!_config.GetValue<bool>("Save:MangaChapter")) {
