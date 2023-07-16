@@ -6,7 +6,7 @@
 	</PropertyGroup>
 	
 	<ItemGroup>
-		<ProjectReference Include="..\Grimoire.Commons\Grimoire.Commons.csproj"/>
+		<ProjectReference Include="..\Grimoire.Commons\Grimoire.Commons.csproj" />
 	</ItemGroup>
 
 </Project>
