@@ -3,7 +3,7 @@
 namespace Grimoire.Commons.Proxy;
 
 public sealed class RotatingProxy : IWebProxy {
-    public ICredentials? Credentials { get; set; }
+    public ICredentials Credentials { get; set; }
 
     private readonly WebProxy[] _proxies;
 

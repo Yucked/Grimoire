@@ -6,10 +6,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="AngleSharp" Version="1.0.4" />
-		<PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0-preview.6.23329.7" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0-preview.6.23329.7" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0-preview.6.23329.7" />
+		<PackageReference Include="AngleSharp" Version="1.0.4"/>
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1"/>
 	</ItemGroup>
-	
+
 </Project>
