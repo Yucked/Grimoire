@@ -1,4 +1,4 @@
-using Grimoire.Commons.Parsing;
+using Grimoire.Commons;
 using Grimoire.Commons.Proxy;
 using Grimoire.Web;
 using Grimoire.Web.Handlers;
@@ -24,12 +24,6 @@ builder
         x.ClearProviders();
         x.AddConsole();
     })
-    .AddSingleton(new ParserOptions(
-        builder.Configuration.GetValue<int>("MaxDelay"),
-        builder.Configuration.GetValue<int>("MaxRetries"),
-        builder.Configuration.GetSection("Proxies").Get<string[]>(),
-        builder.Configuration.GetSection("UserAgents").Get<string[]>()
-    ))
     .AddSingleton<ProxiesHandler>()
     .AddSingleton<HtmlParser>()
     .AddGrimoireSources()
@@ -51,5 +45,7 @@ app.UseHttpsRedirection()
 app.UseRouting();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
+
+await app.Services.GetRequiredService<ProxiesHandler>().VerifyProxies();
 
 await app.RunAsync();
