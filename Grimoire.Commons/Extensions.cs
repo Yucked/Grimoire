@@ -1,8 +1,12 @@
 ﻿using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Grimoire.Commons;
 
-public static class Extensions {
+public static partial class Extensions {
+    [GeneratedRegex("""\r\n?|\n|\s{2,}""", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
+    private static partial Regex CleanRegex();
+
     public static string GetIdFromName(this string name) {
         return Convert.ToBase64String(Encoding.UTF8.GetBytes(name));
     }
@@ -17,5 +21,12 @@ public static class Extensions {
 
     public static T RandomItem<T>(this IReadOnlyList<T> items) {
         return items[Random.Shared.Next(items.Count - 1)];
+    }
+
+    public static string Clean(this string str) {
+        return
+            string.IsNullOrWhiteSpace(str)
+                ? str
+                : CleanRegex().Replace(str, string.Empty);
     }
 }
