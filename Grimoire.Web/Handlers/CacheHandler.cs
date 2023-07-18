@@ -1,6 +1,6 @@
-﻿using Grimoire.Commons.Interfaces;
+﻿using Grimoire.Commons;
+using Grimoire.Commons.Interfaces;
 using Grimoire.Commons.Models;
-using Grimoire.Sources.Miscellaneous;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Grimoire.Web.Handlers;
@@ -8,7 +8,7 @@ namespace Grimoire.Web.Handlers;
 public sealed class CacheHandler {
     private readonly DbHandler _dbHandler;
     private readonly IMemoryCache _memoryCache;
-    private readonly HttpClient _httpClient;
+    private readonly HtmlParser _htmlParser;
     private readonly IConfiguration _config;
     private readonly IEnumerable<IGrimoireSource> _sources;
     private readonly ILogger<CacheHandler> _logger;
@@ -16,13 +16,13 @@ public sealed class CacheHandler {
     public CacheHandler(DbHandler dbHandler,
                         IMemoryCache memoryCache,
                         IServiceProvider serviceProvider,
-                        HttpClient httpClient,
+                        HtmlParser htmlParser,
                         IConfiguration config,
                         ILogger<CacheHandler> logger) {
         _dbHandler = dbHandler;
         _memoryCache = memoryCache;
         _sources = serviceProvider.GetGrimoireSources();
-        _httpClient = httpClient;
+        _htmlParser = htmlParser;
         _config = config;
         _logger = logger;
 
@@ -57,7 +57,7 @@ public sealed class CacheHandler {
 
                 try {
                     if (!File.Exists(path.WithIcon(source.Icon))) {
-                        await _httpClient.DownloadAsync(source.Icon, path.Ave);
+                        await _htmlParser.DownloadAsync(source.Icon, path.Ave);
                     }
                 }
                 catch {
@@ -101,7 +101,7 @@ public sealed class CacheHandler {
 
                     try {
                         if (!File.Exists(path.WithCover(manga.Cover))) {
-                            await _httpClient.DownloadAsync(manga.Cover, path.Ave);
+                            await _htmlParser.DownloadAsync(manga.Cover, path.Ave);
                         }
                     }
                     catch {
@@ -119,8 +119,7 @@ public sealed class CacheHandler {
             await Task.WhenAll(tasks);
         }
 
-        if (_config.GetValue<bool>("Cache:Manga") &&
-            !await _dbHandler.SourceExistsAsync(sourceId)) {
+        if (!await _dbHandler.SourceExistsAsync(sourceId)) {
             await _dbHandler.SaveMangasAsync(sourceId, mangas);
         }
 
@@ -141,7 +140,7 @@ public sealed class CacheHandler {
 
         try {
             if (!File.Exists(path.WithCover(manga.Cover))) {
-                await _httpClient.DownloadAsync(manga.Cover, path.Ave);
+                await _htmlParser.DownloadAsync(manga.Cover, path.Ave);
             }
         }
         catch {
@@ -196,7 +195,7 @@ public sealed class CacheHandler {
             .Select(async x => {
                 try {
                     if (!File.Exists(path.WithPage(x))) {
-                        await _httpClient.DownloadAsync(x, path.Ave);
+                        await _htmlParser.DownloadAsync(x, path.Ave);
                     }
                 }
                 catch {

@@ -1,4 +1,4 @@
-﻿using Grimoire.Sources.Miscellaneous;
+﻿using Grimoire.Sources;
 
 namespace Grimoire.Web;
 
