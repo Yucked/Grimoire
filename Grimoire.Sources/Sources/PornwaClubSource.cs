@@ -1,3 +1,4 @@
+using Grimoire.Commons;
 using Grimoire.Commons.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -13,5 +14,6 @@ public sealed class PornwaClubSource : Manhwa18NetSource, IGrimoireSource {
     public new string Icon
         => $"{Url}/favicon1.ico";
 
-    public PornwaClubSource(ILogger<PornwaClubSource> logger) : base(logger) { }
+    public PornwaClubSource(ILogger<PornwaClubSource> logger, HtmlParser htmlParser)
+        : base(logger, htmlParser) { }
 }

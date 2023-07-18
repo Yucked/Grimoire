@@ -2,8 +2,6 @@ using AngleSharp.Html.Dom;
 using Grimoire.Commons;
 using Grimoire.Commons.Interfaces;
 using Grimoire.Commons.Models;
-using Grimoire.Commons.Parsing;
-using Grimoire.Sources.Miscellaneous;
 using Microsoft.Extensions.Logging;
 
 namespace Grimoire.Sources.Sources;
@@ -27,7 +25,7 @@ public sealed class TCBScansSource : IGrimoireSource {
     }
 
     public async Task<IReadOnlyList<Manga>> GetMangasAsync() {
-        using var document = await _htmlParser.ParseAsync($"{Url}/projects");
+        using var document = await _htmlParser.ParseAsync($"{Url}/projects", true);
         var tasks = document
             .QuerySelectorAll("a.mb-3.text-white")
             .AsParallel()
@@ -36,7 +34,7 @@ public sealed class TCBScansSource : IGrimoireSource {
     }
 
     public async Task<Manga> GetMangaAsync(string url) {
-        using var document = await _htmlParser.ParseAsync(url);
+        using var document = await _htmlParser.ParseAsync(url, true);
         return new Manga {
             Name = document.QuerySelector("div.px-4 > h1").TextContent.Clean(),
             Url = url,
