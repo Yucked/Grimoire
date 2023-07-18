@@ -1,20 +1,12 @@
 ﻿using System.Net;
-using System.Text.RegularExpressions;
+using AngleSharp.Dom;
 
-namespace Grimoire.Sources.Miscellaneous;
+namespace Grimoire.Sources;
 
-public static partial class Misc {
+public static class Misc {
     public static string CleanPath(this string str) {
         return WebUtility.UrlDecode(str)
             .Replace(' ', '_');
-    }
-
-    public static string Clean(this string str) {
-        return
-            string.IsNullOrWhiteSpace(str)
-                ? str
-                : Regex.Replace(str, """\r\n?|\n|\s{2,}""", string.Empty,
-                    RegexOptions.Compiled | RegexOptions.IgnoreCase);
     }
 
     public static string[] Slice(this string str, char seperator) {
@@ -31,5 +23,19 @@ public static partial class Misc {
 
     public static string Join(this IEnumerable<string> strs) {
         return string.Join(" ", strs);
+    }
+
+    public static Task<T[]> AwaitAsync<T>(this IEnumerable<Task<T>> results) {
+        return Task.WhenAll(results);
+    }
+
+    public static T As<T>(this object element) {
+        return (T)element;
+    }
+
+    public static string[] Split(this INode node, char slice) {
+        return node == null || string.IsNullOrWhiteSpace(node.TextContent)
+            ? default
+            : node.TextContent.Split(slice);
     }
 }
