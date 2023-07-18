@@ -3,9 +3,9 @@ using System.Text;
 using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
+using Grimoire.Commons;
 using Grimoire.Commons.Interfaces;
 using Grimoire.Commons.Models;
-using Grimoire.Sources.Miscellaneous;
 using Microsoft.Extensions.Logging;
 
 namespace Grimoire.Sources.Sources;
@@ -21,13 +21,15 @@ public class Manhwa18NetSource : IGrimoireSource {
         => $"{Url}/favicon1.ico";
 
     private readonly ILogger<Manhwa18NetSource> _logger;
+    private readonly HtmlParser _htmlParser;
 
-    public Manhwa18NetSource(ILogger<Manhwa18NetSource> logger) {
+    public Manhwa18NetSource(ILogger<Manhwa18NetSource> logger, HtmlParser htmlParser) {
         _logger = logger;
+        _htmlParser = htmlParser;
     }
 
     public async Task<IReadOnlyList<Manga>> GetMangasAsync() {
-        using var document = await Misc.ParseAsync($"{Url}/manga-list");
+        using var document = await _htmlParser.ParseAsync($"{Url}/manga-list");
         var lastPage = int.Parse(document
             .QuerySelector("a.paging_prevnext.next")
             .As<IHtmlAnchorElement>().Href[^2..]);
@@ -35,7 +37,7 @@ public class Manhwa18NetSource : IGrimoireSource {
         var urls = await Enumerable
             .Range(1, lastPage)
             .Select(async page => {
-                using var doc = await Misc.ParseAsync($"{Url}/manga-list?page={page}");
+                using var doc = await _htmlParser.ParseAsync($"{Url}/manga-list?page={page}");
                 return doc
                     .QuerySelectorAll("div.thumb_attr.series-title > a")
                     .Select(x => x.As<IHtmlAnchorElement>().Href);
@@ -66,7 +68,7 @@ public class Manhwa18NetSource : IGrimoireSource {
     }
 
     public async Task<Manga> GetMangaAsync(string url) {
-        using var document = await Misc.ParseAsync(url);
+        using var document = await _htmlParser.ParseAsync(url);
 
         string GetInfoValue(string infoName) {
             var infoElement = document
@@ -83,6 +85,7 @@ public class Manhwa18NetSource : IGrimoireSource {
         }
 
         try {
+            var aks = document.QuerySelector("div.summary-content");
             var manga = new Manga();
             manga.Author = GetInfoValue("Author");
             manga.Name = document.QuerySelector("span.series-name > a")?.TextContent;
@@ -118,35 +121,8 @@ public class Manhwa18NetSource : IGrimoireSource {
         return default;
     }
 
-    [Obsolete("A", true)]
-    public Task<IEnumerable<string>> PaginateAsync(int page) {
-        return default;
-    }
-
-    public async Task<IReadOnlyList<Chapter>> FetchChaptersAsync(Manga manga) {
-        using var document = await Misc.ParseAsync(manga.Url);
-        _logger.LogInformation("Fetching chapters for {name}", manga.Name);
-
-        return document
-            .GetElementsByClassName("list-chapters at-series")
-            .FirstOrDefault()
-            .Children
-            .Select(x => {
-                var href = x as IHtmlAnchorElement;
-                var parsedDate = DateOnly.ParseExact(href
-                    .GetElementsByClassName("chapter-time")
-                    .FirstOrDefault()
-                    .TextContent.Split('-')[1].Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
-                return new Chapter {
-                    Name = href.Title,
-                    Url = href.Href,
-                    ReleasedOn = parsedDate
-                };
-            }).ToArray();
-    }
-
     public async Task<Chapter> FetchChapterAsync(Chapter chapter) {
-        using var document = await Misc.ParseAsync(chapter.Url);
+        using var document = await _htmlParser.ParseAsync(chapter.Url);
         IElement element;
         do {
             element = document.All.FirstOrDefault(x => x.LocalName == "div" && x.Id == "chapter-content");
