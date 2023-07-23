@@ -31,7 +31,8 @@ builder
             MongoClient(builder.Configuration["Mongo"])
         .GetDatabase(nameof(Grimoire)))
     .AddSingleton<CacheHandler>()
-    .AddSingleton<DbHandler>();
+    .AddSingleton<DbHandler>()
+    .AddSingleton<TempProxyClients>();
 
 var app = builder.Build();
 app.UseHttpsRedirection()
@@ -46,6 +47,7 @@ app.UseRouting();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 
-await app.Services.GetRequiredService<ProxiesHandler>().VerifyProxies();
+await app.Services.GetRequiredService<TempProxyClients>().SetupProxiesAsync();
+//await app.Services.GetRequiredService<ProxiesHandler>().VerifyProxies();
 
 await app.RunAsync();

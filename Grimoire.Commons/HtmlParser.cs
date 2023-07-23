@@ -66,20 +66,21 @@ public class HtmlParser {
             using var responseMessage = useProxy
                 ? await _proxyClient.SendAsync(requestMessage)
                 : await _httpClient.SendAsync(requestMessage);
-            if (!responseMessage.IsSuccessStatusCode) {
-                _logger.LogError("{}\n{}", responseMessage.StatusCode, responseMessage.ReasonPhrase);
-                throw new Exception(responseMessage.ReasonPhrase);
+            if (responseMessage.IsSuccessStatusCode) {
+                return responseMessage.Content;
             }
 
-            return responseMessage.Content;
+            _logger.LogError("{}\n{}", responseMessage.StatusCode, responseMessage.ReasonPhrase);
+            throw new Exception(responseMessage.ReasonPhrase);
         }
         catch (Exception exception) {
             _logger.LogError("Failed to get {}\n{}", url, exception);
-            if (exception is HttpRequestException) {
-                _logger.LogError("Marked proxy {} as failed", _proxiesHandler.RotatingProxies.Active.Host);
-                _proxiesHandler.RotatingProxies.MarkCurrentFailed();
+            if (exception is not HttpRequestException) {
+                throw;
             }
 
+            _logger.LogError("Marked proxy {} as failed", _proxiesHandler.RotatingProxies.Active.Host);
+            _proxiesHandler.RotatingProxies.MarkCurrentFailed();
             throw;
         }
     }
@@ -97,7 +98,7 @@ public class HtmlParser {
             await using var fs = new FileStream($"{output}/{fileName}", FileMode.CreateNew);
             await content.CopyToAsync(fs);
         }
-        catch (Exception exception) {
+        catch {
             _logger.LogError("Failed to download {}", url);
         }
     }
