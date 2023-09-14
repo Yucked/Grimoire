@@ -1,6 +1,5 @@
 ﻿using AngleSharp;
 using AngleSharp.Dom;
-using Grimoire.Commons.Proxy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
@@ -9,23 +8,19 @@ namespace Grimoire.Commons;
 
 public class HtmlParser {
     private readonly ILogger<HtmlParser> _logger;
-    private readonly ProxiesHandler _proxiesHandler;
     private readonly IBrowsingContext _context;
     private readonly IConfiguration _configuration;
     private readonly HttpClient _proxyClient, _httpClient;
 
     public HtmlParser(ILogger<HtmlParser> logger,
-                      ProxiesHandler proxiesHandler,
                       HttpClient httpClient,
                       IConfiguration configuration) {
         _logger = logger;
-        _proxiesHandler = proxiesHandler;
         _context = BrowsingContext.New(
             Configuration.Default.WithDefaultLoader()
         );
         _proxyClient = new HttpClient(new HttpClientHandler {
-            UseCookies = false,
-            Proxy = proxiesHandler.RotatingProxies
+            UseCookies = false
         });
         _httpClient = httpClient;
         _configuration = configuration;
@@ -79,8 +74,7 @@ public class HtmlParser {
                 throw;
             }
 
-            _logger.LogError("Marked proxy {} as failed", _proxiesHandler.RotatingProxies.Active.Host);
-            _proxiesHandler.RotatingProxies.MarkCurrentFailed();
+            // TODO: Get new tor identity
             throw;
         }
     }
