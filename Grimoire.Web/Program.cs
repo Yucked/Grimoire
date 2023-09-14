@@ -1,5 +1,4 @@
 using Grimoire.Commons;
-using Grimoire.Commons.Proxy;
 using Grimoire.Web;
 using Grimoire.Web.Handlers;
 using MongoDB.Driver;
@@ -24,15 +23,13 @@ builder
         x.ClearProviders();
         x.AddConsole();
     })
-    .AddSingleton<ProxiesHandler>()
     .AddSingleton<HtmlParser>()
     .AddGrimoireSources()
     .AddSingleton(new
             MongoClient(builder.Configuration["Mongo"])
         .GetDatabase(nameof(Grimoire)))
     .AddSingleton<CacheHandler>()
-    .AddSingleton<DbHandler>()
-    .AddSingleton<TempProxyClients>();
+    .AddSingleton<DbHandler>();
 
 var app = builder.Build();
 app.UseHttpsRedirection()
@@ -46,8 +43,5 @@ app.UseHttpsRedirection()
 app.UseRouting();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
-
-await app.Services.GetRequiredService<TempProxyClients>().SetupProxiesAsync();
-//await app.Services.GetRequiredService<ProxiesHandler>().VerifyProxies();
 
 await app.RunAsync();
