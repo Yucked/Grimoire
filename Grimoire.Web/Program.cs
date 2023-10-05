@@ -19,7 +19,6 @@ builder
     .AddResponseCaching()
     .AddResponseCompression()
     .AddMemoryCache()
-    .AddHttpClient()
     .AddLogging(x => {
         x.ClearProviders();
         x.AddConsole();
@@ -31,7 +30,8 @@ builder
         .GetDatabase(nameof(Grimoire)))
     .AddSingleton<CacheHandler>()
     .AddSingleton<DbHandler>()
-    .AddSingleton<TorchClient>();
+    .AddSingleton<TorchClient>()
+    .AddSingleton(x => x.GetRequiredService<TorchClient>().HttpClient);
 
 var app = builder.Build();
 app.UseHttpsRedirection()
