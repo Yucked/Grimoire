@@ -1,15 +1,52 @@
+name: Build & Publish
 
 on: push
-    
+
+env:
+  IMAGE_NAME: Grimoire
+  REGISTRY: ghcr.io
+  
 jobs:
    build:
     runs-on: ubuntu-latest
     
+    permissions:
+      packages: write
+      contents: read
+      
     steps:
     - name: Checkout
-      uses: actions/checkout@v3.5.3
+      uses: actions/checkout@v4
 
     - name: Setup .NET Core SDK
       uses: actions/setup-dotnet@v3.2.0
       with:
         dotnet-version: 8.x
+
+    - name: Docker Login      
+      uses: docker/login-action@v3.0.0
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Docker Metadata action
+      uses: docker/metadata-action@v5.0.0
+      with:
+        tags: |
+            type=sha
+            type=ref,event=push
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            ${{ env.REGISTRY }}/${{ github.repository }}-${{ github.ref_name }}:latest
+            ${{ env.REGISTRY }}/${{ github.repository }}-${{ github.ref_name }}:${{ github.run_number }}
+
+    - name: Build and push Docker images
+      uses: docker/build-push-action@v5.0.0
+      with:        
+        context: .
+        no-cache: true
+        push: true        
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
