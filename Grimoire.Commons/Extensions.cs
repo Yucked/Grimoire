@@ -3,9 +3,9 @@ using System.Text.RegularExpressions;
 
 namespace Grimoire.Commons;
 
-public static partial class Extensions {
-    [GeneratedRegex("""\r\n?|\n|\s{2,}""", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
-    private static partial Regex CleanRegex();
+public static class Extensions {
+    private static readonly Regex CleanRegex
+        = new("""\r\n?|\n|\s{2,}""", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     public static string GetIdFromName(this string name) {
         return Convert.ToBase64String(Encoding.UTF8.GetBytes(name));
@@ -27,6 +27,6 @@ public static partial class Extensions {
         return
             string.IsNullOrWhiteSpace(str)
                 ? str
-                : CleanRegex().Replace(str, string.Empty);
+                : CleanRegex.Replace(str, string.Empty);
     }
 }
