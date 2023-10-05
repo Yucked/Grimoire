@@ -32,6 +32,7 @@ jobs:
       
     - name: Docker Metadata action
       uses: docker/metadata-action@v5.0.0
+      id: meta
       with:
         images: |
             ${{ github.repository_owner }}/${{ github.repository.name }}
