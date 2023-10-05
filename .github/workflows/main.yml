@@ -35,15 +35,15 @@ jobs:
       id: meta
       with:
         images: |
-            ${{ github.repository_owner }}/${{ github.repository.name }}
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ github.repository.name }}
+            ${{ github.repository }}
+            ${{ env.REGISTRY }}/${{ github.repository }}
+            ${{ env.REGISTRY }}/${{ github.repository }}:latest
+            ${{ env.REGISTRY }}/${{ github.repository }}:${{ github.run_number }}
         tags: |
             type=sha
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            ${{ env.REGISTRY }}/${{ github.repository.name }}:latest
-            ${{ env.REGISTRY }}/${{ github.repository.name }}:${{ github.run_number }}
 
     - name: Build and push Docker images
       uses: docker/build-push-action@v5.0.0
