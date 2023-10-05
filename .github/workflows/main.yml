@@ -37,8 +37,6 @@ jobs:
         images: |
             ${{ github.repository }}
             ${{ env.REGISTRY }}/${{ github.repository }}
-            ${{ env.REGISTRY }}/${{ github.repository }}:latest
-            ${{ env.REGISTRY }}/${{ github.repository }}:${{ github.run_number }}
         tags: |
             type=sha
             type=semver,pattern={{version}}
