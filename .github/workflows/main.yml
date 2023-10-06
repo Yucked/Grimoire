@@ -24,6 +24,10 @@ jobs:
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
         
+    - name: Normalize repository name
+      id: norm_name
+      run: echo ::set-env name=IMAGE_NAME::$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
+        
     - name: Build and push Docker images
       uses: docker/build-push-action@v5
       with: 
@@ -31,5 +35,5 @@ jobs:
         push: true
         platforms: linux/amd64,linux/arm64
         tags: |
-          ${{ github.repository }}:latest
-          ${{ github.repository }}:${{ github.run_number }}
+          ${{ env.IMAGE_NAME }}:latest
+          ${{ env.IMAGE_NAME }}:${{ github.run_number }}
