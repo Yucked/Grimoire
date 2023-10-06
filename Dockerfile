@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0-preview-alpine
+FROM mcr.microsoft.com/dotnet/sdk:8.0
 RUN apk add --no-cache curl unzip
 
 FROM build
