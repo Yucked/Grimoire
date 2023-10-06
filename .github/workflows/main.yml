@@ -1,11 +1,5 @@
 name: Build & Publish
-
 on: push
-
-env:
-  IMAGE_NAME: Grimoire
-  REGISTRY: ghcr.io
-  
 jobs:
    build:
     runs-on: ubuntu-latest
@@ -24,30 +18,18 @@ jobs:
         dotnet-version: 8.x
 
     - name: Docker Login      
-      uses: docker/login-action@v3.0.0
+      uses: docker/login-action@v3
       with:
-        registry: ${{ env.REGISTRY }}
+        registry: ghcr.io
         username: ${{ github.repository_owner }}
-        password: ${{ secrets.GITHUB_TOKEN }}        
-      
-    - name: Docker Metadata action
-      uses: docker/metadata-action@v5.0.0
-      id: meta
-      with:
-        images: |
-            ${{ github.repository }}
-            ${{ env.REGISTRY }}/${{ github.repository }}
-        tags: |
-            type=sha
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-
+        password: ${{ secrets.GITHUB_TOKEN }}
+        
     - name: Build and push Docker images
-      uses: docker/build-push-action@v5.0.0
-      with:        
+      uses: docker/build-push-action@v5
+      with: 
         context: .
-        no-cache: true
-        push: true        
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
+        push: true
+        platforms: linux/amd64,linux/arm64
+        tags: |
+          ${{ github.repository }}:latest
+          ${{ github.repository }}:${{ github.run_number }}
