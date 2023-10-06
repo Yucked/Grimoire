@@ -26,7 +26,8 @@ jobs:
         
     - name: Normalize repository name
       id: norm_name
-      run: echo ::set-env name=IMAGE_NAME::$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
+      run: |
+         echo IMAGE_NAME=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
         
     - name: Build and push Docker images
       uses: docker/build-push-action@v5
