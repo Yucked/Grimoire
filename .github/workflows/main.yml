@@ -1,13 +1,11 @@
 name: Build & Publish
 on: push
+
 jobs:
    build:
+    name: Build
     runs-on: ubuntu-latest
     
-    permissions:
-      packages: write
-      contents: read
-      
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -17,18 +15,18 @@ jobs:
       with:
         dotnet-version: 8.x
 
+   publish:
+    name: Publish to GitHub
+    runs-on: ubuntu-latest
+
+    steps:
     - name: Docker Login      
       uses: docker/login-action@v3
       with:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
-        
-    - name: Normalize repository name
-      id: norm_name
-      run: |
-         echo IMAGE_NAME=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
-        
+                
     - name: Build and push Docker images
       uses: docker/build-push-action@v5
       with: 
@@ -36,5 +34,5 @@ jobs:
         context: .
         push: true
         tags: |
-          ${{ env.IMAGE_NAME }}:latest
-          ${{ env.IMAGE_NAME }}:${{ github.run_number }}
+          yucked/grimoire:latest
+          yucked/grimoire:${{ github.run_number }}   
