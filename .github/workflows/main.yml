@@ -38,5 +38,5 @@ jobs:
         context: .
         push: true
         tags: |
-          yucked/grimoire:latest
-          yucked/grimoire:${{ github.run_number }}   
+          ghcr.io/yucked/grimoire:latest
+          ghcr.io/yucked/grimoire:${{ github.run_number }}   
