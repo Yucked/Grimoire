@@ -13,8 +13,11 @@ public class HtmlParser(ILogger<HtmlParser> logger,
         Configuration.Default.WithDefaultLoader()
     );
 
+    private readonly SemaphoreSlim _semaphore = new(1, 10);
+
     public async Task<HttpContent> GetContentAsync(string url) {
         try {
+            await _semaphore.WaitAsync();
             var requestMessage = new HttpRequestMessage {
                 Method = HttpMethod.Get,
                 RequestUri = new Uri(url),
@@ -42,6 +45,9 @@ public class HtmlParser(ILogger<HtmlParser> logger,
 
             throw;
         }
+        finally {
+            _semaphore.Release();
+        }
     }
 
     public Task<IDocument> ParseHtmlAsync(string html) {
@@ -50,6 +56,7 @@ public class HtmlParser(ILogger<HtmlParser> logger,
 
     public async Task DownloadAsync(string url, string output) {
         try {
+            await _semaphore.WaitAsync();
             var requestMessage = new HttpRequestMessage {
                 Method = HttpMethod.Get,
                 RequestUri = new Uri(url),
@@ -75,6 +82,9 @@ public class HtmlParser(ILogger<HtmlParser> logger,
         catch (Exception exception) {
             logger.LogError("Failed to download {}\n{}", url, exception);
         }
+        finally {
+            _semaphore.Release();
+        }
     }
 
     public async Task<IDocument> ParseAsync(string url) {
@@ -82,6 +92,7 @@ public class HtmlParser(ILogger<HtmlParser> logger,
             var retries = 0;
             IDocument document;
             do {
+                await _semaphore.WaitAsync();
                 var requestMessage = new HttpRequestMessage {
                     Method = HttpMethod.Get,
                     RequestUri = new Uri(url),
@@ -115,6 +126,9 @@ public class HtmlParser(ILogger<HtmlParser> logger,
         catch (Exception exception) {
             logger.LogError("Failed to get {}\n{}", url, exception);
             throw;
+        }
+        finally {
+            _semaphore.Release();
         }
     }
 }
