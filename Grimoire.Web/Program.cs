@@ -2,10 +2,8 @@ using Grimoire.Commons;
 using Grimoire.Web;
 using Grimoire.Web.Handlers;
 using MongoDB.Driver;
-using Torch;
 
 var builder = WebApplication.CreateBuilder(args);
-
 builder.Configuration.Sources.Clear();
 builder.Configuration.AddJsonFile("config.json", false, true);
 
@@ -30,8 +28,7 @@ builder
         .GetDatabase(nameof(Grimoire)))
     .AddSingleton<CacheHandler>()
     .AddSingleton<DbHandler>()
-    .AddSingleton<TorchClient>()
-    .AddSingleton(x => x.GetRequiredService<TorchClient>().HttpClient);
+    .AddHttpClient();
 
 var app = builder.Build();
 app.UseHttpsRedirection()
@@ -45,9 +42,5 @@ app.UseHttpsRedirection()
 app.UseRouting();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
-
-var torchClient = app.Services.GetRequiredService<TorchClient>();
-app.Lifetime.ApplicationStopping.Register(() => torchClient.TerminateAsync().GetAwaiter().GetResult());
-await torchClient.InitializeAsync();
 
 await app.RunAsync();
