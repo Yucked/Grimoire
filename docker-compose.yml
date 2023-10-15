@@ -3,7 +3,7 @@ name: grimoire_stack
 
 services:
     grimoire:
-        build: .
+        image: ghcr.io/yucked/grimoire:latest
         container_name: grimoire
         restart: unless-stopped
         ports:
