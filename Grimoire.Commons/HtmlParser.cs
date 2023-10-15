@@ -13,25 +13,6 @@ public class HtmlParser(ILogger<HtmlParser> logger,
         Configuration.Default.WithDefaultLoader()
     );
 
-    public async Task<IDocument> ParseAsync(string url) {
-        var retries = 0;
-        IDocument document;
-        do {
-            var content = await GetContentAsync(url);
-            await using var stream = await content.ReadAsStreamAsync();
-            document = await _context.OpenAsync(x => x.Content(stream));
-            await document.WaitForReadyAsync();
-            if (document.All.Length == 3) {
-                retries++;
-                continue;
-            }
-
-            break;
-        } while (retries <= configuration.GetValue<int>("Http:Retries"));
-
-        return document;
-    }
-
     public async Task<HttpContent> GetContentAsync(string url) {
         try {
             var requestMessage = new HttpRequestMessage {
@@ -69,15 +50,71 @@ public class HtmlParser(ILogger<HtmlParser> logger,
 
     public async Task DownloadAsync(string url, string output) {
         try {
-            var content = await GetContentAsync(url);
-            var fileName =
-                (content.Headers.ContentDisposition?.FileNameStar
-                 ?? url.Split('/')[^1]).Clean();
+            var requestMessage = new HttpRequestMessage {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(url),
+                Headers = {
+                    {
+                        "User-Agent", configuration.GetSection("Http:UserAgents").Get<string[]>().RandomItem()
+                    }
+                }
+            };
+
+            await Task.Delay(Random.Shared.Next(configuration.GetValue<int>("Http:Delay")));
+            using var responseMessage = await httpClient.SendAsync(requestMessage);
+            if (!responseMessage.IsSuccessStatusCode) {
+                logger.LogError("{}\n{}", responseMessage.StatusCode, responseMessage.ReasonPhrase);
+                throw new Exception(responseMessage.ReasonPhrase);
+            }
+
+            var fileName = (responseMessage.Content.Headers.ContentDisposition?.FileNameStar
+                            ?? url.Split('/')[^1]).Clean();
             await using var fs = new FileStream($"{output}/{fileName}", FileMode.CreateNew);
-            await content.CopyToAsync(fs);
+            await responseMessage.Content.CopyToAsync(fs);
         }
-        catch {
-            logger.LogError("Failed to download {}", url);
+        catch (Exception exception) {
+            logger.LogError("Failed to download {}\n{}", url, exception);
+        }
+    }
+
+    public async Task<IDocument> ParseAsync(string url) {
+        try {
+            var retries = 0;
+            IDocument document;
+            do {
+                var requestMessage = new HttpRequestMessage {
+                    Method = HttpMethod.Get,
+                    RequestUri = new Uri(url),
+                    Headers = {
+                        {
+                            "User-Agent", configuration.GetSection("Http:UserAgents").Get<string[]>().RandomItem()
+                        }
+                    }
+                };
+
+                await Task.Delay(Random.Shared.Next(configuration.GetValue<int>("Http:Delay")));
+                using var responseMessage = await httpClient.SendAsync(requestMessage);
+                if (!responseMessage.IsSuccessStatusCode) {
+                    logger.LogError("{}\n{}", responseMessage.StatusCode, responseMessage.ReasonPhrase);
+                    throw new Exception(responseMessage.ReasonPhrase);
+                }
+
+                await using var stream = await responseMessage.Content.ReadAsStreamAsync();
+                document = await _context.OpenAsync(x => x.Content(stream));
+                await document.WaitForReadyAsync();
+                if (document.All.Length == 3) {
+                    retries++;
+                    continue;
+                }
+
+                break;
+            } while (retries <= configuration.GetValue<int>("Http:Retries"));
+
+            return document;
+        }
+        catch (Exception exception) {
+            logger.LogError("Failed to get {}\n{}", url, exception);
+            throw;
         }
     }
 }
