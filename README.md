@@ -46,3 +46,6 @@
 
 - Can you add xyz site please?
 > yeah sure, just make sure you give all the necessary information for scraping 😒
+
+- I GOT BANNED FROM WEBSITE XYZ IP BLACKLISTED HELPPPP!!!
+> refer to FAQ #1, welcome to the club! Use a VPN next time.
