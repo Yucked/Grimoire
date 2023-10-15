@@ -112,19 +112,6 @@ public class ArenaScansSource : IGrimoireSource {
                 .Href
                 .Split('/')[^1];
 
-            async Task<IDocument> GetChapterDocumentAsync() {
-                var content =
-                    await _htmlParser.GetContentAsync(
-                        $"{Url}/wp-json/wp/v2/posts/{chapterId}", true);
-                await using var stream = await content.ReadAsStreamAsync();
-                using var jsonDocument = await JsonDocument.ParseAsync(stream);
-                var html = jsonDocument.RootElement
-                    .GetProperty("content")
-                    .GetProperty("rendered")
-                    .GetString();
-                return await _htmlParser.ParseHtmlAsync(html);
-            }
-
             var parsedChapters = document
                 .GetElementById("readerarea")!
                 .Descendents<IHtmlImageElement>()
@@ -141,6 +128,18 @@ public class ArenaScansSource : IGrimoireSource {
                 : parsedChapters;
 
             return chapter;
+
+            async Task<IDocument> GetChapterDocumentAsync() {
+                var content =
+                    await _htmlParser.GetContentAsync($"{Url}/wp-json/wp/v2/posts/{chapterId}");
+                await using var stream = await content.ReadAsStreamAsync();
+                using var jsonDocument = await JsonDocument.ParseAsync(stream);
+                var html = jsonDocument.RootElement
+                    .GetProperty("content")
+                    .GetProperty("rendered")
+                    .GetString();
+                return await _htmlParser.ParseHtmlAsync(html);
+            }
         }
         catch (Exception exception) {
             _logger.LogError("{}: {}\n{}\n{}",

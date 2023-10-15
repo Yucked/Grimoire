@@ -6,7 +6,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\Torch\Torch.csproj" />
 		<ProjectReference Include="..\Grimoire.Sources\Grimoire.Sources.csproj"/>
 	</ItemGroup>
 
