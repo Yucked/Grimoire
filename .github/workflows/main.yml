@@ -1,15 +1,49 @@
-
+name: Build & Publish
 on: push
-    
+
 jobs:
    build:
+    name: Build
     runs-on: ubuntu-latest
     
     steps:
     - name: Checkout
-      uses: actions/checkout@v3.5.3
+      uses: actions/checkout@v4
 
     - name: Setup .NET Core SDK
       uses: actions/setup-dotnet@v3.2.0
       with:
         dotnet-version: 8.x
+        
+    - name: Build Project
+      run: dotnet build --configuration Release -o Output
+      
+   publish:
+    name: Publish to GitHub
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Docker Login      
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+                
+    - name: Normalize repository name
+      id: norm_name
+      run: |
+         echo IMAGE_NAME=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
+        
+    - name: Build and push Docker images
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: |
+          ${{ env.IMAGE_NAME }}:latest
+          ${{ env.IMAGE_NAME }}:${{ github.run_number }}
