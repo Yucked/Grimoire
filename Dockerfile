@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine
 RUN apk add --no-cache curl unzip
 
 RUN curl -OJL https://github.com/Yucked/Grimoire/archive/refs/heads/main.zip && \
