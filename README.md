@@ -25,23 +25,24 @@
 - Parallel & Asynchronous for faster parsing and fetching data
 
 ## `🐳 Docker:`
-- Download `Dockerfile` from [here](https://github.com/Yucked/Grimoire/blob/main/Dockerfile).
-- Download `docker-compose.yml` from [here](https://github.com/Yucked/Grimoire/blob/main/docker-compose.yml).
-- Place both in a folder and run `docker compose up -d`.
+- To build it yourself, download `Dockerfile` from [here](https://github.com/Yucked/Grimoire/blob/main/Dockerfile).
+- To use pre-built images, download `docker-compose.yml` from [here](https://github.com/Yucked/Grimoire/blob/main/docker-compose.yml) and run `docker compose up -d`.
 
 ## `📸 Images:`
 
 ![image](https://github.com/Yucked/Grimoire/assets/20461656/793456f6-f632-4c70-b9d7-c08efb0ebe68)
 
-![image](https://github.com/Yucked/Grimoire/assets/20461656/7f2ef774-fbaf-4e0c-a666-455a3a52f161)
+![image](https://github.com/Yucked/Grimoire/assets/20461656/42f78ada-d431-437e-a1da-d4a3f8ea40dc)
 
 ![image](https://github.com/Yucked/Grimoire/assets/20461656/64a26e9d-5829-4e0e-92e6-9fe8f1e7cab9)
 
 
 ## `🤔 FAQ:`
+- Can I use it? Is it production ready?
+> Absolutely YES! Use it at your own risk though.
 
-##### Is Grimoire prod ready?
-Yes and no. Basic functionality is there.
+- Why not some 3rd party pre-existing program that does what your program does already with support for 500 sites?
+> L + ratio + too many sites + too slow + doesn't work as expected + can't relate + old UI + be better
 
-##### Why not tachidesk-server?
-I personally use tachidesk-server but I wanted more hence Grimoire!
+- Can you add xyz site please?
+> yeah sure, just make sure you give all the necessary information for scraping 😒
