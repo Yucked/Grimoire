@@ -44,13 +44,13 @@ public sealed class HttpHandler(
                         return default;
                     }
 
-                    var stream = await responseMessage.Content.ReadAsStreamAsync();
-                    if (stream.Length == 0) {
+                    var bytes = await responseMessage.Content.ReadAsByteArrayAsync();
+                    if (bytes.Length == 0) {
                         logger.LogError("Failed to fetch data from {}", url);
                         return default;
                     }
 
-                    return stream;
+                    return new MemoryStream(bytes);
                 });
         }
         catch (Exception exception) {
