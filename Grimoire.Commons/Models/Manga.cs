@@ -3,7 +3,7 @@ namespace Grimoire.Commons.Models;
 /// <summary>
 /// 
 /// </summary>
-public record Manga {
+public sealed record Manga {
     /// <summary>
     /// 
     /// </summary>

@@ -2,13 +2,10 @@ using AngleSharp.Html.Dom;
 using Grimoire.Commons;
 using Grimoire.Commons.Interfaces;
 using Grimoire.Commons.Models;
-using Microsoft.Extensions.Logging;
 
 namespace Grimoire.Sources.Sources;
 
-public sealed class TCBScansSource(
-    ILogger<TCBScansSource> logger,
-    HtmlParser htmlParser) : IGrimoireSource {
+public sealed class TCBScansSource(HtmlParser htmlParser) : IGrimoireSource {
     public string Name
         => "TCB Scans";
 
