@@ -1,6 +1,4 @@
 using System.Globalization;
-using System.Text;
-using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using Grimoire.Commons;
@@ -10,7 +8,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Grimoire.Sources.Sources;
 
-public class Manhwa18NetSource : IGrimoireSource {
+public class Manhwa18NetSource(
+    ILogger<Manhwa18NetSource> logger,
+    HtmlParser htmlParser) : IGrimoireSource {
     public string Name
         => "Manhwa 18";
 
@@ -20,16 +20,8 @@ public class Manhwa18NetSource : IGrimoireSource {
     public string Icon
         => $"{Url}/favicon1.ico";
 
-    private readonly ILogger<Manhwa18NetSource> _logger;
-    private readonly HtmlParser _htmlParser;
-
-    public Manhwa18NetSource(ILogger<Manhwa18NetSource> logger, HtmlParser htmlParser) {
-        _logger = logger;
-        _htmlParser = htmlParser;
-    }
-
     public async Task<IReadOnlyList<Manga>> GetMangasAsync() {
-        using var document = await _htmlParser.ParseAsync($"{Url}/manga-list");
+        using var document = await htmlParser.ParseAsync($"{Url}/manga-list");
         var lastPage = int.Parse(document
             .QuerySelector("a.paging_prevnext.next")
             .As<IHtmlAnchorElement>().Href[^2..]);
@@ -37,7 +29,7 @@ public class Manhwa18NetSource : IGrimoireSource {
         var urls = await Enumerable
             .Range(1, lastPage)
             .Select(async page => {
-                using var doc = await _htmlParser.ParseAsync($"{Url}/manga-list?page={page}");
+                using var doc = await htmlParser.ParseAsync($"{Url}/manga-list?page={page}");
                 return doc
                     .QuerySelectorAll("div.thumb_attr.series-title > a")
                     .Select(x => x.As<IHtmlAnchorElement>().Href);
@@ -68,7 +60,39 @@ public class Manhwa18NetSource : IGrimoireSource {
     }
 
     public async Task<Manga> GetMangaAsync(string url) {
-        using var document = await _htmlParser.ParseAsync(url);
+        using var document = await htmlParser.ParseAsync(url);
+
+        try {
+            var manga = new Manga {
+                Author = GetInfoValue("Author"),
+                Name = document.QuerySelector("span.series-name > a")?.TextContent,
+                Summary = document.QuerySelector("div.summary-content").TextContent.Clean(),
+                Cover = document.QuerySelector("div.img-in-ratio").TextContent,
+                Genre = GetInfoValue("Genre").Split(' '),
+                Metonyms = new[] {
+                    GetInfoValue("Other name"),
+                    GetInfoValue("Doujinshi")
+                },
+                Chapters = document
+                    .QuerySelectorAll("ul.list-chapters > a")
+                    .Select(x => new Chapter {
+                        Url = x.As<IHtmlAnchorElement>().Href,
+                        Name = x.QuerySelector("div.chapter-name").TextContent,
+                        ReleasedOn = DateOnly.ParseExact(
+                            x.QuerySelector("div.chapter-time").TextContent.Split('-')[1].Trim(),
+                            "dd/MM/yyyy",
+                            CultureInfo.InvariantCulture)
+                    })
+                    .ToArray()
+            };
+
+            return manga;
+        }
+        catch (Exception exception) {
+            logger.LogError("{}\n{}", url, exception);
+        }
+
+        return default;
 
         string GetInfoValue(string infoName) {
             var infoElement = document
@@ -83,49 +107,13 @@ public class Manhwa18NetSource : IGrimoireSource {
                 ?.QuerySelector("span.info-value")
                 ?.TextContent;
         }
-
-        try {
-            var aks = document.QuerySelector("div.summary-content");
-            var manga = new Manga();
-            manga.Author = GetInfoValue("Author");
-            manga.Name = document.QuerySelector("span.series-name > a")?.TextContent;
-            manga.Summary = document.QuerySelector("div.summary-content").TextContent.Clean();
-            manga.Cover = document.QuerySelector("div.img-in-ratio").TextContent;
-            manga.Genre = GetInfoValue("Genre").Split(' ');
-            manga.Metonyms = new[] {
-                GetInfoValue("Other name"),
-                GetInfoValue("Doujinshi")
-            };
-
-            manga.Chapters = document
-                .QuerySelectorAll("ul.list-chapters > a")
-                .Select(x => new Chapter {
-                    Url = x.As<IHtmlAnchorElement>().Href,
-                    Name = x.QuerySelector("div.chapter-name").TextContent,
-                    ReleasedOn = DateOnly.ParseExact(
-                        x.QuerySelector("div.chapter-time").TextContent.Split('-')[1].Trim(),
-                        "dd/MM/yyyy",
-                        CultureInfo.InvariantCulture)
-                })
-                .ToArray();
-
-            return manga;
-        }
-        catch (Exception exception) {
-            var stream = new MemoryStream();
-            await document.ToHtmlAsync(stream);
-            var text = Encoding.UTF8.GetString(stream.ToArray());
-            _logger.LogError("{}\n{}", url, exception);
-        }
-
-        return default;
     }
 
     public async Task<Chapter> FetchChapterAsync(Chapter chapter) {
-        using var document = await _htmlParser.ParseAsync(chapter.Url);
+        using var document = await htmlParser.ParseAsync(chapter.Url);
         IElement element;
         do {
-            element = document.All.FirstOrDefault(x => x.LocalName == "div" && x.Id == "chapter-content");
+            element = document.All.FirstOrDefault(x => x is { LocalName: "div", Id: "chapter-content" });
         } while (element == default && element.Children.Length == 0);
 
         chapter.Pages = element
