@@ -23,4 +23,9 @@ public sealed record Chapter {
     /// 
     /// </summary>
     public IReadOnlyList<string> Pages { get; set; }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public bool HasBeenRead { get; set; }
 }
