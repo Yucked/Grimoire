@@ -1,0 +1,38 @@
+﻿using Grimoire.Handlers;
+using Grimoire.Models;
+using Grimoire.Sources.Abstractions;
+using Grimoire.Sources.Interfaces;
+
+namespace Grimoire.Sources;
+
+// "img.alignnone"
+public class AsuraScansSource(
+    ILogger<AsuraScansSource> logger,
+    HttpHandler httpHandler) : IGrimoireSource {
+    public string Name
+        => "Asura Scans";
+
+    public string Url
+        => "https://asuratoon.com";
+
+    public string Icon
+        => $"{Url}/wp-content/uploads/2021/03/Group_1.png";
+
+    public Task<IReadOnlyList<Manga>> GetMangasAsync() {
+        return WordPressAbstraction
+            .Helper(logger, httpHandler, Name, Url)
+            .GetMangasAsync();
+    }
+
+    public Task<Manga> GetMangaAsync(string url) {
+        return WordPressAbstraction
+            .Helper(logger, httpHandler, Name, Url)
+            .GetMangaAsync(url);
+    }
+
+    public Task<Chapter> FetchChapterAsync(Chapter chapter) {
+        return WordPressAbstraction
+            .Helper(logger, httpHandler, Name, Url)
+            .FetchChapterAsync(chapter);
+    }
+}
