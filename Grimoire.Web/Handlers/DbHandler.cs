@@ -3,23 +3,15 @@ using MongoDB.Driver;
 
 namespace Grimoire.Web.Handlers;
 
-public sealed class DbHandler {
-    private readonly IMongoDatabase _database;
-    private readonly IServiceProvider _serviceProvider;
-
-    public DbHandler(IMongoDatabase database, IServiceProvider serviceProvider) {
-        _database = database;
-        _serviceProvider = serviceProvider;
-    }
-
+public sealed class DbHandler(IMongoDatabase database, IServiceProvider serviceProvider) {
     public Task<List<Manga>> GetSourceAsync(string sourceId) {
-        var collection = _database.GetCollection<Manga>(sourceId);
+        var collection = database.GetCollection<Manga>(sourceId);
         return collection.Find(Builders<Manga>.Filter.Empty)
             .ToListAsync();
     }
 
     public Task<Manga> GetMangaAsync(string sourceId, string mangaId) {
-        var collection = _database.GetCollection<Manga>(sourceId);
+        var collection = database.GetCollection<Manga>(sourceId);
         return collection
             .Find(Builders<Manga>.Filter.Eq(x => x.Id, mangaId))
             .SingleAsync();
@@ -35,11 +27,11 @@ public sealed class DbHandler {
             return;
         }
 
-        if (!await _database.DoesCollectionExistAsync(sourceId)) {
-            await _database.CreateCollectionAsync(sourceId);
+        if (!await database.DoesCollectionExistAsync(sourceId)) {
+            await database.CreateCollectionAsync(sourceId);
         }
 
-        var collection = _database.GetCollection<Manga>(sourceId);
+        var collection = database.GetCollection<Manga>(sourceId);
         await collection.InsertManyAsync(mangas);
     }
 
@@ -53,26 +45,26 @@ public sealed class DbHandler {
         manga.Chapters[chapterIndex] = chapter;
         var update = Builders<Manga>.Update.Set(x => x.Chapters, manga.Chapters);
 
-        var collection = _database.GetCollection<Manga>(sourceId);
+        var collection = database.GetCollection<Manga>(sourceId);
         await collection.UpdateOneAsync(filter, update);
     }
 
     public Task<bool> SourceExistsAsync(string sourceId) {
-        return _database.DoesCollectionExistAsync(sourceId);
+        return database.DoesCollectionExistAsync(sourceId);
     }
 
     public Task AddToLibraryAsync(string sourceId, string mangaId, bool shouldAdd) {
-        var collection = _database.GetCollection<Manga>(sourceId);
+        var collection = database.GetCollection<Manga>(sourceId);
         return collection.FindOneAndUpdateAsync(
             Builders<Manga>.Filter.Eq(x => x.Id, mangaId),
             Builders<Manga>.Update.Set(x => x.IsInLibrary, shouldAdd));
     }
 
     public async Task<IEnumerable<Manga>> GetLibraryAsync() {
-        var collections = await (await _database.ListCollectionsAsync()).ToListAsync();
+        var collections = await (await database.ListCollectionsAsync()).ToListAsync();
         var tasks = collections
             .Select(collection => {
-                return _database.GetCollection<Manga>(collection.Elements.First().Value.AsString)
+                return database.GetCollection<Manga>(collection.Elements.First().Value.AsString)
                     .Find(Builders<Manga>.Filter.Eq(x => x.IsInLibrary, true))
                     .ToListAsync();
             });
@@ -82,15 +74,32 @@ public sealed class DbHandler {
     }
 
     public async Task UpdateLibraryAsync() {
-        var sources = _serviceProvider.GetGrimoireSources().ToArray();
+        var sources = serviceProvider.GetGrimoireSources().ToArray();
         var library = await GetLibraryAsync();
 
         foreach (var manga in library) {
             var source = sources.First(x => x.Id == manga.SourceId);
             var update = await source.GetMangaAsync(manga.Url);
 
-            var collection = _database.GetCollection<Manga>(source.Id);
+            var collection = database.GetCollection<Manga>(source.Id);
             await collection.ReplaceOneAsync(Builders<Manga>.Filter.Eq(x => x.Id, manga.Id), update);
         }
+    }
+
+    public async Task SearchAsync(string search) {
+        var collections = await (await database.ListCollectionsAsync()).ToListAsync();
+        var filter = Builders<Manga>.Filter.Regex(x => x.Name, search) |
+                     Builders<Manga>.Filter.AnyStringIn(x => x.Metonyms, search);
+
+        var tasks = collections
+            .Select(x =>
+                database
+                    .GetCollection<Manga>(x.Elements.First().Value.AsString)
+                    .Find(filter)
+                    .ToListAsync()
+            );
+
+        var result = await Task.WhenAll(tasks);
+        var asd = result;
     }
 }
