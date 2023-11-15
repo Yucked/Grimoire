@@ -1,5 +1,8 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
+using AngleSharp.Html.Dom;
 using Grimoire.Handlers;
+using Grimoire.Helpers;
 using Grimoire.Models;
 using Grimoire.Sources.Interfaces;
 
@@ -17,9 +20,9 @@ public class OmegaScansSource(
     public string Icon
         => "https://omegascans.org/icon.png";
 
-    private readonly Dictionary<string, (string Name, string Cover, string Genre)> _apiCache = new();
+    private readonly ConcurrentDictionary<string, (string Name, string Cover, string Genre)> _apiCache = new();
 
-    public async Task<IReadOnlyList<Manga>> GetMangasAsync() {
+    public async Task<IReadOnlyList<Manga>?> GetMangasAsync() {
         var stream =
             await httpHandler.GetStreamAsync($"{Url}/query?visibility=Public&series_type=All&perPage=100");
         using var document = await JsonDocument.ParseAsync(stream!);
@@ -33,7 +36,7 @@ public class OmegaScansSource(
             .AsParallel()
             .Select(x => {
                 var slug = x.GetProperty("series_slug").GetString()!;
-                _apiCache.Add(slug,
+                _apiCache.TryAdd(slug,
                     (x.GetProperty("title").GetString()!,
                      x.GetProperty("thumbnail").GetString()!,
                      x.GetProperty("series_type").GetString()!));
@@ -43,21 +46,60 @@ public class OmegaScansSource(
 
         var mangas = await Task.WhenAll(tasks);
         _apiCache.Clear();
-        return mangas;
+        return mangas!;
     }
 
-    public async Task<Manga> GetMangaAsync(string url) {
+    public async Task<Manga?> GetMangaAsync(string url) {
         var document = await httpHandler.ParseAsync(url);
+        if (document == null) {
+            return default;
+        }
+
+        var cached = _apiCache[url.Split('/')[^1]];
         var manga = new Manga {
+            Name = cached.Name,
+            Cover = cached.Cover,
+            Genre = [cached.Genre],
+            Author = document
+                .QuerySelectorAll("div.flex > p")
+                .FirstOrDefault(x => x.TextContent.Contains("Author:"))
+                ?.Children[^1]
+                .TextContent!,
             Summary = document
-                .QuerySelector("div.bg-gray-800 > p")
+                .QuerySelector("div.bg-gray-800 > p")!
+                .TextContent,
+            Metonyms = document
+                .QuerySelector("div.col-span-12 > p.text-center")!
                 .TextContent
+                .Split('|'),
+            Chapters = document
+                .QuerySelectorAll("ul.grid > a.text-gray-50")
+                .Select(x => new Chapter {
+                    Name = x.QuerySelector("div.flex > span.m-0")!.TextContent,
+                    ReleasedOn = x.QuerySelector("div.flex > span.block")!.TextContent
+                        .ToDate(),
+                    Url = x.As<IHtmlAnchorElement>().Href
+                })
+                .ToArray(),
+            LastFetch = DateTimeOffset.Now,
+            Url = url,
+            SourceId = nameof(OmegaScansSource).GetIdFromName()
         };
 
         return manga;
     }
 
     public async Task<Chapter> FetchChapterAsync(Chapter chapter) {
-        throw new NotImplementedException();
+        using var document = await httpHandler.ParseAsync(chapter.Url);
+        if (document == null) {
+            return chapter;
+        }
+
+        chapter.Pages = document
+            .QuerySelectorAll("p.flex > img")
+            .Select(x => x.As<IHtmlAnchorElement>().Href)
+            .ToArray();
+
+        return chapter;
     }
 }
