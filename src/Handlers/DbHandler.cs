@@ -5,13 +5,13 @@ using MongoDB.Driver;
 namespace Grimoire.Handlers;
 
 public sealed class DbHandler(IMongoDatabase database, IServiceProvider serviceProvider) {
-    public Task<List<Manga>> GetSourceAsync(string sourceId) {
+    public Task<List<Manga>?> GetSourceAsync(string sourceId) {
         var collection = database.GetCollection<Manga>(sourceId);
         return collection.Find(Builders<Manga>.Filter.Empty)
             .ToListAsync();
     }
 
-    public Task<Manga> GetMangaAsync(string sourceId, string mangaId) {
+    public Task<Manga?> GetMangaAsync(string sourceId, string mangaId) {
         var collection = database.GetCollection<Manga>(sourceId);
         return collection
             .Find(Builders<Manga>.Filter.Eq(x => x.Id, mangaId))
@@ -23,7 +23,7 @@ public sealed class DbHandler(IMongoDatabase database, IServiceProvider serviceP
         return manga.Chapters[chapter];
     }
 
-    public async Task SaveMangasAsync(string sourceId, IReadOnlyList<Manga> mangas) {
+    public async Task SaveMangasAsync(string sourceId, IReadOnlyList<Manga>? mangas) {
         if (!mangas.Any()) {
             return;
         }

@@ -75,8 +75,8 @@ public sealed class CacheHandler {
         return await Task.WhenAll(tasks);
     }
 
-    public async Task<IReadOnlyList<Manga>> GetMangasAsync(string sourceId, bool refresh) {
-        IReadOnlyList<Manga> mangas;
+    public async Task<IReadOnlyList<Manga>?> GetMangasAsync(string sourceId, bool refresh) {
+        IReadOnlyList<Manga>? mangas;
         if (!refresh && await _dbHandler.SourceExistsAsync(sourceId)) {
             mangas = await _dbHandler.GetSourceAsync(sourceId);
         }
@@ -126,7 +126,7 @@ public sealed class CacheHandler {
         return mangas;
     }
 
-    public async Task<Manga> GetMangaAsync(string sourceId, string mangaId) {
+    public async Task<Manga?> GetMangaAsync(string sourceId, string mangaId) {
         var manga = await _dbHandler.GetMangaAsync(sourceId, mangaId);
         if (_memoryCache.TryGetValue($"{sourceId}@{mangaId}", out _)) {
             return manga;
