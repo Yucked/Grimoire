@@ -58,6 +58,10 @@ public static partial class Extensions {
             : node.TextContent.Split(slice);
     }
 
+    public static DateOnly ToDate(this string str) {
+        return DateOnly.ParseExact(str, "dd/MM/yyyy");
+    }
+
     public static Task<T[]> AwaitAsync<T>(this IEnumerable<Task<T>> results) {
         return Task.WhenAll(results);
     }
@@ -116,7 +120,7 @@ public static partial class Extensions {
             .Assembly
             .GetTypes()
             .Where(x => typeof(IGrimoireSource).IsAssignableFrom(x) && !x.IsInterface)
-            .Select(x => provider.GetRequiredService(x.UnderlyingSystemType) as IGrimoireSource);
+            .Select(x => provider.GetRequiredService(x.UnderlyingSystemType) as IGrimoireSource)!;
     }
 
     public static IApplicationBuilder UseCustomStaticFiles(this IApplicationBuilder builder, WebApplication app) {
