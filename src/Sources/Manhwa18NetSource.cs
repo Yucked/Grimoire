@@ -17,13 +17,13 @@ public class Manhwa18NetSource(
     public string Icon
         => $"{Url}/favicon1.ico";
 
-    public Task<IReadOnlyList<Manga>> GetMangasAsync() {
+    public Task<IReadOnlyList<Manga>?> GetMangasAsync() {
         return HanmaAbstraction
             .Helper(logger, httpHandler, Name, Url)
             .GetMangasAsync();
     }
 
-    public Task<Manga> GetMangaAsync(string url) {
+    public Task<Manga?> GetMangaAsync(string url) {
         return HanmaAbstraction
             .Helper(logger, httpHandler, Name, Url)
             .GetMangaAsync(url);

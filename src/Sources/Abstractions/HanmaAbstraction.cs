@@ -25,7 +25,7 @@ public class HanmaAbstraction {
         _url = url;
     }
 
-    public async Task<IReadOnlyList<Manga>> GetMangasAsync() {
+    public async Task<IReadOnlyList<Manga>?> GetMangasAsync() {
         using var document = await _httpHandler.ParseAsync($"{_url}/manga-list");
         var lastPage = int.Parse(document
             .QuerySelector("a.paging_prevnext.next")
@@ -64,7 +64,7 @@ public class HanmaAbstraction {
             .ToArray();
     }
 
-    public async Task<Manga> GetMangaAsync(string url) {
+    public async Task<Manga?> GetMangaAsync(string url) {
         using var document = await _httpHandler.ParseAsync(url);
 
         try {

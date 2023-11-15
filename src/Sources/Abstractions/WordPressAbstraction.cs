@@ -27,7 +27,7 @@ public sealed class WordPressAbstraction {
         _url = url;
     }
 
-    public async Task<IReadOnlyList<Manga>> GetMangasAsync(string listType = "manga", bool handleRedirect = false) {
+    public async Task<IReadOnlyList<Manga>?> GetMangasAsync(string listType = "manga", bool handleRedirect = false) {
         using var document = await _httpHandler.ParseAsync($"{_url}/{listType}/list-mode{(handleRedirect ? "/" : "")}");
         var results = document
             .QuerySelectorAll("div.soralist > * a.series")
@@ -36,7 +36,7 @@ public sealed class WordPressAbstraction {
         return await Task.WhenAll(results);
     }
 
-    public async Task<Manga> GetMangaAsync(string url) {
+    public async Task<Manga?> GetMangaAsync(string url) {
         using var document = await _httpHandler.ParseAsync(url);
 
         _logger.LogInformation("Fetching information for: {}", url);
