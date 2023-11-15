@@ -18,13 +18,13 @@ public class AsuraScansSource(
     public string Icon
         => $"{Url}/wp-content/uploads/2021/03/Group_1.png";
 
-    public Task<IReadOnlyList<Manga>> GetMangasAsync() {
+    public Task<IReadOnlyList<Manga>?> GetMangasAsync() {
         return WordPressAbstraction
             .Helper(logger, httpHandler, Name, Url)
             .GetMangasAsync();
     }
 
-    public Task<Manga> GetMangaAsync(string url) {
+    public Task<Manga?> GetMangaAsync(string url) {
         return WordPressAbstraction
             .Helper(logger, httpHandler, Name, Url)
             .GetMangaAsync(url);

@@ -16,7 +16,7 @@ public sealed class TCBScansSource(HttpHandler httpHandler) : IGrimoireSource {
     public string Icon
         => $"{Url}/files/apple-touch-icon.png";
 
-    public async Task<IReadOnlyList<Manga>> GetMangasAsync() {
+    public async Task<IReadOnlyList<Manga>?> GetMangasAsync() {
         using var document = await httpHandler.ParseAsync($"{Url}/projects");
         var tasks = document
             .QuerySelectorAll("a.mb-3.text-white")
@@ -25,7 +25,7 @@ public sealed class TCBScansSource(HttpHandler httpHandler) : IGrimoireSource {
         return await Task.WhenAll(tasks);
     }
 
-    public async Task<Manga> GetMangaAsync(string url) {
+    public async Task<Manga?> GetMangaAsync(string url) {
         using var document = await httpHandler.ParseAsync(url);
         return new Manga {
             Name = document.QuerySelector("div.px-4 > h1").TextContent.Clean(),
