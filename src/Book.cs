@@ -12,7 +12,7 @@ internal readonly record struct Book {
     public bool HasAnyPages { get; }
     public int ItemCount { get; }
 
-    public Book(IReadOnlyCollection<Manga> items) {
+    public Book(IReadOnlyCollection<Manga>? items) {
         ItemCount = items.Count;
 
         Pages = items

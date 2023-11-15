@@ -117,7 +117,7 @@ else {
     [Parameter]
     public string MangaId { get; set; }
 
-    private Manga _manga;
+    private Manga? _manga;
 
     private string LoadingMessage
         => $"Loading {MangaId.GetNameFromId()}";
