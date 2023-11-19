@@ -2,7 +2,7 @@
 @using Grimoire.Handlers
 @using Grimoire.Sources.Interfaces
 
-@inject CacheHandler CacheHandler
+@inject DatabaseHandler DatabaseHandler
 @inject NavigationManager NavigationManager
 
 <div class="container p-4">
@@ -14,7 +14,7 @@
             <ul class="list-group list-group-flush">
                 @foreach (var source in _sources) {
                     <a class="list-group-item list-group-item-action" @onclick="() => NavTo(source.Id)">
-                        <img src="@CacheHandler.GetSourceIcon(source.Id)" class="img-thumbnail" alt="@source.Name" width="70">
+                        <img src="@DatabaseHandler.GetSourceIcon(source.Id)" class="img-thumbnail" alt="@source.Name" width="70">
                         <span>@source.Name</span>
                     </a>
                 }
@@ -27,7 +27,7 @@
     private IReadOnlyList<IGrimoireSource> _sources;
 
     protected override async Task OnInitializedAsync() {
-        _sources = await CacheHandler.GetSourcesAsync();
+        _sources = await DatabaseHandler.ListSourcesAsync();
     }
 
     private void NavTo(string sourceId) {

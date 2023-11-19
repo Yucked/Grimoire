@@ -5,7 +5,7 @@
 @using Grimoire.Handlers
 @using Grimoire.Helpers
 
-@inject CacheHandler CacheHandler
+@inject DatabaseHandler DatabaseHandler
 
 <div class="container-lg py-4">
     <picture class="p-4">
@@ -43,10 +43,10 @@
         => $"Loading {MangaId.GetNameFromId()} {Chap}";
 
     protected override async Task OnInitializedAsync() {
-        _chapter = await CacheHandler.GetChapterAsync(SourceId, MangaId, Chap);
-        _chapter = !string.IsNullOrWhiteSpace(Chapter) ?
-            await CacheHandler.GetChapterAsync(SourceId, MangaId, Chapter) :
-            await CacheHandler.GetChapterAsync(SourceId, MangaId, Chap);
+        _chapter = await DatabaseHandler.GetChapterAsync(SourceId, MangaId, Chap);
+        _chapter = !string.IsNullOrWhiteSpace(Chapter)
+            ? await DatabaseHandler.GetChapterAsync(SourceId, MangaId, int.Parse(Chapter))
+            : await DatabaseHandler.GetChapterAsync(SourceId, MangaId, Chap);
     }
 
 }
