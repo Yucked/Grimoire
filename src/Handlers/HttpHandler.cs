@@ -31,7 +31,7 @@ public sealed class HttpHandler(
         };
     }
 
-    public async Task<Stream?> GetStreamAsync(string url) {
+    public async Task<Stream> GetStreamAsync(string url) {
         try {
             await _semaphore.WaitAsync();
             return await await Task
@@ -41,13 +41,13 @@ public sealed class HttpHandler(
                     if (!responseMessage.IsSuccessStatusCode) {
                         logger.LogError("Unable to reach {}\n{}",
                             url, responseMessage.ReasonPhrase);
-                        return default;
+                        throw new Exception("");
                     }
 
                     var bytes = await responseMessage.Content.ReadAsByteArrayAsync();
                     if (bytes.Length == 0) {
                         logger.LogError("Failed to fetch data from {}", url);
-                        return default;
+                        throw new Exception("");
                     }
 
                     return new MemoryStream(bytes);
@@ -77,7 +77,7 @@ public sealed class HttpHandler(
 
                     // TODO: REMOVE LATER
                     var fileName = (responseMessage.Content.Headers.ContentDisposition?.FileNameStar
-                                    ?? url.Split('/')[^1]).Clean();
+                                    ?? url.Split('/')[^1]).Clean().CleanPath();
                     await using var fs = new FileStream($"{output}/{fileName}", FileMode.CreateNew);
                     await responseMessage.Content.CopyToAsync(fs);
                 });
@@ -91,11 +91,11 @@ public sealed class HttpHandler(
         }
     }
 
-    public async Task<IDocument?> ParseAsync(string url) {
+    public async Task<IDocument> ParseAsync(string url) {
         try {
             await _semaphore.WaitAsync();
             var tries = 0;
-            IDocument? document = null;
+            IDocument document = null!;
 
             do {
                 await Task.Delay(Random.Shared.Next(configuration.GetValue<int>("Http:Delay")));
