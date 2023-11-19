@@ -17,13 +17,13 @@ public class ArenaScansSource(
     public string Icon
         => $"{Url}/favicon.ico";
 
-    public Task<IReadOnlyList<Manga>?> GetMangasAsync() {
+    public Task<IReadOnlyList<Manga>> GetMangasAsync() {
         return WordPressAbstraction
             .Helper(logger, httpHandler, Name, Url)
             .GetMangasAsync();
     }
 
-    public Task<Manga?> GetMangaAsync(string url) {
+    public Task<Manga> GetMangaAsync(string url) {
         return WordPressAbstraction
             .Helper(logger, httpHandler, Name, Url)
             .GetMangaAsync(url);
