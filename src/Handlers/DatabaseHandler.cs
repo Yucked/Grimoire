@@ -212,7 +212,7 @@ public sealed class DatabaseHandler(
         return chapter;
     }
 
-    public async Task<IReadOnlyList<IGrimoireSource>> ListSourcesAsync(string sourceId) {
+    public async Task<IReadOnlyList<IGrimoireSource>> ListSourcesAsync() {
         if (!config.GetValue<bool>("Save:SourceIcon")) {
             return _sources.ToArray();
         }

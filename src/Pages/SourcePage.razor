@@ -5,7 +5,7 @@
 @using Grimoire.Helpers
 @using Grimoire.Models
 
-@inject CacheHandler CacheHandler
+@inject DatabaseHandler DatabaseHandler
 @inject NavigationManager NavigationManager
 
 <div class="container-lg py-4">
@@ -19,7 +19,7 @@
                     <div class="card-header">
                         <div class="d-flex justify-content-between align-items-start">
                             <h3 class="card-title">
-                                <img src="@CacheHandler.GetSourceIcon(SourceId)"
+                                <img src="@DatabaseHandler.GetSourceIcon(SourceId)"
                                      alt="@SourceId" width="20">
                                 <span>@SourceId.GetNameFromId() | <span class="badge bg-dark">Mangas: @_book.ItemCount</span></span>
 
@@ -79,13 +79,13 @@
     private Page _currentPage;
 
     protected override async Task OnInitializedAsync() {
-        var mangas = await CacheHandler.GetMangasAsync(SourceId, false);
+        var mangas = await DatabaseHandler.GetMangasAsync(SourceId, false);
         _book = new Book(mangas);
         _currentPage = _book.GoTo(PageNumber);
     }
 
     private async Task RefreshAsync() {
-        var mangas = await CacheHandler.GetMangasAsync(SourceId, true);
+        var mangas = await DatabaseHandler.GetMangasAsync(SourceId, true);
         _book = new Book(mangas);
         _currentPage = _book.GoTo(PageNumber);
     }
