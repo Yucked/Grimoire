@@ -1,14 +1,13 @@
-﻿
-@using Grimoire.Models
+﻿@using Grimoire.Models
 @using Grimoire.Handlers
 @using Grimoire.Helpers
 
-@inject CacheHandler CacheHandler
+@inject DatabaseHandler DatabaseHandler
 @inject NavigationManager NavigationManager
 @inject IConfiguration Configuration
 
 <div class="card h-100 shadow-sm" @onclick="() => NavTo(Manga.Id)">
-    <img src="@Configuration.GetCover(CacheHandler.Get<string>($"{SourceId}@{Manga.Id}"), Manga.Cover)"
+    <img src="@Configuration.GetCover(DatabaseHandler.Get<string>($"{SourceId}@{Manga.Id}")!, Manga.Cover)"
          class="card-img-top" alt="@Manga.Name">
     <div class="card-body">
         <h5 class="card-title">
@@ -48,8 +47,7 @@
     }
 
     private static string Truncate(string str) {
-        return str?.Length > 150 ?
-            $"{str[..150]}..." : str;
+        return str.Length > 150 ? $"{str[..150]}..." : str;
     }
 
 }
