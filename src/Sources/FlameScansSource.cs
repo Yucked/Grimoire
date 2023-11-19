@@ -6,7 +6,7 @@ using Grimoire.Sources.Interfaces;
 namespace Grimoire.Sources;
 
 public class FlameScansSource(
-    ILogger<ArenaScansSource> logger,
+    ILogger<FlameScansSource> logger,
     HttpHandler httpHandler) : IGrimoireSource {
     public string Name
         => "Flame Scans";
@@ -17,13 +17,13 @@ public class FlameScansSource(
     public string Icon
         => $"{Url}/favicon.ico";
 
-    public Task<IReadOnlyList<Manga>?> GetMangasAsync() {
+    public Task<IReadOnlyList<Manga>> GetMangasAsync() {
         return WordPressAbstraction
             .Helper(logger, httpHandler, Name, Url)
             .GetMangasAsync("series", true);
     }
 
-    public Task<Manga?> GetMangaAsync(string url) {
+    public Task<Manga> GetMangaAsync(string url) {
         return WordPressAbstraction
             .Helper(logger, httpHandler, Name, Url)
             .GetMangaAsync(url);
