@@ -25,8 +25,7 @@ builder
     .AddSingleton(new
             MongoClient(builder.Configuration["Mongo"])
         .GetDatabase(nameof(Grimoire)))
-    .AddSingleton<CacheHandler>()
-    .AddSingleton<DbHandler>()
+    .AddSingleton<DatabaseHandler>()
     .AddHttpClient();
 
 var app = builder.Build();
@@ -42,4 +41,8 @@ app.UseRouting();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 
+await app
+    .Services
+    .GetRequiredService<DatabaseHandler>()
+    .InitializeAsync();
 await app.RunAsync();
