@@ -27,36 +27,50 @@ public sealed class WordPressAbstraction {
         _url = url;
     }
 
-    public async Task<IReadOnlyList<Manga>?> GetMangasAsync(string listType = "manga", bool handleRedirect = false) {
+    public async Task<IReadOnlyList<Manga>> GetMangasAsync(string listType = "manga", bool handleRedirect = false) {
         using var document = await _httpHandler.ParseAsync($"{_url}/{listType}/list-mode{(handleRedirect ? "/" : "")}");
         var results = document
             .QuerySelectorAll("div.soralist > * a.series")
             .AsParallel()
-            .Select(x => GetMangaAsync((x as IHtmlAnchorElement).Href));
+            .Select(x => GetMangaAsync(x.As<IHtmlAnchorElement>().Href));
         return await Task.WhenAll(results);
     }
 
-    public async Task<Manga?> GetMangaAsync(string url) {
+    public async Task<Manga> GetMangaAsync(string url) {
         using var document = await _httpHandler.ParseAsync(url);
 
         _logger.LogInformation("Fetching information for: {}", url);
         var manga = new Manga {
-            Name = document.QuerySelector("h1.entry-title[itemprop='name']").TextContent,
+            Name = document
+                .QuerySelector("h1.entry-title[itemprop='name']")!
+                .TextContent
+                .Clean(),
             Url = url,
             SourceId = _name.GetIdFromName(),
             LastFetch = DateTimeOffset.Now,
-            Cover = document.QuerySelector("img.wp-post-image").As<IHtmlImageElement>().Source,
-            Chapters = document.GetElementById("chapterlist")
-                .FirstChild
+            Cover = document
+                .QuerySelector("img.wp-post-image")!
+                .As<IHtmlImageElement>()
+                .Source!,
+            Chapters = document
+                .GetElementById("chapterlist")!
+                .FirstChild!
                 .ChildNodes
                 .Where(x => x is IHtmlListItemElement)
                 .Select(x => {
                     var element = x as IHtmlElement;
                     return new Chapter {
-                        Name = element.GetElementsByClassName("chapternum").FirstOrDefault().TextContent.Clean(),
-                        Url = x.FindDescendant<IHtmlAnchorElement>().Href,
+                        Name = element!
+                            .GetElementsByClassName("chapternum")
+                            .FirstOrDefault()!
+                            .TextContent
+                            .Clean(),
+                        Url = x.FindDescendant<IHtmlAnchorElement>()!.Href,
                         ReleasedOn = DateOnly.Parse(
-                            element.GetElementsByClassName("chapterdate").FirstOrDefault().TextContent)
+                            element
+                                .GetElementsByClassName("chapterdate")
+                                .FirstOrDefault()!
+                                .TextContent)
                     };
                 })
                 .ToArray()
@@ -67,9 +81,11 @@ public sealed class WordPressAbstraction {
                 .GetElementsByClassName("alternative")
                 .FirstOrDefault()
                 ?.TextContent
-                .Slice(Separators);
+                .Clean()
+                .Slice(Separators)!;
 
-            manga.Summary = document.QuerySelector("*[itemprop='description']")
+            manga.Summary = document
+                .QuerySelector("*[itemprop='description']")
                 !.Descendants()
                 .Select(x => x.TextContent.Clean().Trim())
                 .Join();
@@ -77,7 +93,7 @@ public sealed class WordPressAbstraction {
             manga.Genre = document
                 .QuerySelector("div.wd-full > span.mgen")
                 ?.TextContent
-                .Slice(' ');
+                .Slice(' ')!;
 
             manga.Author = document
                 .QuerySelectorAll("div.tsinfo > div.imptdt")
@@ -86,7 +102,7 @@ public sealed class WordPressAbstraction {
                 .Slice(' ')[1..]
                 .Join()
                 .Clean()
-                ?.Trim();
+                .Trim()!;
         }
         catch (Exception exception) {
             _logger.LogError("{}: {}\n{}\n{}",
@@ -102,12 +118,11 @@ public sealed class WordPressAbstraction {
     public async Task<Chapter> FetchChapterAsync(Chapter chapter) {
         try {
             using var document = await _httpHandler.ParseAsync(chapter.Url);
-            var chapterId = document.Head
+            var chapterId = document
+                .Head!
                 .Descendants<IHtmlLinkElement>()
-                .First(x =>
-                    x.Type == "application/json" &&
-                    x.Relation == "alternate")
-                .Href
+                .First(x => x is { Type: "application/json", Relation: "alternate" })
+                .Href!
                 .Split('/')[^1];
 
             var parsedChapters = document
@@ -121,9 +136,9 @@ public sealed class WordPressAbstraction {
                 .Select(x => x.Source)
                 .ToArray();
 
-            chapter.Pages = htmlChapters.Length > parsedChapters.Length
+            chapter.Pages = (htmlChapters.Length > parsedChapters.Length
                 ? htmlChapters
-                : parsedChapters;
+                : parsedChapters)!;
 
             return chapter;
 
@@ -134,7 +149,7 @@ public sealed class WordPressAbstraction {
                 var html = jsonDocument.RootElement
                     .GetProperty("content")
                     .GetProperty("rendered")
-                    .GetString();
+                    .GetString()!;
                 return await _httpHandler.ParseHtmlAsync(html);
             }
         }
