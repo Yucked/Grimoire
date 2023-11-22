@@ -95,7 +95,8 @@ public sealed class DatabaseHandler(
     }
 
     public async Task<IReadOnlyCollection<Manga>> GetMangasAsync(string sourceId, bool fetchUpdates) {
-        var mangas = fetchUpdates
+        var collections = await (await database.ListCollectionNamesAsync()).ToListAsync();
+        var mangas = fetchUpdates || !collections.Contains(sourceId)
             ? await _sources
                 .First(x => x.Id == sourceId)
                 .GetMangasAsync()
@@ -133,7 +134,7 @@ public sealed class DatabaseHandler(
                     memoryCache.Set($"{sourceId}@{manga.Id}", path.WithCover(manga.Cover));
                 }
 
-                if (fetchUpdates) {
+                if (fetchUpdates || !collections.Contains(sourceId)) {
                     await database
                         .GetCollection<Manga>(manga.SourceId)
                         .ReplaceOneAsync(r => r.Id == manga.Id,
