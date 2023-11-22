@@ -25,10 +25,10 @@ public class HanmaAbstraction {
         _url = url;
     }
 
-    public async Task<IReadOnlyList<Manga>?> GetMangasAsync() {
+    public async Task<IReadOnlyList<Manga>> GetMangasAsync() {
         using var document = await _httpHandler.ParseAsync($"{_url}/manga-list");
         var lastPage = int.Parse(document
-            .QuerySelector("a.paging_prevnext.next")
+            .QuerySelector("a.paging_prevnext.next")!
             .As<IHtmlAnchorElement>().Href[^2..]);
 
         var urls = await Enumerable
@@ -51,7 +51,7 @@ public class HanmaAbstraction {
             .GroupBy(x => x.Id)
             .Select(x => {
                 if (x.Count() == 1) {
-                    return x.FirstOrDefault();
+                    return x.First();
                 }
 
                 var lst = x.ToArray();
@@ -64,16 +64,24 @@ public class HanmaAbstraction {
             .ToArray();
     }
 
-    public async Task<Manga?> GetMangaAsync(string url) {
+    public async Task<Manga> GetMangaAsync(string url) {
         using var document = await _httpHandler.ParseAsync(url);
 
         try {
             var manga = new Manga {
                 Author = GetInfoValue("Author"),
-                Name = document.QuerySelector("span.series-name > a")?.TextContent,
-                Summary = document.QuerySelector("div.summary-content").TextContent.Clean(),
-                Cover = document.QuerySelector("div.img-in-ratio").TextContent,
+                Name = document
+                    .QuerySelector("span.series-name > a")!
+                    .TextContent,
+                Summary = document
+                    .QuerySelector("div.summary-content")!
+                    .TextContent
+                    .Clean(),
+                Cover = document
+                    .QuerySelector("div.img-in-ratio")!
+                    .TextContent,
                 Genre = GetInfoValue("Genre").Split(' '),
+                SourceId = _name.GetIdFromName(),
                 Metonyms = new[] {
                     GetInfoValue("Other name"),
                     GetInfoValue("Doujinshi")
@@ -82,9 +90,15 @@ public class HanmaAbstraction {
                     .QuerySelectorAll("ul.list-chapters > a")
                     .Select(x => new Chapter {
                         Url = x.As<IHtmlAnchorElement>().Href,
-                        Name = x.QuerySelector("div.chapter-name").TextContent,
+                        Name = x
+                            .QuerySelector("div.chapter-name")!
+                            .TextContent,
                         ReleasedOn = DateOnly.ParseExact(
-                            x.QuerySelector("div.chapter-time").TextContent.Split('-')[1].Trim(),
+                            x
+                                .QuerySelector("div.chapter-time")!
+                                .TextContent
+                                .Split('-')[1]
+                                .Trim(),
                             "dd/MM/yyyy",
                             CultureInfo.InvariantCulture)
                     })
@@ -95,9 +109,8 @@ public class HanmaAbstraction {
         }
         catch (Exception exception) {
             _logger.LogError("{}\n{}", url, exception);
+            throw;
         }
-
-        return default;
 
         string GetInfoValue(string infoName) {
             var infoElement = document
@@ -109,8 +122,8 @@ public class HanmaAbstraction {
 
             return infoElement
                 .ParentElement
-                ?.QuerySelector("span.info-value")
-                ?.TextContent;
+                ?.QuerySelector("span.info-value")!
+                .TextContent!;
         }
     }
 
@@ -118,12 +131,14 @@ public class HanmaAbstraction {
         using var document = await _httpHandler.ParseAsync(chapter.Url);
         IElement element;
         do {
-            element = document.All.FirstOrDefault(x => x is { LocalName: "div", Id: "chapter-content" });
-        } while (element == default && element.Children.Length == 0);
+            element = document
+                .All
+                .First(x => x is { LocalName: "div", Id: "chapter-content" });
+        } while (element.Children.Length == 0);
 
         chapter.Pages = element
             .Children
-            .Select(x => x.Attributes[1].Value)
+            .Select(x => x.Attributes[1]!.Value)
             .ToArray();
         return chapter;
     }
