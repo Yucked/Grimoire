@@ -49,10 +49,11 @@ public sealed class DatabaseHandler(
         return memoryCache.Get<T>(key);
     }
 
-    public string? GetSourceIcon(string sourceId) {
-        return config.GetValue<bool>("Save:SourceIcon")
-            ? Get<string>(sourceId)
-            : _sources.First(x => x.Id == sourceId).Icon;
+    public string GetSourceIcon(string sourceId) {
+        return (config.GetValue<bool>("Save:SourceIcon")
+                   ? Get<string>(sourceId)
+                   : _sources.First(x => x.Id == sourceId).Icon)
+               ?? "favicon_outline.png";
     }
 
     public Task AddMangaAsync(Manga manga) {
@@ -221,7 +222,7 @@ public sealed class DatabaseHandler(
         var tasks = _sources
             .Select(async source => {
                 if (memoryCache.TryGetValue(source.Id, out _)) {
-                    return source;
+                    return;
                 }
 
                 var path = PathMaker
@@ -243,10 +244,11 @@ public sealed class DatabaseHandler(
                 }
 
                 memoryCache.Set(source.Id, path.WithIcon(source.Icon));
-                return source;
             });
 
-        return await Task.WhenAll(tasks);
+        await Task.WhenAll(tasks);
+        return _sources
+            .ToArray();
     }
 
     public async Task<bool> DoesSourceExistAsync(string sourceId) {
