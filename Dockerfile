@@ -11,4 +11,4 @@ RUN dotnet restore && \
     dotnet publish -c Release -o out
 
 WORKDIR out
-ENTRYPOINT ["dotnet", "Grimoire.Web.dll"]
+ENTRYPOINT ["dotnet", "Grimoire.dll"]
