@@ -12,6 +12,20 @@ internal readonly record struct Book {
     public bool HasAnyPages { get; }
     public int ItemCount { get; }
 
+    public Book(IOrderedEnumerable<Manga> items) {
+        ItemCount = items.Count();
+
+        Pages = items
+            .Chunk(16)
+            .Select((x, y) => new Page {
+                Index = y,
+                Items = x
+            })
+            .ToArray();
+
+        HasAnyPages = Pages.Count != 0;
+    }
+
     public Book(IReadOnlyCollection<Manga>? items) {
         ItemCount = items.Count;
 
