@@ -7,7 +7,8 @@ namespace Grimoire.Sources;
 
 public sealed class PornwaClubSource(
     ILogger<PornwaClubSource> logger,
-    HttpHandler httpHandler) : IGrimoireSource {
+    HttpHandler httpHandler,
+    DatabaseHandler databaseHandler) : IGrimoireSource {
     public string Name
         => "Pornwa Club";
 
@@ -19,19 +20,19 @@ public sealed class PornwaClubSource(
 
     public Task<IReadOnlyList<Manga>> GetMangasAsync() {
         return HanmaAbstraction
-            .Helper(logger, httpHandler, Name, Url)
+            .Helper(logger, httpHandler, databaseHandler, Name, Url)
             .GetMangasAsync();
     }
 
     public Task<Manga> GetMangaAsync(string url) {
         return HanmaAbstraction
-            .Helper(logger, httpHandler, Name, Url)
+            .Helper(logger, httpHandler, databaseHandler, Name, Url)
             .GetMangaAsync(url);
     }
 
     public Task<Chapter> FetchChapterAsync(Chapter chapter) {
         return HanmaAbstraction
-            .Helper(logger, httpHandler, Name, Url)
+            .Helper(logger, httpHandler, databaseHandler, Name, Url)
             .FetchChapterAsync(chapter);
     }
 }
