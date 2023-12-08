@@ -57,6 +57,8 @@ body, html {
 
 .card-footer {
     transition: border .5s ease-in-out, .3s transform;
+    background-color: var(--color-slateblack) !important;
+    color: var(--color-slateblack) !important;
 }
 
 .card:hover > .card-footer {
