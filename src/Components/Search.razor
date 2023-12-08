@@ -1,13 +1,27 @@
-<h3>Search</h3>
+<div class="d-flex" role="search">
+    <input class="form-control me-2" placeholder="Search" aria-label="Search"
+           type="text"
+           @bind="SearchQuery"
+           @onkeydown="HandleSearch">
+</div>
 
 @code {
-    [Parameter]
-    public string Query { get; set; }
-    
-    [Parameter]
-    public string? SourceId { get; set; }
 
-    public async Task SearchAsync() {
+    [Parameter]
+    public Func<string, Task> OnSearchAsync { get; set; }
+
+    private string SearchQuery { get; set; }
+
+    private async Task HandleSearch(KeyboardEventArgs e) {
+        if (e.Code != "Enter" || string.IsNullOrWhiteSpace(SearchQuery)) {
+            return;
+        }
+
+        if (OnSearchAsync == null) {
+            return;
+        }
         
+        await OnSearchAsync.Invoke(SearchQuery);
     }
+
 }
