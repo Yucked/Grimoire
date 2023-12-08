@@ -11,7 +11,7 @@
 
     <div class="row row-cols-1 g-4">
         <div class="col">
-            <div class="container text-center rounded color-slateblack p-1">
+            <div class="container text-center rounded color-slateblack p-2 my-3 shadow-sm">
                 <div class="row justify-content-md-center gy-2 my-2">
                     <div class="col col-lg-2"></div>
                     <div class="col-md-auto">
@@ -27,24 +27,24 @@
                 </div>
 
                 <div class="row gy-2 my-2 pb-2">
-                    <div class="col px-4">
-                        <select class="form-select" aria-label="Default select example">
+                    <div class="col-sm px-4">
+                        <button class="btn btn-dark w-100" @onclick="RefreshAsync">Refresh 👀</button>
+                    </div>
+                    <div class="col-sm px-4">
+                        <select class="form-select" @onchange="OnChangeAsync">
                             <option selected>Sort By</option>
                             <option value="1">Latest</option>
                             <option value="2">Name</option>
                             <option value="3">Chapters</option>
                         </select>
                     </div>
-                    <div class="col px-4">
-                        <button class="btn btn-dark w-100" onclick="@RefreshAsync">Refresh 👀</button>
-                    </div>
-                    <div class="col px-4">
+                    <div class="col-sm px-4">
                         <Search OnSearchAsync="OnSearchAsync"></Search>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         @if (!_book.HasAnyPages) {
             <Waiting Message=@LoadingMessage/>
         }
@@ -94,6 +94,8 @@
     private string LoadingMessage
         => $"Loading {SourceId.GetNameFromId()} content";
 
+    private string SortType { get; set; }
+
     private Book _book;
     private Page _currentPage;
 
@@ -124,5 +126,20 @@
             _currentPage = _book.GoTo(_book.Pages.Count - 1);
             StateHasChanged();
         }
+    }
+
+    private async Task OnChangeAsync(ChangeEventArgs arg) {
+        var mangas = await DatabaseHandler.GetMangasAsync(SourceId, false);
+        var sorted = int.Parse($"{arg.Value}") switch {
+            1 => mangas
+                .OrderByDescending(x => x.Chapters.FirstOrDefault()!.ReleasedOn),
+            2 => mangas
+                .OrderBy(x => x.Name),
+            3 => mangas
+                .OrderByDescending(x => x.Chapters.Count)
+        };
+        _book = new Book(sorted);
+        _currentPage = _book.GoTo(PageNumber);
+        StateHasChanged();
     }
 }
