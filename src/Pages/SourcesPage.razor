@@ -2,6 +2,7 @@
 @using Grimoire.Handlers
 @using Grimoire.Sources.Interfaces
 
+@inject IJSRuntime JSRuntime
 @inject DatabaseHandler DatabaseHandler
 @inject NavigationManager NavigationManager
 
@@ -10,14 +11,26 @@
         <Waiting Message="Loading sources"/>
     }
     else {
-        <div class="border rounded-4 shadow">
+        <div class="rounded-4">
+            <div class="container p-4">
+                <Search OnSearchAsync="OnSearchAsync"></Search>
+            </div>
+
             <ul class="list-group list-group-flush">
-                @foreach (var source in _sources) {
-                    <a class="list-group-item list-group-item-action" @onclick="() => NavTo(source.Id)">
-                        <img src="@DatabaseHandler.GetSourceIcon(source.Id)" class="img-thumbnail" alt="@source.Name" width="70">
-                        <span>@source.Name</span>
-                    </a>
-                }
+                <div class="row row-cols-1 g-4">
+                    @foreach (var source in _sources) {
+                        <div class="col rounded">
+                            <a class="list-group-item list-group-item-action shadow" @onclick="() => NavTo(source.Id)">
+                                <img src="@DatabaseHandler.GetSourceIcon(source.Id)" class="img-thumbnail" alt="@source.Name" width="70">
+                                <span>@source.Name</span>
+                            </a>
+                        </div>
+
+                        <div id="@source.Id" class="col visually-hidden">
+
+                        </div>
+                    }
+                </div>
             </ul>
         </div>
     }
@@ -25,6 +38,7 @@
 
 @code {
     private IReadOnlyList<IGrimoireSource> _sources;
+    private bool _isHidden = true;
 
     protected override async Task OnInitializedAsync() {
         _sources = await DatabaseHandler.ListSourcesAsync();
@@ -32,6 +46,15 @@
 
     private void NavTo(string sourceId) {
         NavigationManager.NavigateTo($"/sources/{sourceId}");
+    }
+
+    private async Task OnSearchAsync(string arg) {
+        var mangas = await DatabaseHandler.SearchAsync(SearchType.Global, arg);
+        var dict = mangas
+            .GroupBy(x => x.SourceId, y => y)
+            .ToDictionary(x => x.Key, x => x.ToList());
+
+        await JSRuntime.InvokeVoidAsync("displayData", dict);
     }
 
 }
