@@ -1,9 +1,8 @@
-<div class="d-flex" role="search">
-    <input class="form-control me-2" placeholder="Search" aria-label="Search"
-           type="text"
-           @bind="SearchQuery"
-           @onkeydown="HandleSearch">
-</div>
+<input class="form-control me-2" placeholder="Search" aria-label="Search"
+       type="text"
+       @bind="SearchQuery"
+       @onkeydown="HandleSearch">
+
 
 @code {
 
@@ -20,7 +19,7 @@
         if (OnSearchAsync == null) {
             return;
         }
-        
+
         await OnSearchAsync.Invoke(SearchQuery);
     }
 
