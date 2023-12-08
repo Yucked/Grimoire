@@ -293,20 +293,45 @@ public sealed class DatabaseHandler(
         }
     }
 
-    public async Task<IReadOnlyCollection<Manga>> SearchAsync(string search) {
-        var collections = await (await database.ListCollectionsAsync()).ToListAsync();
+    public async Task<IReadOnlyList<Manga>> SearchAsync(SearchType searchType, string search,
+                                                        string sourceId = "") {
         var filter = Builders<Manga>.Filter.Text(search, new TextSearchOptions { CaseSensitive = false }) |
                      Builders<Manga>.Filter.Regex(x => x.Name, @$"(?i)\b{search}\b") |
                      Builders<Manga>.Filter.Regex(x => x.Summary, @$"(?i)\b{search}\b") |
                      Builders<Manga>.Filter.AnyStringIn(x => x.Metonyms, search);
 
-        return collections
-            .SelectMany(x =>
-                database
-                    .GetCollection<Manga>(x.Elements.First().Value.AsString)
+        IReadOnlyList<Manga> searchResults = [];
+        switch (searchType) {
+            case SearchType.Global:
+            case SearchType.Library:
+                var collections = await (await database.ListCollectionsAsync()).ToListAsync();
+                searchResults = collections
+                    .SelectMany(x =>
+                        database
+                            .GetCollection<Manga>(x.Elements.First().Value.AsString)
+                            .Find(searchType == SearchType.Library
+                                ? filter | Builders<Manga>.Filter.Eq(y => y.IsInLibrary, true)
+                                : filter)
+                            .ToList()
+                    )
+                    .ToArray();
+                break;
+
+            case SearchType.Source:
+                ArgumentException.ThrowIfNullOrWhiteSpace(sourceId);
+                searchResults = database
+                    .GetCollection<Manga>(sourceId)
                     .Find(filter)
-                    .ToList()
-            )
-            .ToArray();
+                    .ToList();
+                break;
+        }
+
+        return searchResults;
     }
+}
+
+public enum SearchType {
+    Library,
+    Global,
+    Source
 }
