@@ -7,7 +7,8 @@ namespace Grimoire.Sources;
 
 public class Manhwa18NetSource(
     ILogger<Manhwa18NetSource> logger,
-    HttpHandler httpHandler) : IGrimoireSource {
+    HttpHandler httpHandler,
+    DatabaseHandler databaseHandler) : IGrimoireSource {
     public string Name
         => "Manhwa 18";
 
@@ -19,19 +20,19 @@ public class Manhwa18NetSource(
 
     public Task<IReadOnlyList<Manga>> GetMangasAsync() {
         return HanmaAbstraction
-            .Helper(logger, httpHandler, Name, Url)
+            .Helper(logger, httpHandler, databaseHandler, Name, Url)
             .GetMangasAsync();
     }
 
     public Task<Manga> GetMangaAsync(string url) {
         return HanmaAbstraction
-            .Helper(logger, httpHandler, Name, Url)
+            .Helper(logger, httpHandler, databaseHandler, Name, Url)
             .GetMangaAsync(url);
     }
 
     public Task<Chapter> FetchChapterAsync(Chapter chapter) {
         return HanmaAbstraction
-            .Helper(logger, httpHandler, Name, Url)
+            .Helper(logger, httpHandler, databaseHandler, Name, Url)
             .FetchChapterAsync(chapter);
     }
 }

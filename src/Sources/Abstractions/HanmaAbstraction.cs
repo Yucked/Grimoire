@@ -11,16 +11,26 @@ namespace Grimoire.Sources.Abstractions;
 public class HanmaAbstraction {
     private readonly ILogger _logger;
     private readonly HttpHandler _httpHandler;
+    private readonly DatabaseHandler _databaseHandler;
     private readonly string _name;
     private readonly string _url;
 
-    public static HanmaAbstraction Helper(ILogger logger, HttpHandler httpHandler, string name, string url) {
-        return new HanmaAbstraction(logger, httpHandler, name, url);
+    public static HanmaAbstraction Helper(ILogger logger,
+                                          HttpHandler httpHandler,
+                                          DatabaseHandler databaseHandler,
+                                          string name,
+                                          string url) {
+        return new HanmaAbstraction(logger, httpHandler, databaseHandler, name, url);
     }
 
-    private HanmaAbstraction(ILogger logger, HttpHandler httpHandler, string name, string url) {
+    private HanmaAbstraction(ILogger logger,
+                             HttpHandler httpHandler,
+                             DatabaseHandler databaseHandler,
+                             string name,
+                             string url) {
         _logger = logger;
         _httpHandler = httpHandler;
+        _databaseHandler = databaseHandler;
         _name = name;
         _url = url;
     }
@@ -105,6 +115,7 @@ public class HanmaAbstraction {
                     .ToArray()
             };
 
+            await _databaseHandler.AddMangaAsync(manga);
             return manga;
         }
         catch (Exception exception) {
