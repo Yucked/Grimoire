@@ -57,6 +57,10 @@ public sealed class DatabaseHandler(
     }
 
     public Task AddMangaAsync(Manga manga) {
+        if (database.GetCollection<Manga>(manga.SourceId).Find(x => x.Id == manga.Id).Any()) {
+            return Task.CompletedTask;
+        }
+
         return database
             .GetCollection<Manga>(manga.SourceId)
             .InsertOneAsync(manga);
