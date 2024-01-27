@@ -57,10 +57,6 @@ public sealed class DatabaseHandler(
     }
 
     public Task AddMangaAsync(Manga manga) {
-        if (database.GetCollection<Manga>(manga.SourceId).Find(x => x.Id == manga.Id).Any()) {
-            return Task.CompletedTask;
-        }
-
         return database
             .GetCollection<Manga>(manga.SourceId)
             .InsertOneAsync(manga);
@@ -139,13 +135,11 @@ public sealed class DatabaseHandler(
                     memoryCache.Set($"{sourceId}@{manga.Id}", path.WithCover(manga.Cover));
                 }
 
-                if (fetchUpdates || !collections.Contains(sourceId)) {
-                    await database
-                        .GetCollection<Manga>(manga.SourceId)
-                        .ReplaceOneAsync(r => r.Id == manga.Id,
-                            manga,
-                            new ReplaceOptions { IsUpsert = true });
-                }
+                await database
+                    .GetCollection<Manga>(manga.SourceId)
+                    .ReplaceOneAsync(r => r.Id == manga.Id,
+                        manga,
+                        new ReplaceOptions { IsUpsert = true });
             });
 
         await Task.WhenAll(tasks);
