@@ -59,7 +59,7 @@ public class OmegaScansSource(
             Genre = [cached.Genre],
             LastFetch = DateTimeOffset.Now,
             Url = url,
-            SourceId = nameof(OmegaScansSource).GetIdFromName(),
+            SourceId = Name.GetIdFromName(),
             Author = document
                 .QuerySelectorAll("div.flex > p")
                 .FirstOrDefault(x => x.TextContent.Contains("Author:"))
