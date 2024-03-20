@@ -1,0 +1,11 @@
+@Grimoire_HostAddress = http://localhost:5161
+
+GET {{Grimoire_HostAddress}}/todos/
+Accept: application/json
+
+###
+
+GET {{Grimoire_HostAddress}}/todos/1
+Accept: application/json
+
+###
