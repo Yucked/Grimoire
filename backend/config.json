@@ -2,7 +2,7 @@
     "AllowedHosts": "*",
     "Logging": {
         "LogLevel": {
-            "Default": "Information",
+            "Default": "Debug",
             "Microsoft.AspNetCore": "Warning",
             "System.Net.Http.HttpClient.*": "Information"
         }
@@ -14,26 +14,46 @@
             }
         }
     },
-    "Theme": "dark",
-    "RefreshEvery": "00:30:00",
-    "Mongo": "mongodb://srv.lol:7002/grimoire",
-    "Save": {
-        "To": "Grimoire_Data",
-        "SourceIcon": true,
-        "MangaCover": true,
-        "MangaChapter": false
-    },
-    "Http": {
-        "Retries": 5,
-        "Delay": 500,
-        "UserAgents": [
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/114.0",
-            "Mozilla/5.0 (X11; Ubuntu; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36 RuxitSynthetic/1.0 v3283331297382284845 t6205049005192687891",
-            "Mozilla/5.0 (iPhone; CPU iPhone OS 10_1_4; like Mac OS X) AppleWebKit/601.14 (KHTML, like Gecko)  Chrome/51.0.1615.309 Mobile Safari/535.3",
-            "Mozilla / 5.0 (compatible; MSIE 10.0; Windows; U; Windows NT 10.4; WOW64 Trident / 6.0)",
-            "Mozilla/5.0 (Linux; U; Linux x86_64; en-US) AppleWebKit/534.29 (KHTML, like Gecko) Chrome/49.0.3483.101 Safari/534",
-            "Mozilla/5.0 (Windows; U; Windows NT 10.1;; en-US) AppleWebKit/535.14 (KHTML, like Gecko) Chrome/51.0.2258.396 Safari/600",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_5; en-US) AppleWebKit/600.21 (KHTML, like Gecko) Chrome/48.0.1544.246 Safari/536"
-        ]
-    }
+    "Sources": [
+        {
+            "Name": "Asura Scans",
+            "Url": "https://asuratoon.com",
+            "Favicon": "https://asuratoon.com/wp-content/uploads/2021/03/Group_1.png"
+        },
+        {
+            "Name": "Flame Scans",
+            "Url": "https://flamecomics.com",
+            "Favicon": "https://flamecomics.com/favicon.ico"
+        },
+        {
+            "Name": "Manhwa 18",
+            "Url": "https://manhwa18.net",
+            "Favicon": "https://manhwa18.net/favicon1.ico"
+        },
+        {
+            "Name": "Omega Scans",
+            "Url": "https://api.omegascans.org",
+            "Favicon": "https://omegascans.org/icon.png"
+        },
+        {
+            "Name": "Pornwa Club",
+            "Url": "https://pornwa.club",
+            "Favicon": "https://pornwa.club/favicon1.ico"
+        },
+        {
+            "Name": "Raven Scans",
+            "Url": "https://ravenscans.com",
+            "Favicon": "https://i0.wp.com/ravenscans.com/wp-content/uploads/2022/12/cropped-33.png"
+        },
+        {
+            "Name": "TCB Scans",
+            "Url": "https://tcbscans.com",
+            "Favicon": "https://tcbscans.com/files/apple-touch-icon.png"
+        },
+        {
+            "Name": "Webtoon",
+            "Url": "https://www.webtoons.com/en/",
+            "Favicon": "https://upload.wikimedia.org/wikipedia/commons/0/09/Naver_Line_Webtoon_logo.png"
+        }
+    ]
 }

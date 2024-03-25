@@ -12,4 +12,8 @@
     <Folder Include="Sources\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="LiteDB" Version="5.0.19" />
+  </ItemGroup>
+
 </Project>

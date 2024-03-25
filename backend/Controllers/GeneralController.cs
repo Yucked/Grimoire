@@ -7,7 +7,7 @@ namespace Grimoire.Controllers;
  Produces("application/json")]
 public sealed class GeneralController : ControllerBase {
     [HttpGet]
-    public ValueTask<Response<DateTime>> PingAsync() {
-        return ValueTask.FromResult(Response<DateTime>.New(StatusCodes.Status200OK, DateTime.Now));
+    public ValueTask<RestResponse> PingAsync() {
+        return ValueTask.FromResult(RestResponse.New(StatusCodes.Status200OK, DateTime.Now));
     }
 }

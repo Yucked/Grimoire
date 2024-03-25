@@ -22,6 +22,7 @@ public record MangaObject(
     IList<string> Authors,
     IList<string> Artists,
     string Title,
+    string Id,
     IList<string> Aliases,
     string Summary,
     IList<string> Genres,

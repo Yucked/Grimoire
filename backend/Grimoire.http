@@ -1,11 +1,23 @@
-@Grimoire_HostAddress = http://localhost:5161
+@Grimoire_HostAddress = http://localhost:9000
 
-GET {{Grimoire_HostAddress}}/todos/
+### GENERAL CONTROLLER TESTING
+GET {{Grimoire_HostAddress}}/api/General/
 Accept: application/json
 
-###
+### SORUCES TESTING
+GET {{Grimoire_HostAddress}}/api/Sources
+Accept: application/json
 
-GET {{Grimoire_HostAddress}}/todos/1
+### SORUCES TESTING
+GET {{Grimoire_HostAddress}}/api/Sources/SOURCE_ID
+Accept: application/json
+
+### MANGA TESTING; MANGA ID
+GET {{Grimoire_HostAddress}}/api/Manga/Source-Id-This/Manga-Id
+Accept: application/json
+
+### MANGA TESTING: MANGA ID & CHAPTER
+GET {{Grimoire_HostAddress}}/api/Manga/Source-Id-This/Manga-Id/999
 Accept: application/json
 
 ###
