@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Grimoire.Objects;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Grimoire.Controllers;
 
@@ -7,7 +8,7 @@ namespace Grimoire.Controllers;
  Produces("application/json")]
 public sealed class GeneralController : ControllerBase {
     [HttpGet]
-    public ValueTask<RestResponse> PingAsync() {
-        return ValueTask.FromResult(RestResponse.New(StatusCodes.Status200OK, DateTime.Now));
+    public ValueTask<ResponseObject> PingAsync() {
+        return DateTime.Now.AsResponseAsync(StatusCodes.Status200OK);
     }
 }
