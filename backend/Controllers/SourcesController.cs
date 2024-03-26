@@ -1,5 +1,5 @@
-﻿using Grimoire.Objects;
-using LiteDB;
+﻿using Grimoire.Handlers;
+using Grimoire.Objects;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Grimoire.Controllers;
@@ -7,21 +7,22 @@ namespace Grimoire.Controllers;
 [ApiController,
  Route("api/[controller]"),
  Produces("application/json")]
-public sealed class SourcesController(ILiteDatabase database) : ControllerBase {
+public sealed class SourcesController(
+    DatabaseHandler databaseHandler,
+    IConfiguration configuration) : ControllerBase {
     [HttpGet]
-    public async ValueTask GetAsync() {
-        // return all sources
+    public ValueTask<ResponseObject> GetAsync() {
+        return configuration
+            .GetSection("Sources")
+            .Get<IReadOnlyCollection<SourceObject>>()!
+            .AsResponseAsync(StatusCodes.Status200OK);
     }
 
     [HttpGet("{sourceId}")]
-    public async ValueTask<RestResponse> GetAsync(string sourceId) {
-        var collection = database.GetCollection<MangaObject>(sourceId);
-        if (collection == null) {
-            return RestResponse.New(StatusCodes.Status404NotFound);
-        }
-
-        return collection
-            .FindAll()
-            .AsResponse(StatusCodes.Status200OK);
+    public async ValueTask<ResponseObject> GetAsync(string sourceId) {
+        var source = await databaseHandler.GetSourceAsync(sourceId);
+        return source.Count == 0
+            ? ResponseObject.New(StatusCodes.Status404NotFound)
+            : await source.AsResponseAsync(StatusCodes.Status200OK);
     }
 }
