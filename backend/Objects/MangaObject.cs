@@ -1,4 +1,6 @@
-﻿namespace Grimoire.Objects;
+﻿using System.Text;
+
+namespace Grimoire.Objects;
 
 /// <summary>
 /// 
@@ -22,7 +24,6 @@ public record MangaObject(
     IList<string> Authors,
     IList<string> Artists,
     string Title,
-    string Id,
     IList<string> Aliases,
     string Summary,
     IList<string> Genres,
@@ -34,4 +35,7 @@ public record MangaObject(
     DateOnly UpdatedAt,
     DateOnly ReleasedOn,
     IList<ChapterObject> Chapters,
-    MetadataObject Metadata);
+    MetadataObject Metadata) {
+    public string Id
+        => Convert.ToBase64String(Encoding.UTF8.GetBytes(Title));
+}
