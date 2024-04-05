@@ -9,28 +9,28 @@ namespace Grimoire.Controllers;
  Produces("application/json")]
 public sealed class MangaController(ILiteDatabase database) : ControllerBase {
     [HttpGet("")]
-    public async ValueTask<RestResponse> GetAsync(string sourceId, string mangaId) {
+    public async ValueTask<ResponseObject> GetAsync(string sourceId, string mangaId) {
         var collection = database.GetCollection<MangaObject>(sourceId);
         if (!collection.Exists(x => x.Id == mangaId)) {
-            return RestResponse.New(StatusCodes.Status404NotFound);
+            return ResponseObject.New(StatusCodes.Status404NotFound);
         }
 
-        return collection
+        return await collection
             .FindById(mangaId)
-            .AsResponse(StatusCodes.Status200OK);
+            .AsResponseAsync(StatusCodes.Status200OK);
     }
 
     [HttpGet("{chapterId:int}")]
-    public async ValueTask<RestResponse> GetAsync(string sourceId, string mangaId, int chapterId) {
+    public async ValueTask<ResponseObject> GetAsync(string sourceId, string mangaId, int chapterId) {
         var collection = database.GetCollection<MangaObject>(sourceId);
         if (!collection.Exists(x => x.Id == mangaId)) {
-            return RestResponse.New(StatusCodes.Status404NotFound);
+            return ResponseObject.New(StatusCodes.Status404NotFound);
         }
 
-        return collection
+        return await collection
             .FindById(mangaId)
             .Chapters
             .First(x => x.Number == chapterId)
-            .AsResponse(StatusCodes.Status200OK);
+            .AsResponseAsync(StatusCodes.Status200OK);
     }
 }
