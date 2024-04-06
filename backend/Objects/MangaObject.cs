@@ -35,7 +35,8 @@ public record MangaObject(
     DateOnly UpdatedAt,
     DateOnly ReleasedOn,
     IList<ChapterObject> Chapters,
-    MetadataObject Metadata) {
+    MetadataObject Metadata,
+    MangaType Type) {
     public string Id
         => Convert.ToBase64String(Encoding.UTF8.GetBytes(Title));
 }
