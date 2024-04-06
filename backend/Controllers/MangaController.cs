@@ -5,11 +5,11 @@ using Microsoft.AspNetCore.Mvc;
 namespace Grimoire.Controllers;
 
 [ApiController,
- Route("api/[controller]/{sourceId}/{mangaId}"),
+ Route("api/[controller]/{mangaId}"),
  Produces("application/json")]
 public sealed class MangaController(ILiteDatabase database) : ControllerBase {
     [HttpGet("")]
-    public async ValueTask<ResponseObject> GetAsync(string sourceId, string mangaId) {
+    public async ValueTask<ResponseObject> GetAsync(string mangaId, [FromQuery] string sourceId) {
         var collection = database.GetCollection<MangaObject>(sourceId);
         if (!collection.Exists(x => x.Id == mangaId)) {
             return ResponseObject.New(StatusCodes.Status404NotFound);
