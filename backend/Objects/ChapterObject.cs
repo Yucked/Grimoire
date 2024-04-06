@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.RazorPages;
-
-namespace Grimoire.Objects;
+﻿namespace Grimoire.Objects;
 
 /// <summary>
 /// 
@@ -10,6 +8,7 @@ namespace Grimoire.Objects;
 /// <param name="ReleasedOn"></param>
 /// <param name="IsDownloaded"></param>
 /// <param name="LastPageRead"></param>
+/// <param name="SourceUrl"></param>
 /// <param name="Pages"></param>
 public record ChapterObject(
     string Title,
@@ -17,4 +16,5 @@ public record ChapterObject(
     DateOnly ReleasedOn,
     bool IsDownloaded,
     int LastPageRead,
-    Dictionary<int, Page> Pages);
+    string SourceUrl,
+    Dictionary<int, PageObject> Pages);
