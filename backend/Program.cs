@@ -14,6 +14,7 @@ builder.Services
         x.ExpirationScanFrequency = TimeSpan.FromMinutes(30);
     })
     .AddSingleton<DatabaseHandler>()
+    .AddSingleton<ScrapingHandler>()
     .AddSingleton<ILiteDatabase>(x => {
         var database = new LiteDatabase("grimoire.db");
         var collection = database.GetCollection<MangaObject>();
