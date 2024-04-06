@@ -1,24 +1,25 @@
 ﻿using Grimoire.Objects;
 using LiteDB;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace Grimoire.Handlers;
 
-public sealed class DatabaseHandler(
-    ILiteDatabase database,
-    IMemoryCache memoryCache,
-    IConfiguration configuration,
-    ILogger<DatabaseHandler> logger) {
+public sealed class DatabaseHandler(ILiteDatabase database) {
     public ValueTask<IReadOnlyCollection<MangaObject>> GetSourceAsync(string sourceId) {
         var collection = database.GetCollection<MangaObject>(sourceId);
         return ValueTask.FromResult<IReadOnlyCollection<MangaObject>>(collection.FindAll().ToArray());
     }
 
-    public async Task ListSourcesAsync() { }
+    public ValueTask<MangaObject> GetMangaAsync(string sourceId, string mangaId) {
+        var collection = database.GetCollection<MangaObject>(sourceId);
+        return ValueTask.FromResult(collection.FindById(mangaId));
+    }
 
-    public async Task GetMangaAsync(string sourceId, string mangaId) { }
-
-    public async Task GetMangaChapterAsync(string sourceId, string mangaId, int chapterId) { }
+    public ValueTask<ChapterObject> GetMangaChapterAsync(string sourceId, string mangaId, int chapterId) {
+        var collection = database.GetCollection<MangaObject>(sourceId);
+        return ValueTask.FromResult(collection.FindById(mangaId)
+            .Chapters
+            .First(x => x.Number == chapterId));
+    }
 
     public ValueTask<IReadOnlyCollection<MangaObject>> SearchSourceAsync(string sourceId, string query) {
         var collection = database.GetCollection<MangaObject>(sourceId);
@@ -48,5 +49,10 @@ public sealed class DatabaseHandler(
             .Select(x => SearchSourceAsync(x, query).AsTask());
         var results = await Task.WhenAll(tasks);
         return results.SelectMany(x => x).ToArray();
+    }
+
+    public void StoreImage(string sourceId, string mangaId, string g, Stream stream) {
+        var fs = database.GetStorage<string>(sourceId, mangaId);
+        fs.Upload(g.ToId(), g.ToId(), stream);
     }
 }
