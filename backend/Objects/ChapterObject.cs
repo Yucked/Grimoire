@@ -10,9 +10,9 @@
 /// <param name="LastPageRead"></param>
 /// <param name="SourceUrl"></param>
 /// <param name="Pages"></param>
-public record ChapterObject(
+public record struct ChapterObject(
     string Title,
-    int Number,
+    string Number,
     DateOnly ReleasedOn,
     bool IsDownloaded,
     int LastPageRead,

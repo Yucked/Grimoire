@@ -21,7 +21,7 @@ public sealed class MangaController(ILiteDatabase database) : ControllerBase {
     }
 
     [HttpGet("{chapterId:int}")]
-    public async ValueTask<ResponseObject> GetAsync(string sourceId, string mangaId, int chapterId) {
+    public async ValueTask<ResponseObject> GetAsync(string sourceId, string mangaId, string chapterId) {
         var collection = database.GetCollection<MangaObject>(sourceId);
         if (!collection.Exists(x => x.Id == mangaId)) {
             return ResponseObject.New(StatusCodes.Status404NotFound);

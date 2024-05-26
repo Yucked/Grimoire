@@ -20,7 +20,7 @@ namespace Grimoire.Objects;
 /// <param name="ReleasedOn"></param>
 /// <param name="Chapters"></param>
 /// <param name="Metadata"></param>
-public record MangaObject(
+public record struct MangaObject(
     IList<string> Authors,
     IList<string> Artists,
     string Title,
