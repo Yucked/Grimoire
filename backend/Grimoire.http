@@ -9,11 +9,11 @@ GET {{Grimoire_HostAddress}}/api/Sources
 Accept: application/json
 
 ### SORUCES TESTING
-GET {{Grimoire_HostAddress}}/api/Sources/SOURCE_ID
+GET {{Grimoire_HostAddress}}/api/Sources/QXN1cmEgU2NhbnM=
 Accept: application/json
 
 ### MANGA TESTING; MANGA ID
-GET {{Grimoire_HostAddress}}/api/Manga/Source-Id-This/Manga-Id
+GET {{Grimoire_HostAddress}}/api/Manga/MANGA_ID?SOURCE=SOURCE_ID
 Accept: application/json
 
 ### MANGA TESTING: MANGA ID & CHAPTER
