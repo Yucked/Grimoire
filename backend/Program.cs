@@ -4,14 +4,13 @@ using Grimoire.Sources;
 using LiteDB;
 using Microsoft.Playwright;
 
+var exitCode = Microsoft.Playwright.Program.Main(["install"]);
+if (exitCode != 0) {
+    throw new Exception($"Playwright exited with code {exitCode}");
+}
+
 var playwright = await Playwright.CreateAsync();
-var browser = await playwright.Chromium
-    .LaunchAsync(new BrowserTypeLaunchOptions {
-        ExecutablePath = Path.Combine(
-            Environment.CurrentDirectory,
-            "ChromeHeadlessShell",
-            "chrome-headless-shell.exe")
-    });
+var browser = await playwright.Chromium.LaunchAsync();
 
 var builder = WebApplication.CreateSlimBuilder(args);
 builder.Configuration.Sources.Clear();
