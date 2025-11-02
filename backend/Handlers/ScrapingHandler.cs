@@ -1,90 +1,154 @@
-﻿using Microsoft.Playwright;
+using AngleSharp;
+using AngleSharp.Dom;
+using Microsoft.Playwright;
+using System.Net;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
 
 namespace Grimoire.Handlers;
 
-public sealed class ScrapingHandler(
+public sealed partial class ScrapingHandler(
     ILogger<ScrapingHandler> logger,
-    IBrowser browser,
     HttpClient httpClient,
-    DatabaseHandler databaseHandler) {
-    private static readonly string[] BlockedResources = [
-        "adzerk",
-        "analytics",
-        "cdn.api.twitter",
-        "doubleclick",
-        "exelator",
-        "facebook",
-        "fontawesome",
-        "google",
-        "google-analytics",
-        "googletagmanager",
-        "googlesyndication",
-        "disqus",
-        "ads"
-    ];
+    IConfiguration configuration,
+    IBrowser browser) {
 
-    private readonly SemaphoreSlim _semaphore
-        = new(1, 10);
+    private readonly IBrowsingContext _context
+        = BrowsingContext.New(Configuration.Default.WithDefaultLoader());
 
-    public async Task<IPage> RequestPageAsync(string url) {
-        var context = await browser.NewContextAsync();
-        var page = await context.NewPageAsync();
+    private readonly SemaphoreSlim _rateLimiter
+        = new(configuration.GetValue<int>("Http:RequestConcurrency"));
 
-        await page.RouteAsync("**/*", async route => {
-            if (BlockedResources.Any(y => route.Request.Url.Contains(y))) {
-                logger.LogWarning("Route matched with blocked resources, aborted: {}", route.Request.Url);
-                await route.AbortAsync();
-                return;
-            }
+    private readonly int _requestDelay
+        = configuration.GetValue<int>("Http:RequestDelay");
 
-            await route.ContinueAsync();
-        });
+    private static readonly Regex BlockedPattern = BlockedRegex();
 
-        var response = await page.GotoAsync(url, new PageGotoOptions {
-            WaitUntil = WaitUntilState.NetworkIdle
-        });
+    [GeneratedRegex(@"(adzerk|analytics|doubleclick|facebook|google-analytics|googletagmanager|disqus)",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled,
+        "en-US")]
+    private static partial Regex BlockedRegex();
 
-        if (response?.Ok is not true) {
-            logger.LogError("Failed to fetch {}", url);
-            return null;
-            // Fallback on AngleSharp
-        }
-
-        await response?.FinishedAsync()!;
-        return page;
+    public Task<IDocument> ParseHtmlAsync(string html) {
+        return _context.OpenAsync(x => x.Content(html));
     }
 
-    public async Task DownloadAsync(string sourceId, string mangaId, string url) {
-        if (string.IsNullOrWhiteSpace(url)) {
-            logger.LogError("Unable to download {} from {} for {}", url, sourceId, mangaId);
-            return;
-        }
-
+    public async Task<IDocument> GetHtmlDocumentAsync(string url) {
+        await _rateLimiter.WaitAsync();
         try {
-            await _semaphore.WaitAsync();
-            await await Task
-                .Delay(Random.Shared.Next(2000, 4000))
-                .ContinueWith(async _ => {
-                    using var responseMessage = await httpClient.GetAsync(url);
-                    if (!responseMessage.IsSuccessStatusCode) {
-                        logger.LogError("Unable to reach {}\n{}",
-                            url, responseMessage.ReasonPhrase);
-                        return;
-                    }
 
-                    var fileName = responseMessage.Content.Headers.ContentDisposition?.FileNameStar
-                                   ?? url.Split('/')[^1];
-                    var ms = new MemoryStream();
-                    await responseMessage.Content.CopyToAsync(ms);
-                    databaseHandler.StoreImage(sourceId, mangaId, fileName, ms);
-                });
+            await Task.Delay(_requestDelay);
+            using var responseMessage = await httpClient.GetAsync(url);
+            responseMessage.EnsureSuccessStatusCode();
+            var stream = await responseMessage.Content.ReadAsStreamAsync();
+            var document = await _context.OpenAsync(x => x.Content(stream));
+
+            if (document.All.Length <= 10 ||
+                (document.Body?.TextContent?.Trim() ?? "").Length < 100) {
+                var page = await GetPageWithPlaywrightAsync(url);
+                document = await _context.OpenAsync(x => x.Content(page));
+            }
+
+            return document;
         }
-        catch (Exception exception) {
-            logger.LogError("Failed to download {}\n{}", url, exception.AsKV());
+        catch {
+            logger.LogError("Unable to reach {url}", url);
             throw;
         }
         finally {
-            _semaphore.Release();
+            _rateLimiter.Release();
+        }
+    }
+
+
+    public async Task<string> GetPageWithPlaywrightAsync(string url) {
+        await using var context = await browser.NewContextAsync();
+        var page = await context.NewPageAsync();
+
+        try {
+            await page.RouteAsync("**/*", async route => {
+                if (BlockedPattern.IsMatch(route.Request.Url)) {
+                    logger.LogDebug("Route matched with blocked resources, aborted: {url}", route.Request.Url);
+                    await route.AbortAsync();
+                    return;
+                }
+
+                await route.ContinueAsync();
+            });
+
+            var response = await page.GotoAsync(url, new() {
+                WaitUntil = WaitUntilState.Load
+            });
+
+            if (response?.Ok is not true) {
+                throw new HttpRequestException($"Playwright unable to fetch {url}");
+            }
+
+            await response.FinishedAsync();
+            return await page.ContentAsync();
+        }
+        finally {
+            await page.CloseAsync();
+            await context.CloseAsync();
+        }
+    }
+
+    public async Task<JsonDocument> GetJsonDocumentAsync(string url) {
+        await _rateLimiter.WaitAsync();
+        try {
+            await Task.Delay(_requestDelay);
+            using var response = await httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            await using var stream = await response.Content.ReadAsStreamAsync();
+            return await JsonDocument.ParseAsync(stream);
+        }
+        catch (Exception ex) {
+            logger.LogError(ex, "Failed to fetch JSON from {Url}", url);
+            throw;
+        }
+        finally {
+            _rateLimiter.Release();
+        }
+    }
+
+    public async Task SaveImageAsync(string imageUrl, string savePath) {
+
+        static string CleanImagePath(string imagePath) {
+            if (string.IsNullOrWhiteSpace(imagePath)) {
+                return string.Empty;
+            }
+            var decoded = WebUtility.UrlDecode(imagePath);
+            var extension = Path.GetExtension(decoded);
+            return new string([.. decoded.Replace(extension, string.Empty).Where(c => char.IsLetterOrDigit(c))]) + extension;
+        }
+
+        await _rateLimiter.WaitAsync();
+        try {
+            await Task.Delay(_requestDelay);
+
+            using var responseMessage = await httpClient.SendAsync(new HttpRequestMessage {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(imageUrl)
+            });
+
+            responseMessage.EnsureSuccessStatusCode();
+
+            var fileName = CleanImagePath(responseMessage.Content.Headers.ContentDisposition?.FileNameStar
+                                     ?? imageUrl.Split('/')[^1]);
+            await using var fs = new FileStream(Path.Combine(savePath, fileName), FileMode.Create);
+            await responseMessage.Content.CopyToAsync(fs);
+
+            logger.LogDebug("Downloaded image to {Path}", savePath);
+        }
+        catch (Exception ex) {
+            logger.LogError(ex, "Failed to download image from {Url} to {Path}",
+                imageUrl, savePath);
+            throw;
+        }
+        finally {
+            _rateLimiter.Release();
         }
     }
 }
