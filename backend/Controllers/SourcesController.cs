@@ -1,4 +1,4 @@
-﻿using Grimoire.Handlers;
+using Grimoire.Handlers;
 using Grimoire.Objects;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,7 +20,7 @@ public sealed class SourcesController(
 
     [HttpGet("{sourceId}")]
     public async ValueTask<ResponseObject> GetAsync(string sourceId) {
-        var source = await databaseHandler.GetSourceAsync(sourceId);
+        var source = await databaseHandler.GetMangasAsync(sourceId);
         return source.Count == 0
             ? ResponseObject.New(StatusCodes.Status404NotFound)
             : await source.AsResponseAsync(StatusCodes.Status200OK);
