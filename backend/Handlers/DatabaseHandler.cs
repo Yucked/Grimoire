@@ -1,58 +1,84 @@
-﻿using Grimoire.Objects;
-using LiteDB;
+using Grimoire.Objects;
+using Raven.Client.Documents;
+using Raven.Client.Documents.BulkInsert;
 
 namespace Grimoire.Handlers;
 
-public sealed class DatabaseHandler(ILiteDatabase database) {
-    public ValueTask<IReadOnlyCollection<MangaObject>> GetSourceAsync(string sourceId) {
-        var collection = database.GetCollection<MangaObject>(sourceId);
-        return ValueTask.FromResult<IReadOnlyCollection<MangaObject>>(collection.FindAll().ToArray());
+public sealed class DatabaseHandler(IDocumentStore documentStore) {
+    public async Task<IReadOnlyCollection<SourceObject>> GetSourcesAysnc() {
+        var session = documentStore.OpenAsyncSession();
+        return await session
+            .Query<SourceObject>()
+            .ToListAsync();
     }
-    
-    public ValueTask<MangaObject> GetMangaAsync(string sourceId, string mangaId) {
-        var collection = database.GetCollection<MangaObject>(sourceId);
-        return ValueTask.FromResult(collection.FindById(mangaId));
+
+    public async Task<IReadOnlyCollection<MangaObject>> GetMangasAsync(string sourceId) {
+        var session = documentStore.OpenAsyncSession();
+        return await session
+            .Query<MangaObject>()
+            .Where(x => x.SourceId == sourceId)
+            .ToListAsync();
     }
-    
-    public ValueTask<ChapterObject> GetMangaChapterAsync(string sourceId, string mangaId, string chapterId) {
-        var collection = database.GetCollection<MangaObject>(sourceId);
-        return ValueTask.FromResult(collection.FindById(mangaId)
+
+    public async Task<MangaObject> GetMangaAsync(string sourceId, string mangaId) {
+        var session = documentStore.OpenAsyncSession();
+        return await session.LoadAsync<MangaObject>($"mangas/{sourceId}/{mangaId}");
+    }
+
+    public async Task<ChapterObject> GetMangaChapterAsync(string sourceId, string mangaId, string chapterId) {
+        var session = documentStore.OpenAsyncSession();
+        var manga = await session.LoadAsync<MangaObject>($"mangas/{sourceId}/{mangaId}");
+        return manga
             .Chapters
-            .First(x => x.Number == chapterId));
+            .First(x => x.Number == chapterId);
     }
-    
-    public ValueTask<IReadOnlyCollection<MangaObject>> SearchSourceAsync(string sourceId, string query) {
-        var collection = database.GetCollection<MangaObject>(sourceId);
-        var results = collection.Find(x
-            => x.Title.Equals(query, StringComparison.CurrentCultureIgnoreCase)
-               || x.Title.Contains(query)
-               || x.Summary.Equals(query, StringComparison.CurrentCultureIgnoreCase)
-               || x.Summary.Contains(query)
-               || x.Aliases.Any(y
-                   => y.Contains(query)
-                      || y.Equals(query, StringComparison.CurrentCultureIgnoreCase))
-               || x.Artists.Any(y
-                   => y.Contains(query)
-                      || y.Equals(query, StringComparison.CurrentCultureIgnoreCase))
-               || x.Genres.Any(y
-                   => y.Contains(query)
-                      || y.Equals(query, StringComparison.CurrentCultureIgnoreCase))
-               || x.Authors.Any(y
-                   => y.Contains(query)
-                      || y.Equals(query, StringComparison.CurrentCultureIgnoreCase))
-        );
-        return ValueTask.FromResult<IReadOnlyCollection<MangaObject>>(results.ToArray());
+
+    public async Task StoreAsync<T>(T item) {
+        var session = documentStore.OpenAsyncSession();
+        if (item is MangaObject mangaObject) {
+            await session.StoreAsync(mangaObject, mangaObject.RavenPath);
+        }
+        else if (item is SourceObject sourceObject) {
+            await session.StoreAsync(sourceObject, sourceObject.RavenPath);
+        }
     }
-    
-    public async ValueTask<IReadOnlyCollection<MangaObject>> SearchAllSourcesAsync(string query) {
-        var tasks = database.GetCollectionNames()
-            .Select(x => SearchSourceAsync(x, query).AsTask());
-        var results = await Task.WhenAll(tasks);
-        return results.SelectMany(x => x).ToArray();
+
+    public async Task BulkStoreAsync<T>(IReadOnlyCollection<T> items) {
+        BulkInsertOperation bulkInsert = null;
+        try {
+            bulkInsert = documentStore.BulkInsert();
+            await Task.Run(async () => {
+                foreach (var item in items) {
+                    await bulkInsert.StoreAsync(item);
+                }
+            });
+        }
+        finally {
+            if (bulkInsert != null) {
+                await bulkInsert.DisposeAsync();
+            }
+        }
     }
-    
+
+    public async Task<IReadOnlyCollection<MangaObject>> SearchSourceAsync(string sourceId, string query) {
+        var session = documentStore.OpenAsyncSession();
+        var dbQuery = session.Query<MangaObject, MangaSearchIndex>()
+            .Where(x => x.SourceId == sourceId);
+        var results = dbQuery
+            .Search(x => x.Title, query, boost: 10)
+            .Search(x => x.Summary, query, boost: 8)
+            .Search(x => x.Aliases, query, boost: 6)
+            .Search(x => x.Genres, query, boost: 4)
+            .Search(x => x.Authors, query, boost: 2);
+        return await results.ToListAsync();
+    }
+
+    public async Task<IReadOnlyCollection<MangaObject>> SearchAllSourcesAsync(string query) {
+        throw new NotImplementedException();
+
+    }
+
     public void StoreImage(string sourceId, string mangaId, string g, Stream stream) {
-        var fs = database.GetStorage<string>(sourceId, mangaId);
-        fs.Upload(g.ToId(), g.ToId(), stream);
+        throw new NotImplementedException();
     }
 }
