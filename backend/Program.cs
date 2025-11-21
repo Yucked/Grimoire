@@ -4,6 +4,7 @@ using Grimoire.Handlers;
 using Grimoire.Services;
 using Grimoire.Sources;
 using Microsoft.Playwright;
+using Minio;
 using Raven.Client.Documents;
 
 public sealed class Program {
@@ -29,6 +30,8 @@ public sealed class Program {
         builder.Configuration.Sources.Clear();
         builder.Configuration.AddJsonFile("config.json", false, true);
 
+        var config = builder.Configuration;
+
         builder.Services.AddControllers();
         builder.Services
             .AddOutputCache()
@@ -39,6 +42,10 @@ public sealed class Program {
             .AddSingleton<ScrapingHandler>()
             .AddSingleton<TCBScansSource>()
             .AddSingleton(browser)
+            .AddMinio(x => {
+                x.WithEndpoint(config.GetValue<string>("Minio:Endpoint"));
+                x.WithCredentials(config.GetValue<string>("Minio:AccessKey"), config.GetValue<string>("Minio:SecretKey"));
+            })
             .AddSingleton(x => new DocumentStore {
                 Urls = builder.Configuration.GetSection("RavenNodes").Get<string[]>(),
                 Conventions = {
@@ -57,9 +64,7 @@ public sealed class Program {
 
         var app = builder.Build();
         app.MapControllers();
-        app.UseOutputCache(); // what does it do?
-                              // app.UseResponseCaching();
-                              // app.UseResponseCompression();
+        app.UseOutputCache();
 
         await app.RunAsync();
     }
