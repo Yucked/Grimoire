@@ -1,12 +1,10 @@
 using Grimoire.Handlers;
-using Grimoire.Objects;
 using Grimoire.Sources;
 using Microsoft.Playwright;
 
 namespace Grimoire.Services;
 
 public sealed class MangaBackgroundService(
-    IConfiguration configuration,
     ILogger<MangaBackgroundService> logger,
     DatabaseHandler databaseHandler,
     IBrowser browser,
@@ -14,7 +12,6 @@ public sealed class MangaBackgroundService(
     TCBScansSource tcbScansSource) : BackgroundService {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
         await serviceCoodrinator.WaitForServiceAsync(stoppingToken);
-        await UpdateSourcesInDatabaseAsync();
 
         var sources = await databaseHandler.GetSourcesAysnc();
         while (browser.IsConnected && !stoppingToken.IsCancellationRequested) {
@@ -39,16 +36,9 @@ public sealed class MangaBackgroundService(
 
                     await databaseHandler.BulkStoreAsync(mangaObjects);
                 }
+
+                await Task.Delay(5000, token);
             });
         }
-    }
-
-    private Task UpdateSourcesInDatabaseAsync() {
-        var sources = configuration
-            .GetSection("Sources")
-            .Get<IReadOnlyCollection<SourceObject>>()!;
-        logger.LogInformation("Current number of sources in config: {}", sources.Count);
-
-        return databaseHandler.BulkStoreAsync(sources);
     }
 }
