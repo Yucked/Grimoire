@@ -1,6 +1,8 @@
 using AngleSharp;
 using AngleSharp.Dom;
 using Microsoft.Playwright;
+using Minio;
+using Minio.DataModel.Args;
 using System.Net;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -12,7 +14,8 @@ public sealed partial class ScrapingHandler(
     ILogger<ScrapingHandler> logger,
     HttpClient httpClient,
     IConfiguration configuration,
-    IBrowser browser) {
+    IBrowser browser,
+    IMinioClient minioClient) {
 
     private readonly IBrowsingContext _context
         = BrowsingContext.New(Configuration.Default.WithDefaultLoader());
@@ -113,7 +116,7 @@ public sealed partial class ScrapingHandler(
         }
     }
 
-    public async Task SaveImageAsync(string imageUrl, string savePath) {
+    public async Task SaveImageAsync(string imageUrl, string sourceId, string mangaId) {
 
         static string CleanImagePath(string imagePath) {
             if (string.IsNullOrWhiteSpace(imagePath)) {
@@ -137,14 +140,19 @@ public sealed partial class ScrapingHandler(
 
             var fileName = CleanImagePath(responseMessage.Content.Headers.ContentDisposition?.FileNameStar
                                      ?? imageUrl.Split('/')[^1]);
-            await using var fs = new FileStream(Path.Combine(savePath, fileName), FileMode.Create);
-            await responseMessage.Content.CopyToAsync(fs);
+            var stream = await responseMessage.Content.ReadAsStreamAsync();
+            await minioClient.PutObjectAsync(
+                new PutObjectArgs()
+                .WithBucket(sourceId)
+                .WithObject($"{mangaId}/{fileName}")
+                .WithStreamData(stream)
+                .WithObjectSize(stream.Length));
 
-            logger.LogDebug("Downloaded image to {Path}", savePath);
+            logger.LogDebug("Downloaded image to {sourceId}/{mangaId}/{fileName}",
+                sourceId, mangaId, fileName);
         }
         catch (Exception ex) {
-            logger.LogError(ex, "Failed to download image from {Url} to {Path}",
-                imageUrl, savePath);
+            logger.LogError(ex, "Failed to download image from {Url}", imageUrl);
             throw;
         }
         finally {
