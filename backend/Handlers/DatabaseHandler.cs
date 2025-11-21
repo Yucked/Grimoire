@@ -41,6 +41,7 @@ public sealed class DatabaseHandler(IDocumentStore documentStore) {
         else if (item is SourceObject sourceObject) {
             await session.StoreAsync(sourceObject, sourceObject.RavenPath);
         }
+        await session.SaveChangesAsync();
     }
 
     public async Task BulkStoreAsync<T>(IReadOnlyCollection<T> items) {
