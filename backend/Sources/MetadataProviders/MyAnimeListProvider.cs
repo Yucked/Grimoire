@@ -1,4 +1,4 @@
-﻿using Grimoire.Handlers;
+using Grimoire.Handlers;
 
 namespace Grimoire.Sources.MetadataProviders;
 

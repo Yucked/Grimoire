@@ -1,9 +1,8 @@
-﻿using System.Text;
+using System.Text;
 using Grimoire.Objects;
 using Microsoft.Playwright;
 
 namespace Grimoire;
-
 public static class Extensions {
     public static ResponseObject AsResponse(this object @object, int statusCode)
         => ResponseObject.New(statusCode, @object);
