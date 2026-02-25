@@ -1,15 +1,32 @@
 using Grimoire.Handlers;
 using Grimoire.Objects;
+using Grimoire.Sources;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Grimoire.Controllers;
 
 [ApiController,
- Route("api/[controller]/{mangaId}"),
+ Route("api/[controller]"),
  Produces("application/json")]
-public sealed class MangaController(DatabaseHandler databaseHandler) : ControllerBase {
-    [HttpGet("")]
-    public async ValueTask<ResponseObject> GetAsync(string mangaId, [FromQuery] string sourceId) {
+public sealed class MangaController(DatabaseHandler databaseHandler,
+    IServiceProvider serviceProvider) : ControllerBase {
+
+    [HttpGet("{sourceId}")]
+    public async ValueTask<ResponseObject> GetMangasAsync(string sourceId) {
+        var mangas = await databaseHandler.GetMangasAsync(sourceId);
+        if (mangas.Count is 0) {
+            var source = serviceProvider.GetKeyedService<TCBScansSource>(sourceId);
+            mangas = await source.GetMangasAsync();
+            await databaseHandler.BulkStoreAsync(mangas);
+        }
+
+        return mangas.Count == 0
+            ? ResponseObject.New(StatusCodes.Status204NoContent)
+            : await mangas.AsResponseAsync(StatusCodes.Status200OK);
+    }
+
+    [HttpGet("{sourceId}/{mangaId}")]
+    public async ValueTask<ResponseObject> GetAsync(string sourceId, string mangaId) {
         var manga = await databaseHandler.GetMangaAsync(sourceId, mangaId);
         if (manga == default) {
             return ResponseObject.New(StatusCodes.Status404NotFound);
