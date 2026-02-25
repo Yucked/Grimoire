@@ -1,4 +1,3 @@
-using System.Reflection.Metadata;
 using System.Text.RegularExpressions;
 using Grimoire.Handlers;
 using Grimoire.Objects;
@@ -73,7 +72,6 @@ public sealed partial class TCBScansSource(
             UpdatedAt: DateOnly.FromDateTime(DateTime.UtcNow),
             ReleasedOn: default,
             Chapters: chapters,
-            Metadata: default,
             Type: MangaType.Manga,
             SourceId: nameof(TCBScansSource));
 
