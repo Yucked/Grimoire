@@ -12,6 +12,11 @@ public sealed class DatabaseHandler(IDocumentStore documentStore) {
             .ToListAsync();
     }
 
+    public async Task<SourceObject> GetSourceAysnc(string sourceId) {
+        var session = documentStore.OpenAsyncSession();
+        return await session.LoadAsync<SourceObject>(sourceId);
+    }
+
     public async Task<IReadOnlyCollection<MangaObject>> GetMangasAsync(string sourceId) {
         var session = documentStore.OpenAsyncSession();
         return await session
@@ -36,10 +41,10 @@ public sealed class DatabaseHandler(IDocumentStore documentStore) {
     public async Task StoreAsync<T>(T item) {
         var session = documentStore.OpenAsyncSession();
         if (item is MangaObject mangaObject) {
-            await session.StoreAsync(mangaObject, mangaObject.RavenPath);
+            await session.StoreAsync(mangaObject, mangaObject.Id);
         }
         else if (item is SourceObject sourceObject) {
-            await session.StoreAsync(sourceObject, sourceObject.RavenPath);
+            await session.StoreAsync(sourceObject, sourceObject.Id);
         }
         await session.SaveChangesAsync();
     }
