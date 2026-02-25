@@ -14,46 +14,20 @@
             }
         }
     },
-    "Sources": [
-        {
-            "Name": "Asura Scans",
-            "Url": "https://asuratoon.com",
-            "Favicon": "https://asuratoon.com/wp-content/uploads/2021/03/Group_1.png"
-        },
-        {
-            "Name": "Flame Scans",
-            "Url": "https://flamecomics.com",
-            "Favicon": "https://flamecomics.com/favicon.ico"
-        },
-        {
-            "Name": "Manhwa 18",
-            "Url": "https://manhwa18.net",
-            "Favicon": "https://manhwa18.net/favicon1.ico"
-        },
-        {
-            "Name": "Omega Scans",
-            "Url": "https://api.omegascans.org",
-            "Favicon": "https://omegascans.org/icon.png"
-        },
-        {
-            "Name": "Pornwa Club",
-            "Url": "https://pornwa.club",
-            "Favicon": "https://pornwa.club/favicon1.ico"
-        },
-        {
-            "Name": "Raven Scans",
-            "Url": "https://ravenscans.com",
-            "Favicon": "https://i0.wp.com/ravenscans.com/wp-content/uploads/2022/12/cropped-33.png"
-        },
-        {
-            "Name": "TCB Scans",
-            "Url": "https://tcbscans.com",
-            "Favicon": "https://tcbscans.com/files/apple-touch-icon.png"
-        },
-        {
-            "Name": "Webtoon",
-            "Url": "https://www.webtoons.com/en/",
-            "Favicon": "https://upload.wikimedia.org/wikipedia/commons/0/09/Naver_Line_Webtoon_logo.png"
-        }
-    ]
+    "RavenNodes": [
+        "http://db.vysn.lcl:7004",
+        "http://db.vysn.lcl:7005"
+    ],
+    "Minio": {
+        "Endpoint": "localhost:9000",
+        "AccessKey": "grimoire",
+        "SecretKey": "grimoire"
+    },
+    "Http": {
+        "FlareUrl": "http://infra.vysn.lcl",
+        "FlareTimeout": 5000,
+        "RequestDelay": 500,
+        "RequestRetries": 5,
+        "RequestConcurrency": 5
+    }
 }
