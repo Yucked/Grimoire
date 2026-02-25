@@ -1,5 +1,4 @@
 using System.Text;
-using System.Text.Json.Serialization;
 
 namespace Grimoire.Objects;
 
@@ -20,7 +19,6 @@ namespace Grimoire.Objects;
 /// <param name="UpdatedAt"></param>
 /// <param name="ReleasedOn"></param>
 /// <param name="Chapters"></param>
-/// <param name="Metadata"></param>
 /// <param name="SourceId"></param>
 public record struct MangaObject(
     IList<string> Authors,
@@ -37,13 +35,8 @@ public record struct MangaObject(
     DateOnly UpdatedAt,
     DateOnly ReleasedOn,
     IList<ChapterObject> Chapters,
-    MetadataObject Metadata,
     MangaType Type,
     string SourceId) {
     public readonly string Id
-        => Convert.ToBase64String(Encoding.UTF8.GetBytes(Title));
-
-    [JsonIgnore]
-    public readonly string RavenPath
-        => $"mangas/{SourceId}/{Id}";
+        => $"{SourceId}/{Convert.ToBase64String(Encoding.UTF8.GetBytes(Title))}";
 }

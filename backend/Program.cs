@@ -6,6 +6,8 @@ using Grimoire.Sources;
 using Microsoft.Playwright;
 using Minio;
 using Raven.Client.Documents;
+using System.Text;
+using System.Xml.Linq;
 
 public sealed class Program {
     private static async Task Main(string[] args) {
@@ -36,14 +38,16 @@ public sealed class Program {
         builder.Services
             .AddOutputCache()
             .AddHostedService<DatabaseBackgroundService>()
-            .AddHostedService<MangaBackgroundService>()
+            .AddHostedService<LibraryService>()
             .AddSingleton<ServiceCoodrinator>()
             .AddSingleton<DatabaseHandler>()
             .AddSingleton<ScrapingHandler>()
             .AddSingleton<TCBScansSource>()
+            .AddKeyedSingleton<TCBScansSource>("VENCIFNjYW5z")
             .AddSingleton(browser)
             .AddMinio(x => {
-                x.WithEndpoint(config.GetValue<string>("Minio:Endpoint"));
+                var ep = config.GetValue<string>("Minio:Endpoint");
+                x.WithEndpoint(ep);
                 x.WithCredentials(config.GetValue<string>("Minio:AccessKey"), config.GetValue<string>("Minio:SecretKey"));
             })
             .AddSingleton(x => new DocumentStore {
