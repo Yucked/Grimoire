@@ -1,5 +1,5 @@
 namespace Grimoire {
-    public sealed class ServiceCoodrinator {
+    public sealed class ServiceCoordinator {
         private readonly SemaphoreSlim _serviceReady = new(0, 1);
 
         public async Task WaitForServiceAsync(CancellationToken cancellationToken) {

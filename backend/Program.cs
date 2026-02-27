@@ -1,13 +1,14 @@
 using FlareSolverrSharp;
 using Grimoire;
 using Grimoire.Handlers;
+using Grimoire.Integrations;
+using Grimoire.Objects;
 using Grimoire.Services;
 using Grimoire.Sources;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Playwright;
 using Minio;
 using Raven.Client.Documents;
-using System.Text;
-using System.Xml.Linq;
 
 public sealed class Program {
     private static async Task Main(string[] args) {
@@ -35,15 +36,18 @@ public sealed class Program {
         var config = builder.Configuration;
 
         builder.Services.AddControllers();
+        builder.Services.AddGrimoireSources();
         builder.Services
             .AddOutputCache()
             .AddHostedService<DatabaseBackgroundService>()
             .AddHostedService<LibraryService>()
-            .AddSingleton<ServiceCoodrinator>()
+            .AddHostedService<ChapterDownloadService>()
+            .AddSingleton<ServiceCoordinator>()
             .AddSingleton<DatabaseHandler>()
             .AddSingleton<ScrapingHandler>()
-            .AddSingleton<TCBScansSource>()
-            .AddKeyedSingleton<TCBScansSource>("VENCIFNjYW5z")
+            .AddSingleton<DownloadQueue>()
+            .AddTransient<IMetadataProvider, MangaDexProvider>()
+            .AddTransient<IMetadataProvider, MyAnimeListProvider>()
             .AddSingleton(browser)
             .AddMinio(x => {
                 var ep = config.GetValue<string>("Minio:Endpoint");
@@ -66,7 +70,22 @@ public sealed class Program {
                 MaxTimeout = builder.Configuration.GetValue<int>("Http:FlareTimeout")
             });
 
+        builder.Services.AddHttpClient<MangaDexProvider>(c =>
+            c.BaseAddress = new Uri("https://api.mangadex.org"));
+
         var app = builder.Build();
+
+        app.UseExceptionHandler(errorApp => {
+            errorApp.Run(async context => {
+                context.Response.StatusCode = 500;
+                context.Response.ContentType = "application/json";
+                var error = context.Features.Get<IExceptionHandlerFeature>();
+                app.Logger.LogError(error?.Error, "Unhandled exception");
+                await context.Response.WriteAsJsonAsync(
+                    ResponseObject.New(StatusCodes.Status500InternalServerError, "An unexpected error occurred."));
+            });
+        });
+
         app.MapControllers();
         app.UseOutputCache();
 
