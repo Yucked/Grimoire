@@ -1,12 +1,23 @@
 using System.Text.RegularExpressions;
 using Grimoire.Handlers;
+using Grimoire.Integrations;
 using Grimoire.Objects;
 
 namespace Grimoire.Sources;
 
 public sealed partial class TCBScansSource(
     ScrapingHandler scrapingHandler,
+    IEnumerable<IMetadataProvider> metadataProviders,
     ILogger<TCBScansSource> logger) : IGrimoireSource {
+    public string Name
+    => "TCB Scans";
+
+    public string Url
+        => "https://tcbonepiecechapters.com";
+
+    public string Icon
+        => "https://tcbonepiecechapters.com/files/apple-touch-icon.png";
+
     [GeneratedRegex(@"\d+(\.\d+)?")]
     private static partial Regex ChapterNumberRegex();
 
@@ -15,14 +26,14 @@ public sealed partial class TCBScansSource(
         var links = document.QuerySelectorAll("a.mb-3.text-white");
         var mangas = new List<MangaObject>();
 
-        await Parallel.ForEachAsync(links, async (element, token) => {
+        await Parallel.ForEachAsync(links, async (element, _) => {
             try {
                 var href = element.GetAttribute("href");
                 var manga = await GetMangaAsync($"https://tcbonepiecechapters.com{href}");
                 mangas.Add(manga);
             }
-            catch (Exception exception) {
-                logger.LogError("{}", exception);
+            catch (Exception ex) {
+                logger.LogError("{}", ex);
             }
         });
 
@@ -37,7 +48,7 @@ public sealed partial class TCBScansSource(
             .TextContent;
         var cover = document
             .QuerySelector("div.flex > img")!
-            .GetAttribute("src");
+            .GetAttribute("src")!;
         var summary = document
             .QuerySelector("p.leading-6")!
             .TextContent;
@@ -45,52 +56,62 @@ public sealed partial class TCBScansSource(
         var chapters = new List<ChapterObject>();
         await Parallel.ForEachAsync(document.QuerySelectorAll("a.block.border"), async (element, _) => {
             var chapterHref = element.GetAttribute("href");
-            var chapterNo = (element.QuerySelector("div.text-lg"))!.TextContent;
-            var chapterName = (element.QuerySelector("div.text-gray-500"))!.TextContent;
+            var chapterNo = element.QuerySelector("div.text-lg")!.TextContent;
+            var chapterName = element.QuerySelector("div.text-gray-500")!.TextContent;
 
-            var chapterObject = new ChapterObject {
+            chapters.Add(new ChapterObject {
                 Title = chapterName!,
-                Number = $"{ChapterNumberRegex().Match(chapterNo!).Value:0.0}",
+                Number = ChapterNumberRegex().Match(chapterNo!).Value,
                 SourceUrl = chapterHref!
-            };
-
-            chapters.Add(chapterObject);
+            });
         });
 
-        var mangaObject = new MangaObject(
-            Authors: default,
-            Artists: default,
-            Title: name,
-            Aliases: default,
-            Summary: summary,
-            Genres: default,
-            Status: MangaStatus.OnGoing,
-            Cover: cover,
-            LastChapterRead: -1,
-            SourceUrl: url,
-            Ratings: default,
-            UpdatedAt: DateOnly.FromDateTime(DateTime.UtcNow),
-            ReleasedOn: default,
-            Chapters: chapters,
-            Type: MangaType.Manga,
-            SourceId: nameof(TCBScansSource));
+        var coverPath = string.Empty;
+        try {
+            coverPath = await scrapingHandler.SaveCoverAsync(cover, Name.GetIdFromName(), name);
+        }
+        catch (Exception ex) {
+            logger.LogWarning(ex, "Failed to download cover for {}", name);
+        }
+
+        var mangaObject = new MangaObject {
+            Title = name,
+            SourceId = Name.GetIdFromName(),
+            SourceUrl = url,
+            Summary = summary,
+            Cover = cover,
+            CoverPath = coverPath,
+            Chapters = chapters,
+            UpdatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
+        };
+
+        foreach (var provider in metadataProviders) {
+            try {
+                var enrichment = await provider.FindMangaAsync(name);
+                if (enrichment is null) continue;
+                mangaObject = mangaObject.WithMetadata(enrichment);
+                break;
+            }
+            catch (Exception ex) {
+                logger.LogWarning(ex, "Metadata enrichment failed for {} via {}", name, provider.GetType().Name);
+            }
+        }
 
         return mangaObject;
     }
 
-    public async Task<ChapterObject> FetchChapterAsync(ChapterObject chapter) {
+    public async Task<ChapterObject> FetchChapterAsync(ChapterObject chapter, string sourceId, string mangaId) {
         var document = await scrapingHandler.GetHtmlDocumentAsync(chapter.SourceUrl);
-        var mangaPages = document.QuerySelectorAll("img.fixed-ratio-content");
-        var sources = mangaPages
-            .Select(x => x.GetAttribute("source"));
+        var imageUrls = document
+            .QuerySelectorAll("img.fixed-ratio-content")
+            .Select(x => x.GetAttribute("source"))
+            .Where(x => x is not null)
+            .ToList();
 
-        foreach (var (k, v) in sources
-                     .Select((x, i) => new { x, i })
-                     .ToDictionary(x => x.i, x => x.x)) {
-            chapter.Pages.Add(k, new PageObject(false, default!, v!));
-        }
+        var pages = new Dictionary<int, PageObject>();
+        for (var i = 0; i < imageUrls.Count; i++)
+            pages.Add(i, new PageObject(false, string.Empty, imageUrls[i]!));
 
-        // TODO: Maybe store it in database directly?
-        return chapter;
+        return chapter with { Pages = pages };
     }
 }

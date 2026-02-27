@@ -1,164 +1,207 @@
-﻿/*
- using System.Text.Json;
+using System.Text.RegularExpressions;
+using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
+using Grimoire.Handlers;
+using Grimoire.Integrations;
 using Grimoire.Objects;
 
 namespace Grimoire.Sources;
 
-public sealed class WordPressAbstraction {
-    private readonly ILogger _logger;
-    private readonly HttpHandler _httpHandler;
-    private readonly string _name;
-    private readonly string _url;
+public abstract partial class WordPressSource(
+    ScrapingHandler scrapingHandler,
+    IEnumerable<IMetadataProvider> metadataProviders,
+    ILogger logger) : IGrimoireSource {
 
-    private static readonly char[] Separators = { ',', '|' };
-    //private static readonly string[] AltStrings = { "Alternative Titles", "desktop-titles" };
+    [GeneratedRegex(@"\d+(\.\d+)?")]
+    private static partial Regex ChapterNumberRegex();
 
-    public static WordPressAbstraction Helper(ILogger logger, HttpHandler httpHandler, string name, string url) {
-        return new WordPressAbstraction(logger, httpHandler, name, url);
-    }
+    private static readonly char[] Separators = [',', '|'];
 
-    private WordPressAbstraction(ILogger logger, HttpHandler httpHandler, string name, string url) {
-        _logger = logger;
-        _httpHandler = httpHandler;
-        _name = name;
-        _url = url;
-    }
+    protected virtual string ListType => "manga";
+    protected virtual bool HandleRedirect => false;
 
-    public async Task<IReadOnlyList<MangaObject>>
-        GetMangasAsync(string listType = "manga", bool handleRedirect = false) {
-        using var document = await _httpHandler.ParseAsync($"{_url}/{listType}/list-mode{(handleRedirect ? "/" : "")}");
-        var results = document
+    public abstract string Name { get; }
+    public abstract string Url { get; }
+    public abstract string Icon { get; }
+
+    public async Task<IReadOnlyList<MangaObject>> GetMangasAsync() {
+        var document = await scrapingHandler.GetHtmlDocumentAsync(
+            $"{Url}/{ListType}/list-mode{(HandleRedirect ? "/" : "")}");
+        var links = document
             .QuerySelectorAll("div.soralist > * a.series")
-            .AsParallel()
-            .Select(x => GetMangaAsync(x.As<IHtmlAnchorElement>().Href));
-        return await Task.WhenAll(results);
+            .Select(x => x.As<IHtmlAnchorElement>().Href)
+            .ToList();
+        var mangas = new List<MangaObject>();
+
+        await Parallel.ForEachAsync(links, async (link, _) => {
+            try {
+                var manga = await GetMangaAsync(link);
+                mangas.Add(manga);
+            }
+            catch (Exception ex) {
+                logger.LogError("{}", ex);
+            }
+        });
+
+        document.Close();
+        return mangas;
     }
 
     public async Task<MangaObject> GetMangaAsync(string url) {
-        using var document = await _httpHandler.ParseAsync(url);
+        var document = await scrapingHandler.GetHtmlDocumentAsync(url);
+        var name = document
+            .QuerySelector("h1.entry-title[itemprop='name']")!
+            .TextContent
+            .Clean();
 
-        _logger.LogInformation("Fetching information for: {}", url);
-        var manga = new MangaObject {
-            Name = document
-                .QuerySelector("h1.entry-title[itemprop='name']")!
-                .TextContent
-                .Clean(),
-            Url = url,
-            SourceId = _name.GetIdFromName(),
-            LastFetch = DateTimeOffset.Now,
-            Cover = document
-                .QuerySelector("img.wp-post-image")!
-                .As<IHtmlImageElement>()
-                .Source!,
-            Chapters = document
-                .GetElementById("chapterlist")!
-                .FirstChild!
-                .ChildNodes
-                .Where(x => x is IHtmlListItemElement)
-                .Select(x => {
-                    var element = x as IHtmlElement;
-                    return new Chapter {
-                        Name = element!
-                            .GetElementsByClassName("chapternum")
-                            .FirstOrDefault()!
-                            .TextContent
-                            .Clean(),
-                        Url = x.FindDescendant<IHtmlAnchorElement>()!.Href,
-                        ReleasedOn = DateOnly.Parse(
-                            element
-                                .GetElementsByClassName("chapterdate")
-                                .FirstOrDefault()!
-                                .TextContent)
-                    };
-                })
-                .ToArray()
-        };
+        var cover = document
+            .QuerySelector("img.wp-post-image")!
+            .As<IHtmlImageElement>()
+            .Source!;
+
+        var chapters = document
+            .GetElementById("chapterlist")!
+            .FirstChild!
+            .ChildNodes
+            .Where(x => x is IHtmlListItemElement)
+            .Select(x => {
+                var li = x as IHtmlElement;
+                var chapterText = li!
+                    .GetElementsByClassName("chapternum")
+                    .FirstOrDefault()
+                    ?.TextContent ?? string.Empty;
+                DateOnly releasedOn;
+                try {
+                    releasedOn = DateOnly.Parse(
+                        li.GetElementsByClassName("chapterdate")
+                            .FirstOrDefault()
+                            ?.TextContent ?? string.Empty);
+                }
+                catch {
+                    releasedOn = default;
+                }
+
+                return new ChapterObject {
+                    Title = chapterText.Clean(),
+                    Number = ChapterNumberRegex().Match(chapterText).Value,
+                    SourceUrl = x.FindDescendant<IHtmlAnchorElement>()!.Href,
+                    ReleasedOn = releasedOn
+                };
+            })
+            .ToList();
+
+        var summary = string.Empty;
+        IList<string> aliases = [];
+        IList<string> genres = [];
+        IList<string> authors = [];
 
         try {
-            manga.Metonyms = document
+            summary = document
+                .QuerySelector("*[itemprop='description']")!
+                .Descendants()
+                .Select(x => x.TextContent.Clean().Trim())
+                .Join();
+
+            aliases = document
                 .GetElementsByClassName("alternative")
                 .FirstOrDefault()
                 ?.TextContent
                 .Clean()
-                .Slice(Separators)!;
+                .Slice(Separators) ?? [];
 
-            manga.Summary = document
-                .QuerySelector("*[itemprop='description']")
-                !.Descendants()
-                .Select(x => x.TextContent.Clean().Trim())
-                .Join();
-
-            manga.Genre = document
+            genres = document
                 .QuerySelector("div.wd-full > span.mgen")
                 ?.TextContent
-                .Slice(' ')!;
+                .Slice(' ') ?? [];
 
-            manga.Author = document
+            var authorText = document
                 .QuerySelectorAll("div.tsinfo > div.imptdt")
-                .FirstOrDefault(x => x.TextContent.Clean().Trim()[..6] == "Author")
+                .FirstOrDefault(x => x.TextContent.Clean().Trim().StartsWith("Author", StringComparison.Ordinal))
                 ?.TextContent
                 .Slice(' ')[1..]
                 .Join()
                 .Clean()
-                .Trim()!;
+                .Trim();
+
+            if (!string.IsNullOrEmpty(authorText))
+                authors = [authorText];
         }
-        catch (Exception exception) {
-            _logger.LogError("{}: {}\n{}\n{}",
-                manga.Name,
-                manga.Url,
-                exception.Message,
-                exception);
+        catch (Exception ex) {
+            logger.LogWarning(ex, "Failed to scrape optional fields for {}", name);
         }
 
-        return manga;
-    }
-
-    public async Task<ChapterObject> FetchChapterAsync(ChapterObject chapter) {
+        var coverPath = string.Empty;
         try {
-            using var document = await _httpHandler.ParseAsync(chapter.Url);
-            var chapterId = document
-                .Head!
-                .Descendants<IHtmlLinkElement>()
-                .First(x => x is { Type: "application/json", Relation: "alternate" })
-                .Href!
-                .Split('/')[^1];
+            coverPath = await scrapingHandler.SaveCoverAsync(cover, Name.GetIdFromName(), name);
+        }
+        catch (Exception ex) {
+            logger.LogWarning(ex, "Failed to download cover for {}", name);
+        }
 
-            var parsedChapters = document
-                .GetElementById("readerarea")!
-                .Descendants<IHtmlImageElement>()
-                .Select(x => x.Source)
-                .ToArray();
+        var mangaObject = new MangaObject {
+            Title = name,
+            SourceId = Name.GetIdFromName(),
+            SourceUrl = url,
+            Summary = summary,
+            Cover = cover,
+            CoverPath = coverPath,
+            Aliases = aliases,
+            Genres = genres,
+            Authors = authors,
+            Chapters = chapters,
+            UpdatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
+        };
 
-            var htmlChapters = (await GetChapterDocumentAsync())
-                .Descendants<IHtmlImageElement>()
-                .Select(x => x.Source)
-                .ToArray();
-
-            chapter.Pages = (htmlChapters.Length > parsedChapters.Length
-                ? htmlChapters
-                : parsedChapters)!;
-
-            return chapter;
-
-            async Task<IDocument> GetChapterDocumentAsync() {
-                var stream =
-                    await _httpHandler.GetStreamAsync($"{_url}/wp-json/wp/v2/posts/{chapterId}");
-                using var jsonDocument = await JsonDocument.ParseAsync(stream);
-                var html = jsonDocument.RootElement
-                    .GetProperty("content")
-                    .GetProperty("rendered")
-                    .GetString()!;
-                return await _httpHandler.ParseHtmlAsync(html);
+        foreach (var provider in metadataProviders) {
+            try {
+                var enrichment = await provider.FindMangaAsync(name);
+                if (enrichment is null) continue;
+                mangaObject = mangaObject.WithMetadata(enrichment);
+                break;
+            }
+            catch (Exception ex) {
+                logger.LogWarning(ex, "Metadata enrichment failed for {} via {}", name, provider.GetType().Name);
             }
         }
-        catch (Exception exception) {
-            _logger.LogError("{}: {}\n{}\n{}",
-                chapter.Name,
-                chapter.Url,
-                exception.Message,
-                exception);
-            throw;
-        }
+
+        return mangaObject;
+    }
+
+    public async Task<ChapterObject> FetchChapterAsync(ChapterObject chapter, string sourceId, string mangaId) {
+        var document = await scrapingHandler.GetHtmlDocumentAsync(chapter.SourceUrl);
+        var chapterId = document
+            .Head!
+            .Descendants<IHtmlLinkElement>()
+            .First(x => x is { Type: "application/json", Relation: "alternate" })
+            .Href!
+            .Split('/')[^1];
+
+        var htmlImages = document
+            .GetElementById("readerarea")!
+            .Descendants<IHtmlImageElement>()
+            .Select(x => x.Source)
+            .Where(x => x is not null)
+            .ToList();
+
+        using var jsonDocument = await scrapingHandler.GetJsonDocumentAsync(
+            $"{Url}/wp-json/wp/v2/posts/{chapterId}");
+        var html = jsonDocument.RootElement
+            .GetProperty("content")
+            .GetProperty("rendered")
+            .GetString()!;
+        var jsonPageDoc = await scrapingHandler.ParseHtmlAsync(html);
+        var jsonImages = jsonPageDoc
+            .Descendants<IHtmlImageElement>()
+            .Select(x => x.Source)
+            .Where(x => x is not null)
+            .ToList();
+
+        var imageUrls = jsonImages.Count > htmlImages.Count ? jsonImages : htmlImages;
+        var pages = new Dictionary<int, PageObject>();
+        for (var i = 0; i < imageUrls.Count; i++)
+            pages.Add(i, new PageObject(false, string.Empty, imageUrls[i]!));
+
+        document.Close();
+        return chapter with { Pages = pages };
     }
 }
-*/
