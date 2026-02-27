@@ -26,6 +26,8 @@ public sealed partial class ScrapingHandler(
     private readonly int _requestDelay
         = configuration.GetValue<int>("Http:RequestDelay");
 
+    private readonly HashSet<string> _confirmedBuckets = [];
+
     private static readonly Regex BlockedPattern = BlockedRegex();
 
     [GeneratedRegex(@"(adzerk|analytics|doubleclick|facebook|google-analytics|googletagmanager|disqus)",
@@ -116,7 +118,50 @@ public sealed partial class ScrapingHandler(
         }
     }
 
-    public async Task SaveImageAsync(string imageUrl, string sourceId, string mangaId) {
+    private async Task EnsureBucketAsync(string bucket) {
+        if (_confirmedBuckets.Contains(bucket)) return;
+        var exists = await minioClient.BucketExistsAsync(new BucketExistsArgs().WithBucket(bucket));
+        if (!exists)
+            await minioClient.MakeBucketAsync(new MakeBucketArgs().WithBucket(bucket));
+        _confirmedBuckets.Add(bucket);
+    }
+
+    public async Task<string> SaveCoverAsync(string imageUrl, string sourceId, string mangaId) {
+        await _rateLimiter.WaitAsync();
+        try {
+            await Task.Delay(_requestDelay);
+            using var responseMessage = await httpClient.SendAsync(new HttpRequestMessage {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(imageUrl)
+            });
+            responseMessage.EnsureSuccessStatusCode();
+
+            var ext = Path.GetExtension(imageUrl.Split('?')[0]);
+            if (string.IsNullOrEmpty(ext)) ext = ".jpg";
+
+            await EnsureBucketAsync(sourceId);
+            var stream = await responseMessage.Content.ReadAsStreamAsync();
+            var objectPath = $"{mangaId}/cover{ext}";
+            await minioClient.PutObjectAsync(
+                new PutObjectArgs()
+                .WithBucket(sourceId)
+                .WithObject(objectPath)
+                .WithStreamData(stream)
+                .WithObjectSize(stream.Length));
+
+            logger.LogDebug("Downloaded cover to {sourceId}/{objectPath}", sourceId, objectPath);
+            return $"{sourceId}/{objectPath}";
+        }
+        catch (Exception ex) {
+            logger.LogError(ex, "Failed to download cover from {Url}", imageUrl);
+            throw;
+        }
+        finally {
+            _rateLimiter.Release();
+        }
+    }
+
+    public async Task<string> SaveImageAsync(string imageUrl, string sourceId, string mangaId) {
 
         static string CleanImagePath(string imagePath) {
             if (string.IsNullOrWhiteSpace(imagePath)) {
@@ -140,6 +185,7 @@ public sealed partial class ScrapingHandler(
 
             var fileName = CleanImagePath(responseMessage.Content.Headers.ContentDisposition?.FileNameStar
                                      ?? imageUrl.Split('/')[^1]);
+            await EnsureBucketAsync(sourceId);
             var stream = await responseMessage.Content.ReadAsStreamAsync();
             await minioClient.PutObjectAsync(
                 new PutObjectArgs()
@@ -150,6 +196,8 @@ public sealed partial class ScrapingHandler(
 
             logger.LogDebug("Downloaded image to {sourceId}/{mangaId}/{fileName}",
                 sourceId, mangaId, fileName);
+
+            return $"{sourceId}/{mangaId}/{fileName}";
         }
         catch (Exception ex) {
             logger.LogError(ex, "Failed to download image from {Url}", imageUrl);
