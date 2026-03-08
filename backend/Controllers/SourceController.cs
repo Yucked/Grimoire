@@ -28,4 +28,10 @@ public sealed class SourceController(
         await databaseHandler.StoreAsync(source);
         return ResponseObject.New(StatusCodes.Status200OK);
     }
+
+    [HttpPatch("{sourceId}/toggle")]
+    public async ValueTask<ResponseObject> ToggleAsync(string sourceId) {
+        var isNowDisabled = await databaseHandler.ToggleSourceAsync(sourceId);
+        return ResponseObject.New(StatusCodes.Status200OK, new { isDisabled = isNowDisabled });
+    }
 }

@@ -118,6 +118,19 @@ public sealed class DatabaseHandler(IDocumentStore documentStore) {
         await session.SaveChangesAsync();
     }
 
+    public async Task<bool> ToggleSourceAsync(string sourceId) {
+        using var session = documentStore.OpenAsyncSession();
+        var source = await session.LoadAsync<SourceObject>(sourceId);
+        if (source == default) {
+            return false;
+        }
+
+        var updated = source with { IsDisabled = !source.IsDisabled };
+        await session.StoreAsync(updated, sourceId);
+        await session.SaveChangesAsync();
+        return updated.IsDisabled;
+    }
+
     // ── User / Library ────────────────────────────────────────────────────────
 
     public async Task<UserObject?> GetUserAsync(string userId) {
