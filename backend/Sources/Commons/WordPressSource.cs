@@ -2,16 +2,14 @@ using System.Text.RegularExpressions;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using Grimoire.Handlers;
-using Grimoire.Integrations;
 using Grimoire.Objects;
 
-namespace Grimoire.Sources;
+namespace Grimoire.Sources.Commons;
 
 public abstract partial class WordPressSource(
     ScrapingHandler scrapingHandler,
     IEnumerable<IMetadataProvider> metadataProviders,
     ILogger logger) : IGrimoireSource {
-
     [GeneratedRegex(@"\d+(\.\d+)?")]
     private static partial Regex ChapterNumberRegex();
 
@@ -152,17 +150,21 @@ public abstract partial class WordPressSource(
             UpdatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         };
 
-        foreach (var provider in metadataProviders) {
+        foreach (var provider in metadataProviders)
             try {
                 var enrichment = await provider.FindMangaAsync(name);
-                if (enrichment is null) continue;
+                if (enrichment is null) {
+                    continue;
+                }
+
                 mangaObject = mangaObject.WithMetadata(enrichment);
                 break;
             }
             catch (Exception ex) {
-                logger.LogWarning(ex, "Metadata enrichment failed for {} via {}", name, provider.GetType().Name);
+                logger.LogWarning(ex, "Metadata enrichment failed for {name} via {providerName}",
+                    name,
+                    provider.GetType().Name);
             }
-        }
 
         return mangaObject;
     }

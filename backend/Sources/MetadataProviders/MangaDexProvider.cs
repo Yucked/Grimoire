@@ -1,12 +1,12 @@
 using System.Text.Json;
 using Grimoire.Objects;
+using Grimoire.Sources.Commons;
 
-namespace Grimoire.Integrations;
+namespace Grimoire.Sources.MetadataProviders;
 
 public sealed class MangaDexProvider(
     HttpClient httpClient,
     ILogger<MangaDexProvider> logger) : IMetadataProvider {
-
     private static readonly JsonSerializerOptions JSON_OPTIONS
         = new() { PropertyNameCaseInsensitive = true };
 
@@ -78,18 +78,15 @@ public sealed class MangaDexProvider(
         var lower = search.ToLowerInvariant();
 
         var titleProp = attrs.GetProperty("title");
-        foreach (var kv in titleProp.EnumerateObject()) {
+        foreach (var kv in titleProp.EnumerateObject())
             if (kv.Value.GetString()?.ToLowerInvariant().Contains(lower) is true)
                 return true;
-        }
 
         if (!attrs.TryGetProperty("altTitles", out var altTitles)) return false;
-        foreach (var alt in altTitles.EnumerateArray()) {
-            foreach (var kv in alt.EnumerateObject()) {
-                if (kv.Value.GetString()?.ToLowerInvariant().Contains(lower) is true)
-                    return true;
-            }
-        }
+        foreach (var alt in altTitles.EnumerateArray())
+        foreach (var kv in alt.EnumerateObject())
+            if (kv.Value.GetString()?.ToLowerInvariant().Contains(lower) is true)
+                return true;
 
         return false;
     }
@@ -102,6 +99,7 @@ public sealed class MangaDexProvider(
             var name = relAttrs.GetProperty("name").GetString();
             if (name is not null) result.Add(name);
         }
+
         return result;
     }
 
@@ -114,26 +112,29 @@ public sealed class MangaDexProvider(
             var name = tagAttrs.GetProperty("name").GetProperty("en").GetString();
             if (name is not null) result.Add(name);
         }
+
         return result;
     }
 
     private static IList<string> ExtractAliases(JsonElement attrs) {
         var result = new List<string>();
         if (!attrs.TryGetProperty("altTitles", out var altTitles)) return result;
-        foreach (var alt in altTitles.EnumerateArray()) {
-            foreach (var kv in alt.EnumerateObject()) {
-                var val = kv.Value.GetString();
-                if (val is not null) result.Add(val);
-            }
+        foreach (var alt in altTitles.EnumerateArray())
+        foreach (var kv in alt.EnumerateObject()) {
+            var val = kv.Value.GetString();
+            if (val is not null) result.Add(val);
         }
+
         return result;
     }
 
-    private static MangaStatus ParseStatus(string? status) => status switch {
-        "ongoing" => MangaStatus.OnGoing,
-        "completed" => MangaStatus.Completed,
-        "hiatus" => MangaStatus.Hiatus,
-        "cancelled" => MangaStatus.Cancelled,
-        _ => MangaStatus.OnGoing
-    };
+    private static MangaStatus ParseStatus(string? status) {
+        return status switch {
+            "ongoing"   => MangaStatus.OnGoing,
+            "completed" => MangaStatus.Completed,
+            "hiatus"    => MangaStatus.Hiatus,
+            "cancelled" => MangaStatus.Cancelled,
+            _           => MangaStatus.OnGoing
+        };
+    }
 }

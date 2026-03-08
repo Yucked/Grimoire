@@ -1,5 +1,5 @@
 using Grimoire.Handlers;
-using Grimoire.Integrations;
+using Grimoire.Sources.Commons;
 
 namespace Grimoire.Sources;
 
@@ -7,8 +7,7 @@ public sealed partial class FlameScansSource(
     ScrapingHandler scrapingHandler,
     IEnumerable<IMetadataProvider> metadataProviders,
     ILogger<FlameScansSource> logger)
-    : WordPressSource(scrapingHandler, metadataProviders, logger) {
-
+    : Commons.WordPressSource(scrapingHandler, metadataProviders, logger) {
     public override string Name
         => "Flame Scans";
 

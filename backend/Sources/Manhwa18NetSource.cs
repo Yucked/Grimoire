@@ -1,5 +1,5 @@
 using Grimoire.Handlers;
-using Grimoire.Integrations;
+using Grimoire.Sources.Commons;
 
 namespace Grimoire.Sources;
 
@@ -7,8 +7,7 @@ public sealed partial class Manhwa18NetSource(
     ScrapingHandler scrapingHandler,
     IEnumerable<IMetadataProvider> metadataProviders,
     ILogger<Manhwa18NetSource> logger)
-    : HanmaSource(scrapingHandler, metadataProviders, logger) {
-
+    : Commons.HanmaSource(scrapingHandler, metadataProviders, logger) {
     public override string Name
         => "Manhwa 18";
 

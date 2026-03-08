@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using Grimoire.Handlers;
-using Grimoire.Integrations;
 using Grimoire.Objects;
+using Grimoire.Sources.Commons;
 
 namespace Grimoire.Sources;
 
@@ -10,7 +10,7 @@ public sealed partial class TCBScansSource(
     IEnumerable<IMetadataProvider> metadataProviders,
     ILogger<TCBScansSource> logger) : IGrimoireSource {
     public string Name
-    => "TCB Scans";
+        => "TCB Scans";
 
     public string Url
         => "https://tcbonepiecechapters.com";
@@ -54,16 +54,17 @@ public sealed partial class TCBScansSource(
             .TextContent;
 
         var chapters = new List<ChapterObject>();
-        await Parallel.ForEachAsync(document.QuerySelectorAll("a.block.border"), async (element, _) => {
+        await Parallel.ForEachAsync(document.QuerySelectorAll("a.block.border"), (element, _) => {
             var chapterHref = element.GetAttribute("href");
             var chapterNo = element.QuerySelector("div.text-lg")!.TextContent;
             var chapterName = element.QuerySelector("div.text-gray-500")!.TextContent;
 
             chapters.Add(new ChapterObject {
-                Title = chapterName!,
-                Number = ChapterNumberRegex().Match(chapterNo!).Value,
+                Title = chapterName,
+                Number = ChapterNumberRegex().Match(chapterNo).Value,
                 SourceUrl = chapterHref!
             });
+            return ValueTask.CompletedTask;
         });
 
         var coverPath = string.Empty;
@@ -85,7 +86,7 @@ public sealed partial class TCBScansSource(
             UpdatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         };
 
-        foreach (var provider in metadataProviders) {
+        foreach (var provider in metadataProviders)
             try {
                 var enrichment = await provider.FindMangaAsync(name);
                 if (enrichment is null) continue;
@@ -93,15 +94,17 @@ public sealed partial class TCBScansSource(
                 break;
             }
             catch (Exception ex) {
-                logger.LogWarning(ex, "Metadata enrichment failed for {} via {}", name, provider.GetType().Name);
+                logger.LogWarning(ex, "Metadata enrichment failed for {name} via {providerName}", 
+                    name, 
+                    provider.GetType().Name);
             }
-        }
 
         return mangaObject;
     }
 
     public async Task<ChapterObject> FetchChapterAsync(ChapterObject chapter, string sourceId, string mangaId) {
-        var document = await scrapingHandler.GetHtmlDocumentAsync(chapter.SourceUrl);
+        var chapterUrl = chapter.SourceUrl.StartsWith("http") ? chapter.SourceUrl : $"{Url}{chapter.SourceUrl}";
+        var document = await scrapingHandler.GetHtmlDocumentAsync(chapterUrl);
         var imageUrls = document
             .QuerySelectorAll("img.fixed-ratio-content")
             .Select(x => x.GetAttribute("source"))

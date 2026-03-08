@@ -1,6 +1,6 @@
 using Grimoire.Objects;
 
-namespace Grimoire.Integrations;
+namespace Grimoire.Sources.MetadataProviders;
 
 public record MetadataResult(
     string Id,

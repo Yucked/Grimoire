@@ -3,8 +3,8 @@ using System.Text.RegularExpressions;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using Grimoire.Handlers;
-using Grimoire.Integrations;
 using Grimoire.Objects;
+using Grimoire.Sources.Commons;
 
 namespace Grimoire.Sources;
 
@@ -13,7 +13,7 @@ public sealed partial class OmegaScansSource(
     IEnumerable<IMetadataProvider> metadataProviders,
     ILogger<OmegaScansSource> logger) : IGrimoireSource {
     public string Name
-    => "Omega Scans";
+        => "Omega Scans";
 
     public string Url
         => "https://api.omegascans.org";
@@ -65,9 +65,9 @@ public sealed partial class OmegaScansSource(
         IList<string> authors = string.IsNullOrEmpty(authorText) ? [] : [authorText];
 
         var summary = document.QuerySelector("div.bg-gray-800 > p")?.TextContent
-            ?? document.QuerySelectorAll("div.col-span-12 > div.bg-gray-800")
-                .Select(x => x.Text())
-                .Join();
+                      ?? document.QuerySelectorAll("div.col-span-12 > div.bg-gray-800")
+                          .Select(x => x.Text())
+                          .Join();
 
         var aliases = document
             .QuerySelector("div.col-span-12 > p.text-center")
@@ -109,7 +109,7 @@ public sealed partial class OmegaScansSource(
             UpdatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         };
 
-        foreach (var provider in metadataProviders) {
+        foreach (var provider in metadataProviders)
             try {
                 var enrichment = await provider.FindMangaAsync(cached.Title);
                 if (enrichment is null) continue;
@@ -117,9 +117,10 @@ public sealed partial class OmegaScansSource(
                 break;
             }
             catch (Exception ex) {
-                logger.LogWarning(ex, "Metadata enrichment failed for {} via {}", cached.Title, provider.GetType().Name);
+                logger.LogWarning(ex, "Metadata enrichment failed for {title} via {name}",
+                    cached.Title,
+                    provider.GetType().Name);
             }
-        }
 
         return mangaObject;
     }
@@ -140,7 +141,7 @@ public sealed partial class OmegaScansSource(
         return chapter with { Pages = pages };
     }
 
-    private DateOnly ChangeToDate(string str) {
+    private static DateOnly ChangeToDate(string str) {
         try {
             return DateOnly.Parse(str);
         }
@@ -149,9 +150,9 @@ public sealed partial class OmegaScansSource(
             var number = match.Success ? int.Parse(match.Value) : 0;
             var span = str switch {
                 _ when str.Contains("minutes") => TimeSpan.FromMinutes(number),
-                _ when str.Contains("hours") => TimeSpan.FromHours(number),
-                _ when str.Contains("days") => TimeSpan.FromDays(number),
-                _ => TimeSpan.Zero
+                _ when str.Contains("hours")   => TimeSpan.FromHours(number),
+                _ when str.Contains("days")    => TimeSpan.FromDays(number),
+                _                              => TimeSpan.Zero
             };
             return DateOnly.FromDateTime(DateTime.UtcNow.Subtract(span));
         }
