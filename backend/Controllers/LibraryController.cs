@@ -15,7 +15,7 @@ public sealed class LibraryController(
             return ResponseObject.New(StatusCodes.Status400BadRequest);
         }
 
-        var user = await databaseHandler.GetUserAsync($"users/{userId}");
+        var user = await databaseHandler.GetUserAsync(userId);
         return user is null
             ? ResponseObject.New(StatusCodes.Status404NotFound)
             : ResponseObject.New(StatusCodes.Status200OK, user);
@@ -29,7 +29,7 @@ public sealed class LibraryController(
             return ResponseObject.New(StatusCodes.Status400BadRequest);
         }
 
-        await databaseHandler.AddToLibraryAsync($"users/{userId}", $"mangas/{sourceId}/{mangaId}");
+        await databaseHandler.AddToLibraryAsync(userId, sourceId, mangaId);
         return ResponseObject.New(StatusCodes.Status200OK);
     }
 
@@ -41,26 +41,22 @@ public sealed class LibraryController(
             return ResponseObject.New(StatusCodes.Status400BadRequest);
         }
 
-        await databaseHandler.RemoveFromLibraryAsync($"users/{userId}", $"mangas/{sourceId}/{mangaId}");
+        await databaseHandler.RemoveFromLibraryAsync(userId, sourceId, mangaId);
         return ResponseObject.New(StatusCodes.Status200OK);
     }
 
     [HttpPatch("{sourceId}/{mangaId}")]
-    public async ValueTask<ResponseObject> UpdateProgressAsync(string userId, string sourceId, string mangaId,
-                                                               [FromBody] ProgressUpdateRequest request) {
+    public async ValueTask<ResponseObject> UpdateProgressAsync(string userId,
+                                                               string sourceId,
+                                                               string mangaId,
+                                                               int lastChapterRead) {
         if (string.IsNullOrWhiteSpace(userId) ||
             string.IsNullOrWhiteSpace(sourceId) ||
             string.IsNullOrWhiteSpace(mangaId)) {
             return ResponseObject.New(StatusCodes.Status400BadRequest);
         }
 
-        await databaseHandler.UpdateProgressAsync(
-            $"users/{userId}",
-            $"mangas/{sourceId}/{mangaId}",
-            request.LastChapterRead,
-            request.LastPageRead);
+        await databaseHandler.UpdateProgressAsync(userId, sourceId, mangaId, lastChapterRead);
         return ResponseObject.New(StatusCodes.Status200OK);
     }
 }
-
-public record ProgressUpdateRequest(float LastChapterRead, int LastPageRead);

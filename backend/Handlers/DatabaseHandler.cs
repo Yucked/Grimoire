@@ -17,7 +17,8 @@ public sealed class DatabaseHandler(IDocumentStore documentStore) {
         return await session.LoadAsync<SourceObject>(sourceId);
     }
 
-    public async Task<IReadOnlyCollection<MangaObject>> GetMangasAsync(string sourceId, int page = 0, int pageSize = 25) {
+    public async Task<IReadOnlyCollection<MangaObject>>
+        GetMangasAsync(string sourceId, int page = 0, int pageSize = 25) {
         using var session = documentStore.OpenAsyncSession();
         return await session
             .Query<MangaObject>()
@@ -29,12 +30,17 @@ public sealed class DatabaseHandler(IDocumentStore documentStore) {
 
     public async Task<MangaObject> GetMangaAsync(string sourceId, string mangaId) {
         using var session = documentStore.OpenAsyncSession();
-        return await session.LoadAsync<MangaObject>($"mangas/{sourceId}/{mangaId}");
+        return await session.LoadAsync<MangaObject>($"{sourceId}/{mangaId}");
+    }
+
+    public async Task<MangaObject> GetMangaByIdAsync(string fullId) {
+        using var session = documentStore.OpenAsyncSession();
+        return await session.LoadAsync<MangaObject>(fullId);
     }
 
     public async Task<ChapterObject> GetMangaChapterAsync(string sourceId, string mangaId, string chapterId) {
         using var session = documentStore.OpenAsyncSession();
-        var manga = await session.LoadAsync<MangaObject>($"mangas/{sourceId}/{mangaId}");
+        var manga = await session.LoadAsync<MangaObject>($"{sourceId}/{mangaId}");
         return manga
             .Chapters
             .FirstOrDefault(x => x.Number == chapterId);
@@ -42,32 +48,32 @@ public sealed class DatabaseHandler(IDocumentStore documentStore) {
 
     public async Task StoreAsync<T>(T item) {
         using var session = documentStore.OpenAsyncSession();
-        if (item is MangaObject mangaObject) {
-            await session.StoreAsync(mangaObject, $"mangas/{mangaObject.Id}");
-        }
-        else if (item is SourceObject sourceObject) {
-            await session.StoreAsync(sourceObject, sourceObject.Id);
-        }
+        var task = item switch {
+            MangaObject manga   => session.StoreAsync(manga, $"{manga.Id}"),
+            SourceObject source => session.StoreAsync(source, source.Id),
+            UserObject user     => session.StoreAsync(user, user.Id),
+            _                   => throw new ArgumentOutOfRangeException(nameof(item), item, null)
+        };
+
+        await task;
         await session.SaveChangesAsync();
     }
 
     public async Task BulkStoreAsync<T>(IReadOnlyCollection<T> items) {
-        BulkInsertOperation bulkInsert = null;
+        BulkInsertOperation? bulkInsert = null;
         try {
             bulkInsert = documentStore.BulkInsert();
             foreach (var item in items) {
                 var id = item switch {
-                    MangaObject manga => $"mangas/{manga.Id}",
+                    MangaObject manga   => $"{manga.Id}",
                     SourceObject source => source.Id,
-                    _ => null
+                    _                   => null
                 };
                 await bulkInsert.StoreAsync(item, id);
             }
         }
         finally {
-            if (bulkInsert != null) {
-                await bulkInsert.DisposeAsync();
-            }
+            if (bulkInsert != null) await bulkInsert.DisposeAsync();
         }
     }
 
@@ -75,53 +81,93 @@ public sealed class DatabaseHandler(IDocumentStore documentStore) {
         using var session = documentStore.OpenAsyncSession();
         var results = session.Query<MangaObject, MangaSearchIndex>()
             .Where(x => x.SourceId == sourceId)
-            .Search(x => x.Title, query, boost: 10)
-            .Search(x => x.Summary, query, boost: 8)
-            .Search(x => x.Aliases, query, boost: 6)
-            .Search(x => x.Genres, query, boost: 4)
-            .Search(x => x.Authors, query, boost: 2);
+            .Search(x => x.Title, query, 10)
+            .Search(x => x.Summary, query, 8)
+            .Search(x => x.Aliases, query, 6)
+            .Search(x => x.Genres, query, 4)
+            .Search(x => x.Authors, query, 2);
         return await results.ToListAsync();
     }
 
     public async Task<IReadOnlyCollection<MangaObject>> SearchAllSourcesAsync(string query) {
         using var session = documentStore.OpenAsyncSession();
         var results = session.Query<MangaObject, MangaSearchIndex>()
-            .Search(x => x.Title, query, boost: 10)
-            .Search(x => x.Summary, query, boost: 8)
-            .Search(x => x.Aliases, query, boost: 6)
-            .Search(x => x.Genres, query, boost: 4)
-            .Search(x => x.Authors, query, boost: 2);
+            .Search(x => x.Title, query, 10)
+            .Search(x => x.Summary, query, 8)
+            .Search(x => x.Aliases, query, 6)
+            .Search(x => x.Genres, query, 4)
+            .Search(x => x.Authors, query, 2);
         return await results.ToListAsync();
-    }
-
-    public async Task<ReadingProgressObject?> GetProgressAsync(string mangaId) {
-        using var session = documentStore.OpenAsyncSession();
-        return await session.LoadAsync<ReadingProgressObject?>($"progress/{mangaId}");
-    }
-
-    public async Task UpsertProgressAsync(ReadingProgressObject progress) {
-        using var session = documentStore.OpenAsyncSession();
-        await session.StoreAsync(progress, progress.Id);
-        await session.SaveChangesAsync();
-    }
-
-    public async Task DeleteProgressAsync(string mangaId) {
-        using var session = documentStore.OpenAsyncSession();
-        session.Delete($"progress/{mangaId}");
-        await session.SaveChangesAsync();
     }
 
     public async Task UpdateChapterAsync(string sourceId, string mangaId, ChapterObject chapter) {
         using var session = documentStore.OpenAsyncSession();
-        var manga = await session.LoadAsync<MangaObject>($"mangas/{sourceId}/{mangaId}");
-        if (manga == default) return;
+        var manga = await session.LoadAsync<MangaObject>($"{sourceId}/{mangaId}");
+        if (manga == default) {
+            return;
+        }
 
         var chapters = manga.Chapters.ToList();
         var index = chapters.FindIndex(x => x.Number == chapter.Number);
-        if (index >= 0) chapters[index] = chapter;
+        if (index >= 0) {
+            chapters[index] = chapter;
+        }
 
         manga = manga with { Chapters = chapters };
-        await session.StoreAsync(manga, $"mangas/{manga.Id}");
+        await session.StoreAsync(manga, $"{manga.Id}");
+        await session.SaveChangesAsync();
+    }
+
+    // ── User / Library ────────────────────────────────────────────────────────
+
+    public async Task<UserObject?> GetUserAsync(string userId) {
+        using var session = documentStore.OpenAsyncSession();
+        return await session.LoadAsync<UserObject?>(userId);
+    }
+
+    public async Task<IReadOnlyList<UserObject>> GetUsersAsync() {
+        using var session = documentStore.OpenAsyncSession();
+        return await session
+            .Query<UserObject>()
+            .ToListAsync();
+    }
+
+    public async Task UpsertUserAsync(UserObject user) {
+        using var session = documentStore.OpenAsyncSession();
+        await session.StoreAsync(user, user.Id);
+        await session.SaveChangesAsync();
+    }
+
+    public async Task AddToLibraryAsync(string userId, string sourceId, string mangaId) {
+        using var session = documentStore.OpenAsyncSession();
+        var user = await session.LoadAsync<UserObject>(userId);
+        if (user == default ||
+            user.Library.Any(x => x.Key == $"{sourceId}/{mangaId}") ||
+            !user.Library.TryAdd(mangaId, 0)) {
+            return;
+        }
+
+        await session.SaveChangesAsync();
+    }
+
+    public async Task RemoveFromLibraryAsync(string userId, string sourceId, string mangaId) {
+        using var session = documentStore.OpenAsyncSession();
+        var user = await session.LoadAsync<UserObject>(userId);
+        if (user == default || !user.Library.TryRemove($"{sourceId}/{mangaId}", out _)) {
+            return;
+        }
+
+        await session.SaveChangesAsync();
+    }
+
+    public async Task UpdateProgressAsync(string userId, string sourceId, string mangaId, float chapter) {
+        using var session = documentStore.OpenAsyncSession();
+        var user = await session.LoadAsync<UserObject>(userId);
+        if (user == default || !user.Library.TryGetValue($"{sourceId}/{mangaId}", out _)) {
+            return;
+        }
+
+        user.Library.TryUpdate($"{sourceId}/{mangaId}", chapter, chapter);
         await session.SaveChangesAsync();
     }
 }

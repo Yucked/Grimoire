@@ -6,6 +6,7 @@ using Minio.DataModel.Args;
 using System.Net;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Minio.Exceptions;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
 
 namespace Grimoire.Handlers;
@@ -16,7 +17,6 @@ public sealed partial class ScrapingHandler(
     IConfiguration configuration,
     IBrowser browser,
     IMinioClient minioClient) {
-
     private readonly IBrowsingContext _context
         = BrowsingContext.New(Configuration.Default.WithDefaultLoader());
 
@@ -42,15 +42,13 @@ public sealed partial class ScrapingHandler(
     public async Task<IDocument> GetHtmlDocumentAsync(string url) {
         await _rateLimiter.WaitAsync();
         try {
-
             await Task.Delay(_requestDelay);
             using var responseMessage = await httpClient.GetAsync(url);
             responseMessage.EnsureSuccessStatusCode();
             var stream = await responseMessage.Content.ReadAsStreamAsync();
             var document = await _context.OpenAsync(x => x.Content(stream));
 
-            if (document.All.Length <= 10 ||
-                (document.Body?.TextContent?.Trim() ?? "").Length < 100) {
+            if (document.All.Length <= 10 || (document.Body?.TextContent?.Trim() ?? "").Length < 100) {
                 var page = await GetPageWithPlaywrightAsync(url);
                 document = await _context.OpenAsync(x => x.Content(page));
             }
@@ -65,7 +63,6 @@ public sealed partial class ScrapingHandler(
             _rateLimiter.Release();
         }
     }
-
 
     public async Task<string> GetPageWithPlaywrightAsync(string url) {
         await using var context = await browser.NewContextAsync();
@@ -82,7 +79,7 @@ public sealed partial class ScrapingHandler(
                 await route.ContinueAsync();
             });
 
-            var response = await page.GotoAsync(url, new() {
+            var response = await page.GotoAsync(url, new PageGotoOptions {
                 WaitUntil = WaitUntilState.Load
             });
 
@@ -119,11 +116,34 @@ public sealed partial class ScrapingHandler(
     }
 
     private async Task EnsureBucketAsync(string bucket) {
-        if (_confirmedBuckets.Contains(bucket)) return;
-        var exists = await minioClient.BucketExistsAsync(new BucketExistsArgs().WithBucket(bucket));
-        if (!exists)
-            await minioClient.MakeBucketAsync(new MakeBucketArgs().WithBucket(bucket));
-        _confirmedBuckets.Add(bucket);
+        if (_confirmedBuckets.Contains(bucket)) {
+            return;
+        }
+
+        try {
+            var exists = await minioClient.BucketExistsAsync(new BucketExistsArgs().WithBucket(bucket));
+            if (!exists) {
+                await minioClient.MakeBucketAsync(new MakeBucketArgs().WithBucket(bucket));
+                var policy = $$"""
+                               {
+                                 "Version":"2012-10-17",
+                                 "Statement":[{
+                                   "Effect":"Allow",
+                                   "Principal":{"AWS":["*"]},
+                                   "Action":["s3:GetObject"],
+                                   "Resource":["arn:aws:s3:::{{bucket}}/*"]
+                                 }]
+                               }
+                               """;
+                await minioClient.SetPolicyAsync(
+                    new SetPolicyArgs().WithBucket(bucket).WithPolicy(policy));
+            }
+
+            _confirmedBuckets.Add(bucket);
+        }
+        catch (MinioException ex) {
+            logger.LogError("MinIO bucket setup failed for '{bucket}': {ex.Message}", bucket, ex.Message);
+        }
     }
 
     public async Task<string> SaveCoverAsync(string imageUrl, string sourceId, string mangaId) {
@@ -137,17 +157,16 @@ public sealed partial class ScrapingHandler(
             responseMessage.EnsureSuccessStatusCode();
 
             var ext = Path.GetExtension(imageUrl.Split('?')[0]);
-            if (string.IsNullOrEmpty(ext)) ext = ".jpg";
 
             await EnsureBucketAsync(sourceId);
             var stream = await responseMessage.Content.ReadAsStreamAsync();
-            var objectPath = $"{mangaId}/cover{ext}";
+            var objectPath = $"{mangaId}/cover{(string.IsNullOrWhiteSpace(ext) ? ".jpg" : ext)}";
             await minioClient.PutObjectAsync(
                 new PutObjectArgs()
-                .WithBucket(sourceId)
-                .WithObject(objectPath)
-                .WithStreamData(stream)
-                .WithObjectSize(stream.Length));
+                    .WithBucket(sourceId)
+                    .WithObject(objectPath)
+                    .WithStreamData(stream)
+                    .WithObjectSize(stream.Length));
 
             logger.LogDebug("Downloaded cover to {sourceId}/{objectPath}", sourceId, objectPath);
             return $"{sourceId}/{objectPath}";
@@ -162,14 +181,14 @@ public sealed partial class ScrapingHandler(
     }
 
     public async Task<string> SaveImageAsync(string imageUrl, string sourceId, string mangaId) {
-
         static string CleanImagePath(string imagePath) {
             if (string.IsNullOrWhiteSpace(imagePath)) {
                 return string.Empty;
             }
+
             var decoded = WebUtility.UrlDecode(imagePath);
             var extension = Path.GetExtension(decoded);
-            return new string([.. decoded.Replace(extension, string.Empty).Where(c => char.IsLetterOrDigit(c))]) + extension;
+            return new string([.. decoded.Replace(extension, string.Empty).Where(char.IsLetterOrDigit)]) + extension;
         }
 
         await _rateLimiter.WaitAsync();
@@ -184,15 +203,15 @@ public sealed partial class ScrapingHandler(
             responseMessage.EnsureSuccessStatusCode();
 
             var fileName = CleanImagePath(responseMessage.Content.Headers.ContentDisposition?.FileNameStar
-                                     ?? imageUrl.Split('/')[^1]);
+                                          ?? imageUrl.Split('/')[^1]);
             await EnsureBucketAsync(sourceId);
             var stream = await responseMessage.Content.ReadAsStreamAsync();
             await minioClient.PutObjectAsync(
                 new PutObjectArgs()
-                .WithBucket(sourceId)
-                .WithObject($"{mangaId}/{fileName}")
-                .WithStreamData(stream)
-                .WithObjectSize(stream.Length));
+                    .WithBucket(sourceId)
+                    .WithObject($"{mangaId}/{fileName}")
+                    .WithStreamData(stream)
+                    .WithObjectSize(stream.Length));
 
             logger.LogDebug("Downloaded image to {sourceId}/{mangaId}/{fileName}",
                 sourceId, mangaId, fileName);
