@@ -1,40 +1,22 @@
 namespace Grimoire.Objects;
 
-/// <summary>
-/// 
-/// </summary>
-/// <param name="Authors"></param>
-/// <param name="Artists"></param>
-/// <param name="Title"></param>
-/// <param name="Aliases"></param>
-/// <param name="Summary"></param>
-/// <param name="Genres"></param>
-/// <param name="Status"></param>
-/// <param name="Cover"></param>
-/// <param name="CoverPath"></param>
-/// <param name="SourceUrl"></param>
-/// <param name="Ratings"></param>
-/// <param name="UpdatedAt"></param>
-/// <param name="ReleasedOn"></param>
-/// <param name="Chapters"></param>
-/// <param name="SourceId"></param>
-public readonly record struct MangaObject(
-    IList<string> Authors,
-    IList<string> Artists,
-    string Title,
-    IList<string> Aliases,
-    string Summary,
-    IList<string> Genres,
-    MangaStatus Status,
-    string Cover,
-    string CoverPath,
-    string SourceUrl,
-    float Ratings,
-    DateOnly UpdatedAt,
-    DateOnly ReleasedOn,
-    IList<ChapterObject> Chapters,
-    MangaType Type,
-    string SourceId) {
-    public string Id
-        => $"{SourceId}/{Title.GetIdFromName()}";
+public record MangaObject {
+    public string Title { get; set; } = string.Empty;
+    public string SourceId { get; set; } = string.Empty;
+    public string SourceUrl { get; set; } = string.Empty;
+    public string Summary { get; set; } = string.Empty;
+    public string Cover { get; set; } = string.Empty;
+    public string CoverPath { get; set; } = string.Empty;
+    public IList<string> Authors { get; set; } = [];
+    public IList<string> Artists { get; set; } = [];
+    public IList<string> Aliases { get; set; } = [];
+    public IList<string> Genres { get; set; } = [];
+    public MangaStatus Status { get; set; }
+    public MangaType Type { get; set; }
+    public float Ratings { get; set; }
+    public DateOnly UpdatedAt { get; set; }
+    public DateOnly ReleasedOn { get; set; }
+    public IList<ChapterObject> Chapters { get; set; } = [];
+
+    public string Id => $"{SourceId}/{Title.GetIdFromName()}";
 }

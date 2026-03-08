@@ -2,10 +2,10 @@ using System.Collections.Concurrent;
 
 namespace Grimoire.Objects;
 
-public readonly record struct UserObject(
-    string Username,
-    DateOnly CreatedAt,
-    ConcurrentDictionary<string, float> Library) {
-    public string Id
-        => Username.GetIdFromName();
+public record UserObject {
+    public string Username { get; set; } = string.Empty;
+    public DateOnly CreatedAt { get; set; }
+    public ConcurrentDictionary<string, float> Library { get; set; } = new();
+
+    public string Id => Username.GetIdFromName();
 }
