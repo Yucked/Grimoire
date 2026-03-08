@@ -7,13 +7,12 @@ using Raven.Client.ServerWide.Operations;
 
 namespace Grimoire.Controllers;
 
-[ApiController,
- Route("api/[controller]"),
- Produces("application/json")]
+[ApiController]
+[Route("api/[controller]")]
+[Produces("application/json")]
 public sealed class GeneralController(
     IDocumentStore documentStore,
     IMinioClient minioClient) : ControllerBase {
-
     [HttpGet]
     public ValueTask<ResponseObject> PingAsync() {
         return DateTime.Now.AsResponseAsync(StatusCodes.Status200OK);
@@ -43,7 +42,7 @@ public sealed class GeneralController(
             minio = minioStatus
         };
 
-        return (ravenStatus == "unhealthy" || minioStatus == "unhealthy")
+        return ravenStatus == "unhealthy" || minioStatus == "unhealthy"
             ? ResponseObject.New(StatusCodes.Status503ServiceUnavailable, payload)
             : ResponseObject.New(StatusCodes.Status200OK, payload);
     }
