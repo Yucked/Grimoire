@@ -1,4 +1,4 @@
-﻿namespace Grimoire.Objects;
+namespace Grimoire.Objects;
 
 /// <summary>
 /// 
@@ -7,14 +7,12 @@
 /// <param name="Number"></param>
 /// <param name="ReleasedOn"></param>
 /// <param name="IsDownloaded"></param>
-/// <param name="LastPageRead"></param>
 /// <param name="SourceUrl"></param>
 /// <param name="Pages"></param>
-public record struct ChapterObject(
+public readonly record struct ChapterObject(
     string Title,
     string Number,
     DateOnly ReleasedOn,
     bool IsDownloaded,
-    int LastPageRead,
     string SourceUrl,
     Dictionary<int, PageObject> Pages);

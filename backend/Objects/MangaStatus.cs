@@ -15,7 +15,12 @@ public enum MangaStatus {
     Completed,
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
-    Hiatus
+    Hiatus,
+
+    /// <summary>
+    ///
+    /// </summary>
+    Cancelled
 }

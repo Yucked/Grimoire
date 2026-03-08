@@ -13,14 +13,14 @@ namespace Grimoire.Objects;
 /// <param name="Genres"></param>
 /// <param name="Status"></param>
 /// <param name="Cover"></param>
-/// <param name="LastChapterRead"></param>
+/// <param name="CoverPath"></param>
 /// <param name="SourceUrl"></param>
 /// <param name="Ratings"></param>
 /// <param name="UpdatedAt"></param>
 /// <param name="ReleasedOn"></param>
 /// <param name="Chapters"></param>
 /// <param name="SourceId"></param>
-public record struct MangaObject(
+public readonly record struct MangaObject(
     IList<string> Authors,
     IList<string> Artists,
     string Title,
@@ -29,7 +29,7 @@ public record struct MangaObject(
     IList<string> Genres,
     MangaStatus Status,
     string Cover,
-    int LastChapterRead,
+    string CoverPath,
     string SourceUrl,
     float Ratings,
     DateOnly UpdatedAt,
@@ -37,6 +37,6 @@ public record struct MangaObject(
     IList<ChapterObject> Chapters,
     MangaType Type,
     string SourceId) {
-    public readonly string Id
-        => $"{SourceId}/{Convert.ToBase64String(Encoding.UTF8.GetBytes(Title))}";
+    public string Id
+        => $"{SourceId}/{Convert.ToBase64String(Encoding.UTF8.GetBytes(Title)).ToLowerInvariant()}";
 }

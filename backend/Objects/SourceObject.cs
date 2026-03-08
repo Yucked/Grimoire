@@ -9,5 +9,7 @@ public readonly record struct SourceObject(
     DateTime UpdatedOn,
     bool IsDisabled) {
     public string Id
-        => Convert.ToBase64String(Encoding.UTF8.GetBytes(Name));
+        => Convert
+            .ToBase64String(Encoding.UTF8.GetBytes(Name))
+            .ToLowerInvariant();
 }
