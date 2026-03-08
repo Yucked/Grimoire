@@ -7,9 +7,9 @@ using Raven.Client.ServerWide.Operations;
 
 namespace Grimoire.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-[Produces("application/json")]
+[ApiController,
+ Route("api/[controller]"),
+ Produces("application/json")]
 public sealed class GeneralController(
     IDocumentStore documentStore,
     IMinioClient minioClient) : ControllerBase {

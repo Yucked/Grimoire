@@ -6,15 +6,15 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Grimoire.Controllers;
 
-[ApiController]
-[Route("api/[controller]/{sourceId}")]
-[Produces("application/json")]
+[ApiController,
+ Route("api/[controller]/{sourceId}"),
+ Produces("application/json")]
 public sealed class MangaController(
     DatabaseHandler databaseHandler,
     IEnumerable<IGrimoireSource> sources,
     IConfiguration configuration,
     DownloadQueue downloadQueue) : ControllerBase {
-    [HttpGet("")]
+    [HttpGet]
     public async ValueTask<ResponseObject> GetMangasAsync(string sourceId,
                                                           [FromQuery] int page = 0,
                                                           [FromQuery] int pageSize = 25) {
