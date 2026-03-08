@@ -1,13 +1,13 @@
 using FlareSolverrSharp;
-using Grimoire;
 using Grimoire.Handlers;
-using Grimoire.Integrations;
-using Grimoire.Objects;
 using Grimoire.Services;
-using Microsoft.AspNetCore.Diagnostics;
+using Grimoire.Sources.Commons;
+using Grimoire.Sources.MetadataProviders;
 using Microsoft.Playwright;
 using Minio;
 using Raven.Client.Documents;
+
+namespace Grimoire;
 
 public sealed class Program {
     private static async Task Main(string[] args) {
@@ -46,7 +46,7 @@ public sealed class Program {
         builder.Services
             .AddOutputCache()
             .AddHostedService<DatabaseBackgroundService>()
-            .AddHostedService<LibraryService>()
+            .AddHostedService<LibraryBackgroundService>()
             .AddHostedService<ChapterDownloadService>()
             .AddSingleton<ServiceCoordinator>()
             .AddSingleton<DatabaseHandler>()
@@ -71,11 +71,14 @@ public sealed class Program {
                 },
                 Database = nameof(Grimoire)
             }.Initialize())
-            .AddHttpClient<ScrapingHandler>()
-            .ConfigurePrimaryHttpMessageHandler(() =>
-                new ClearanceHandler(builder.Configuration.GetValue<string>("Http:FlareUrl")) {
-                    MaxTimeout = builder.Configuration.GetValue<int>("Http:FlareTimeout")
-                });
+            .AddHttpClient<ScrapingHandler>(builder.Configuration)
+            .AddHttpClient<MangaDexProvider>(builder.Configuration,
+                x => { x.BaseAddress = new Uri("https://api.mangadex.org/"); })
+            .AddHttpClient<MyAnimeListProvider>(builder.Configuration, x => {
+                x.BaseAddress = new Uri("https://api.myanimelist.net/v2/");
+                x.DefaultRequestHeaders.Add("X-MAL-CLIENT-ID",
+                    config.GetValue<string>("MyAnimeList:ClientId"));
+            });
 
         var app = builder.Build();
         app.UseCors();

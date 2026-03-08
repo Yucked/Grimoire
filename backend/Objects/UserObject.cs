@@ -8,7 +8,5 @@ public readonly record struct UserObject(
     DateOnly CreatedAt,
     ConcurrentDictionary<string, float> Library) {
     public string Id
-        => Convert
-            .ToBase64String(Encoding.UTF8.GetBytes(Username))
-            .ToLowerInvariant();
+        => Username.GetIdFromName();
 }

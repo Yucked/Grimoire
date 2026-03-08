@@ -15,7 +15,7 @@ public class DatabaseBackgroundService(
     DatabaseHandler databaseHandler,
     IEnumerable<IGrimoireSource> grimoireSources,
     ServiceCoordinator serviceCoordinator,
-    IConfigurationManager configurationManager) : BackgroundService {
+    IConfiguration configuration) : BackgroundService {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
         try {
             var result = await documentStore
@@ -42,7 +42,7 @@ public class DatabaseBackgroundService(
             logger.LogWarning("Revisions already enabled.");
         }
 
-        var defaultUsername = configurationManager.GetValue<string>("Library:DefaultUsername");
+        var defaultUsername = configuration.GetValue<string>("Library:DefaultUsername");
         var existingUser = await databaseHandler.GetUserAsync(defaultUsername!.GetIdFromName());
         if (existingUser is null) {
             await databaseHandler.UpsertUserAsync(new UserObject {

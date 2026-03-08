@@ -7,7 +7,7 @@ public sealed partial class Manhwa18NetSource(
     ScrapingHandler scrapingHandler,
     IEnumerable<IMetadataProvider> metadataProviders,
     ILogger<Manhwa18NetSource> logger)
-    : Commons.HanmaSource(scrapingHandler, metadataProviders, logger) {
+    : HanmaSource(scrapingHandler, metadataProviders, logger) {
     public override string Name
         => "Manhwa 18";
 

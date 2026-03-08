@@ -7,7 +7,7 @@ public sealed partial class PornwaClubSource(
     ScrapingHandler scrapingHandler,
     IEnumerable<IMetadataProvider> metadataProviders,
     ILogger<PornwaClubSource> logger)
-    : Commons.HanmaSource(scrapingHandler, metadataProviders, logger) {
+    : HanmaSource(scrapingHandler, metadataProviders, logger) {
     public override string Name
         => "Pornwa Club";
 

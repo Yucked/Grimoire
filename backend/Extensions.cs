@@ -1,9 +1,10 @@
 using System.Reflection;
 using System.Text;
 using AngleSharp.Dom;
-using Grimoire.Integrations;
+using FlareSolverrSharp;
 using Grimoire.Objects;
-using Grimoire.Sources;
+using Grimoire.Sources.Commons;
+using Grimoire.Sources.MetadataProviders;
 
 namespace Grimoire;
 
@@ -49,11 +50,11 @@ public static class Extensions {
 
     extension(string name) {
         public string GetIdFromName() {
-            return Convert.ToBase64String(Encoding.UTF8.GetBytes(name)).ToLowerInvariant();
+            return Convert.ToHexStringLower(Encoding.UTF8.GetBytes(name));
         }
 
         public string GetNameFromId() {
-            return Encoding.UTF8.GetString(Convert.FromBase64String(name)).ToLowerInvariant();
+            return Encoding.UTF8.GetString(Convert.FromHexString(name));
         }
     }
 
@@ -69,17 +70,36 @@ public static class Extensions {
         };
     }
 
-    public static IServiceCollection AddGrimoireSources(this IServiceCollection services) {
-        var sourceTypes = Assembly.GetExecutingAssembly()
-            .GetTypes()
-            .Where(t => t is { IsAbstract: false, IsInterface: false }
-                        && t.IsAssignableTo(typeof(IGrimoireSource)));
+    extension(IServiceCollection services) {
+        public IServiceCollection AddGrimoireSources() {
+            var sourceTypes = Assembly.GetExecutingAssembly()
+                .GetTypes()
+                .Where(t => t is { IsAbstract: false, IsInterface: false }
+                            && t.IsAssignableTo(typeof(IGrimoireSource)));
 
-        foreach (var type in sourceTypes) {
-            services.AddSingleton(type);
-            services.AddSingleton(typeof(IGrimoireSource), sp => sp.GetRequiredService(type));
+            foreach (var type in sourceTypes) {
+                services.AddSingleton(type);
+                services.AddSingleton(typeof(IGrimoireSource), sp => sp.GetRequiredService(type));
+            }
+
+            return services;
         }
 
-        return services;
+        public IServiceCollection AddHttpClient<T>(IConfigurationManager configuration,
+                                                   Action<HttpClient>? configureClient = null)
+            where T : class {
+            var x = services.AddHttpClient<T>()
+                .ConfigurePrimaryHttpMessageHandler(() =>
+                    new ClearanceHandler(configuration.GetValue<string>("Http:FlareUrl")) {
+                        MaxTimeout = configuration.GetValue<int>("Http:FlareTimeout")
+                    })
+                .RemoveAllLoggers();
+
+            if (configureClient != null) {
+                x.ConfigureHttpClient(configureClient);
+            }
+
+            return services;
+        }
     }
 }

@@ -7,13 +7,13 @@ public sealed partial class AsuraScansSource(
     ScrapingHandler scrapingHandler,
     IEnumerable<IMetadataProvider> metadataProviders,
     ILogger<AsuraScansSource> logger)
-    : Commons.WordPressSource(scrapingHandler, metadataProviders, logger) {
+    : WordPressSource(scrapingHandler, metadataProviders, logger) {
     public override string Name
         => "Asura Scans";
 
     public override string Url
-        => "https://asuratoon.com";
+        => "https://asuracomic.net/";
 
     public override string Icon
-        => $"{Url}/wp-content/uploads/2021/03/Group_1.png";
+        => $"{Url}/images/logo.webp";
 }

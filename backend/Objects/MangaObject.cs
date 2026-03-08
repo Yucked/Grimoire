@@ -38,5 +38,5 @@ public readonly record struct MangaObject(
     MangaType Type,
     string SourceId) {
     public string Id
-        => $"{SourceId}/{Convert.ToBase64String(Encoding.UTF8.GetBytes(Title)).ToLowerInvariant()}";
+        => $"{SourceId}/{Title.GetIdFromName()}";
 }

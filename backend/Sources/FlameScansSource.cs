@@ -7,7 +7,7 @@ public sealed partial class FlameScansSource(
     ScrapingHandler scrapingHandler,
     IEnumerable<IMetadataProvider> metadataProviders,
     ILogger<FlameScansSource> logger)
-    : Commons.WordPressSource(scrapingHandler, metadataProviders, logger) {
+    : WordPressSource(scrapingHandler, metadataProviders, logger) {
     public override string Name
         => "Flame Scans";
 
