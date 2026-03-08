@@ -54,17 +54,17 @@ public class DatabaseBackgroundService(
 
         foreach (var source in grimoireSources) {
             var existing = await databaseHandler.GetSourceAsync(source.Name.GetIdFromName());
-            if (existing != default) {
+            if (existing is null) {
                 continue;
             }
 
             logger.LogInformation("Registering source '{}'.", source.Name);
-            await databaseHandler.StoreAsync(new SourceObject(
-                source.Name,
-                source.Url,
-                source.Icon,
-                DateTime.UtcNow,
-                false));
+            await databaseHandler.StoreAsync(new SourceObject {
+                Name = source.Name,
+                Url = source.Url,
+                Favicon = source.Icon,
+                UpdatedOn = DateTime.UtcNow
+            });
         }
 
         serviceCoordinator.ServiceIsReady();

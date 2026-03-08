@@ -103,21 +103,24 @@ public sealed class DatabaseHandler(IDocumentStore documentStore) {
     public async Task UpdateChapterAsync(string sourceId, string mangaId, ChapterObject chapter) {
         using var session = documentStore.OpenAsyncSession();
         var manga = await session.LoadAsync<MangaObject>($"{sourceId}/{mangaId}");
-        if (manga == default) return;
+        if (manga is null) {
+            return;
+        }
 
         var chapters = manga.Chapters.ToList();
         var index = chapters.FindIndex(x => x.Number == chapter.Number);
-        if (index >= 0) chapters[index] = chapter;
+        if (index >= 0) {
+            chapters[index] = chapter;
+        }
 
-        manga = manga with { Chapters = chapters };
-        await session.StoreAsync(manga, $"{manga.Id}");
+        manga.Chapters = chapters;
         await session.SaveChangesAsync();
     }
 
     public async Task UpdateChapterPagesAsync(string sourceId, string mangaId, string chapterNumber, string[] pages) {
         using var session = documentStore.OpenAsyncSession();
         var manga = await session.LoadAsync<MangaObject>($"{sourceId}/{mangaId}");
-        if (manga == default) {
+        if (manga is null) {
             return;
         }
 
@@ -128,22 +131,20 @@ public sealed class DatabaseHandler(IDocumentStore documentStore) {
         }
 
         chapters[index] = chapters[index] with { IsDownloaded = true, Pages = pages };
-        manga = manga with { Chapters = chapters };
-        await session.StoreAsync(manga, $"{manga.Id}");
+        manga.Chapters = chapters;
         await session.SaveChangesAsync();
     }
 
     public async Task<bool> ToggleSourceAsync(string sourceId) {
         using var session = documentStore.OpenAsyncSession();
         var source = await session.LoadAsync<SourceObject>(sourceId);
-        if (source == default) {
+        if (source is null) {
             return false;
         }
 
-        var updated = source with { IsDisabled = !source.IsDisabled };
-        await session.StoreAsync(updated, sourceId);
+        source.IsDisabled = !source.IsDisabled;
         await session.SaveChangesAsync();
-        return updated.IsDisabled;
+        return source.IsDisabled;
     }
 
     // ── User / Library ────────────────────────────────────────────────────────
@@ -169,7 +170,7 @@ public sealed class DatabaseHandler(IDocumentStore documentStore) {
     public async Task AddToLibraryAsync(string userId, string sourceId, string mangaId) {
         using var session = documentStore.OpenAsyncSession();
         var user = await session.LoadAsync<UserObject>(userId);
-        if (user == default ||
+        if (user is null ||
             user.Library.Any(x => x.Key == $"{sourceId}/{mangaId}") ||
             !user.Library.TryAdd(mangaId, 0)) {
             return;
@@ -181,7 +182,7 @@ public sealed class DatabaseHandler(IDocumentStore documentStore) {
     public async Task RemoveFromLibraryAsync(string userId, string sourceId, string mangaId) {
         using var session = documentStore.OpenAsyncSession();
         var user = await session.LoadAsync<UserObject>(userId);
-        if (user == default || !user.Library.TryRemove($"{sourceId}/{mangaId}", out _)) {
+        if (user is null || !user.Library.TryRemove($"{sourceId}/{mangaId}", out _)) {
             return;
         }
 
@@ -191,7 +192,7 @@ public sealed class DatabaseHandler(IDocumentStore documentStore) {
     public async Task UpdateProgressAsync(string userId, string sourceId, string mangaId, float chapter) {
         using var session = documentStore.OpenAsyncSession();
         var user = await session.LoadAsync<UserObject>(userId);
-        if (user == default || !user.Library.TryGetValue($"{sourceId}/{mangaId}", out _)) {
+        if (user is null || !user.Library.TryGetValue($"{sourceId}/{mangaId}", out _)) {
             return;
         }
 
