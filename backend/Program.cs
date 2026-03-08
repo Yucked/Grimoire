@@ -1,4 +1,3 @@
-using FlareSolverrSharp;
 using Grimoire.Handlers;
 using Grimoire.Services;
 using Grimoire.Sources.Commons;
@@ -51,7 +50,6 @@ public sealed class Program {
             .AddSingleton<ServiceCoordinator>()
             .AddSingleton<DatabaseHandler>()
             .AddSingleton<ScrapingHandler>()
-            .AddSingleton<DownloadQueue>()
             .AddTransient<IMetadataProvider, MangaDexProvider>()
             .AddTransient<IMetadataProvider, MyAnimeListProvider>()
             .AddSingleton(browser)

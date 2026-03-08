@@ -133,12 +133,8 @@ public sealed partial class OmegaScansSource(
             .Where(x => x is not null)
             .ToList();
 
-        var pages = new Dictionary<int, PageObject>();
-        for (var i = 0; i < imageUrls.Count; i++)
-            pages.Add(i, new PageObject(false, string.Empty, imageUrls[i]!));
-
         document.Close();
-        return chapter with { Pages = pages };
+        return chapter with { Pages = imageUrls.Select(u => u!).ToArray() };
     }
 
     private static DateOnly ChangeToDate(string str) {

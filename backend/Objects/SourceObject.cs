@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace Grimoire.Objects;
 
 public readonly record struct SourceObject(

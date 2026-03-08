@@ -13,7 +13,7 @@ public sealed class MangaController(
     DatabaseHandler databaseHandler,
     IEnumerable<IGrimoireSource> sources,
     IConfiguration configuration,
-    DownloadQueue downloadQueue) : ControllerBase {
+    ChapterDownloadService downloadService) : ControllerBase {
     [HttpGet]
     public async ValueTask<ResponseObject> GetMangasAsync(string sourceId,
                                                           [FromQuery] int page = 0,
@@ -82,12 +82,8 @@ public sealed class MangaController(
         }
 
         if (configuration.GetValue<bool>("Library:DownloadChapters")) {
-            var imageUrls = chapter.Pages.Values
-                .Select(p => p.ImageUrl)
-                .Where(u => !string.IsNullOrEmpty(u))
-                .ToList()
-                .AsReadOnly();
-            await downloadQueue.EnqueueAsync(new ChapterDownloadJob(sourceId, mangaId, chapterId, imageUrls));
+            var imageUrls = chapter.Pages.Where(u => !string.IsNullOrEmpty(u)).ToArray();
+            await downloadService.EnqueueAsync(sourceId, mangaId, chapterId, imageUrls);
         }
 
         return await chapter.AsResponseAsync(StatusCodes.Status200OK);

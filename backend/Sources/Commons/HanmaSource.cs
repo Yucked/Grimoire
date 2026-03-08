@@ -162,12 +162,8 @@ public abstract partial class HanmaSource(
         var element = document.All.First(x => x is { LocalName: "div", Id: "chapter-content" });
         var children = element.Children.ToList();
 
-        var pages = new Dictionary<int, PageObject>();
-        for (var i = 0; i < children.Count; i++)
-            pages.Add(i, new PageObject(false, string.Empty, children[i].Attributes[1]!.Value));
-
         document.Close();
-        return chapter with { Pages = pages };
+        return chapter with { Pages = children.Select(c => c.Attributes[1]!.Value).ToArray() };
     }
 
     private static string GetInfoValue(IDocument document, string infoName) {

@@ -111,10 +111,6 @@ public sealed partial class TCBScansSource(
             .Where(x => x is not null)
             .ToList();
 
-        var pages = new Dictionary<int, PageObject>();
-        for (var i = 0; i < imageUrls.Count; i++)
-            pages.Add(i, new PageObject(false, string.Empty, imageUrls[i]!));
-
-        return chapter with { Pages = pages };
+        return chapter with { Pages = imageUrls.Select(u => u!).ToArray() };
     }
 }

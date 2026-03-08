@@ -103,16 +103,31 @@ public sealed class DatabaseHandler(IDocumentStore documentStore) {
     public async Task UpdateChapterAsync(string sourceId, string mangaId, ChapterObject chapter) {
         using var session = documentStore.OpenAsyncSession();
         var manga = await session.LoadAsync<MangaObject>($"{sourceId}/{mangaId}");
+        if (manga == default) return;
+
+        var chapters = manga.Chapters.ToList();
+        var index = chapters.FindIndex(x => x.Number == chapter.Number);
+        if (index >= 0) chapters[index] = chapter;
+
+        manga = manga with { Chapters = chapters };
+        await session.StoreAsync(manga, $"{manga.Id}");
+        await session.SaveChangesAsync();
+    }
+
+    public async Task UpdateChapterPagesAsync(string sourceId, string mangaId, string chapterNumber, string[] pages) {
+        using var session = documentStore.OpenAsyncSession();
+        var manga = await session.LoadAsync<MangaObject>($"{sourceId}/{mangaId}");
         if (manga == default) {
             return;
         }
 
         var chapters = manga.Chapters.ToList();
-        var index = chapters.FindIndex(x => x.Number == chapter.Number);
-        if (index >= 0) {
-            chapters[index] = chapter;
+        var index = chapters.FindIndex(x => x.Number == chapterNumber);
+        if (index < 0) {
+            return;
         }
 
+        chapters[index] = chapters[index] with { IsDownloaded = true, Pages = pages };
         manga = manga with { Chapters = chapters };
         await session.StoreAsync(manga, $"{manga.Id}");
         await session.SaveChangesAsync();
