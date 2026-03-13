@@ -12,9 +12,7 @@ public sealed class SourceController(
     [HttpGet]
     public async ValueTask<ResponseObject> GetAsync() {
         var sources = await databaseHandler.GetSourcesAsync();
-        return sources.Count == 0
-            ? ResponseObject.New(StatusCodes.Status204NoContent)
-            : ResponseObject.New(StatusCodes.Status200OK, sources);
+        return ResponseObject.New(StatusCodes.Status200OK, sources);
     }
 
     [HttpGet("{sourceId}")]

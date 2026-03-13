@@ -130,7 +130,7 @@ public sealed class DatabaseHandler(IDocumentStore documentStore) {
             return;
         }
 
-        chapters[index] = chapters[index] with { IsDownloaded = true, Pages = pages };
+        chapters[index] = chapters[index] with { Pages = pages };
         manga.Chapters = chapters;
         await session.SaveChangesAsync();
     }
@@ -171,21 +171,22 @@ public sealed class DatabaseHandler(IDocumentStore documentStore) {
         using var session = documentStore.OpenAsyncSession();
         var user = await session.LoadAsync<UserObject>(userId);
         if (user is null ||
-            user.Library.Any(x => x.Key == $"{sourceId}/{mangaId}") ||
-            !user.Library.TryAdd(mangaId, 0)) {
+            user.Library.Any(x => x.Key == $"{sourceId}/{mangaId}")) {
             return;
         }
 
+        user.Library.TryAdd($"{sourceId}/{mangaId}", 0);
         await session.SaveChangesAsync();
     }
 
     public async Task RemoveFromLibraryAsync(string userId, string sourceId, string mangaId) {
         using var session = documentStore.OpenAsyncSession();
         var user = await session.LoadAsync<UserObject>(userId);
-        if (user is null || !user.Library.TryRemove($"{sourceId}/{mangaId}", out _)) {
+        if (user is null) {
             return;
         }
 
+        user.Library.TryRemove($"{sourceId}/{mangaId}", out _);
         await session.SaveChangesAsync();
     }
 
@@ -196,7 +197,7 @@ public sealed class DatabaseHandler(IDocumentStore documentStore) {
             return;
         }
 
-        user.Library.TryUpdate($"{sourceId}/{mangaId}", chapter, chapter);
+        user.Library[$"{sourceId}/{mangaId}"] = chapter;
         await session.SaveChangesAsync();
     }
 }

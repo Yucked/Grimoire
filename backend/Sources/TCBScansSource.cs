@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using AngleSharp.Html.Dom;
 using Grimoire.Handlers;
 using Grimoire.Objects;
 using Grimoire.Sources.Commons;
@@ -94,8 +95,8 @@ public sealed partial class TCBScansSource(
                 break;
             }
             catch (Exception ex) {
-                logger.LogWarning(ex, "Metadata enrichment failed for {name} via {providerName}", 
-                    name, 
+                logger.LogWarning(ex, "Metadata enrichment failed for {name} via {providerName}",
+                    name,
                     provider.GetType().Name);
             }
 
@@ -107,10 +108,10 @@ public sealed partial class TCBScansSource(
         var document = await scrapingHandler.GetHtmlDocumentAsync(chapterUrl);
         var imageUrls = document
             .QuerySelectorAll("img.fixed-ratio-content")
-            .Select(x => x.GetAttribute("source"))
-            .Where(x => x is not null)
-            .ToList();
+            .Select(x => x.As<IHtmlImageElement>().Source)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .ToArray();
 
-        return chapter with { Pages = imageUrls.Select(u => u!).ToArray() };
+        return chapter with { Pages = imageUrls! };
     }
 }

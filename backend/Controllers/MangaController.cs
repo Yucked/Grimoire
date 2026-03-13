@@ -24,9 +24,7 @@ public sealed class MangaController(
 
         var mangas = await databaseHandler.GetMangasAsync(sourceId, page, pageSize);
         if (mangas.Count is not 0) {
-            return mangas.Count == 0
-                ? ResponseObject.New(StatusCodes.Status204NoContent)
-                : await mangas.AsResponseAsync(StatusCodes.Status200OK);
+            return await mangas.AsResponseAsync(StatusCodes.Status200OK);
         }
 
         var source = sources.FirstOrDefault(s => s.Name.GetIdFromName() == sourceId);
@@ -82,8 +80,8 @@ public sealed class MangaController(
         }
 
         if (configuration.GetValue<bool>("Library:DownloadChapters")) {
-            var imageUrls = chapter.Pages.Where(u => !string.IsNullOrEmpty(u)).ToArray();
-            await downloadService.EnqueueAsync(sourceId, mangaId, chapterId, imageUrls);
+            //var imageUrls = chapter.Pages.Where(u => !string.IsNullOrEmpty(u)).ToArray();
+            await downloadService.EnqueueAsync(sourceId, mangaId, chapterId, chapter.Pages);
         }
 
         return await chapter.AsResponseAsync(StatusCodes.Status200OK);

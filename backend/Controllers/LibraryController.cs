@@ -49,7 +49,7 @@ public sealed class LibraryController(
     public async ValueTask<ResponseObject> UpdateProgressAsync(string userId,
                                                                string sourceId,
                                                                string mangaId,
-                                                               int lastChapterRead) {
+                                                               float lastChapterRead) {
         if (string.IsNullOrWhiteSpace(userId) ||
             string.IsNullOrWhiteSpace(sourceId) ||
             string.IsNullOrWhiteSpace(mangaId)) {
