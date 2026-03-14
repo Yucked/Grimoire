@@ -1,29 +1,54 @@
 using Grimoire.Handlers;
+using Grimoire.Sources.Commons;
 
 namespace Grimoire.Services;
 
 public sealed class LibraryBackgroundService(
     ILogger<LibraryBackgroundService> logger,
     DatabaseHandler databaseHandler,
-    ServiceCoordinator serviceCoordinator) : BackgroundService {
+    ServiceCoordinator serviceCoordinator,
+    IEnumerable<IGrimoireSource> sources) : BackgroundService {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
         await serviceCoordinator.WaitForServiceAsync(stoppingToken);
 
         while (!stoppingToken.IsCancellationRequested) {
-            await RefreshLibraryAsync(stoppingToken);
-            await Task.Delay(TimeSpan.FromDays(5), stoppingToken);
-        }
-    }
-
-    public async Task RefreshLibraryAsync(CancellationToken cancellationToken = default) {
-        var users = await databaseHandler.GetUsersAsync();
-        try {
-            foreach (var user in users) {
-                await databaseHandler.TryRefreshLibraryAsync(user.Id, cancellationToken);
+            var users = await databaseHandler.GetUsersAsync();
+            if (users.Count == 0) {
+                logger.LogWarning("No users found.");
+                return;
             }
-        }
-        catch (Exception ex) {
-            logger.LogError("{exMessage}", ex.Message);
+
+            var library = users
+                .SelectMany(user => user.Library)
+                .Select(x => x.Key)
+                .Distinct()
+                .ToList();
+
+            if (library.Count == 0) {
+                logger.LogWarning("Libraries are empty for all users.");
+                return;
+            }
+
+            await Parallel.ForEachAsync(library, stoppingToken, async (key, _) => {
+                var sourceId = key.Split('/')[0];
+                var mangaId = key.Split('/')[1];
+
+                var manga = await databaseHandler.GetMangaAsync(sourceId, mangaId);
+                if (manga == null) {
+                    logger.LogWarning("Manga {MangaId} not found.", mangaId);
+                    return;
+                }
+
+                var source = sources.FirstOrDefault(x => x.Name.GetIdFromName() == sourceId);
+                if (source is null) {
+                    logger.LogWarning("Source {SourceId} not found.", sourceId);
+                }
+
+                var updated = await source.GetMangaAsync(manga.SourceUrl);
+                await databaseHandler.StoreAsync(updated);
+            });
+
+            await Task.Delay(TimeSpan.FromDays(5), stoppingToken);
         }
     }
 }

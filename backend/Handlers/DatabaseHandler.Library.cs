@@ -56,7 +56,7 @@ public sealed partial class DatabaseHandler {
         await session.SaveChangesAsync();
     }
 
-    public async Task RefreshLibraryAsync(string userId, CancellationToken cancellationToken = default) {
+    public async Task RefreshLibraryAsync(string userId) {
         var user = await GetUserAsync(userId);
         if (user is null) {
             ArgumentException.ThrowIfNullOrWhiteSpace(userId);
@@ -69,21 +69,21 @@ public sealed partial class DatabaseHandler {
             .ToList();
 
         if (library.Count == 0) {
-            throw new Exception("User's library is empty.");
+            return;
         }
 
-        await Parallel.ForEachAsync(library, cancellationToken, async (key, _) => {
+        await Parallel.ForEachAsync(library, async (key, _) => {
             var sourceId = key.Split('/')[0];
             var mangaId = key.Split('/')[1];
 
             var manga = await GetMangaAsync(sourceId, mangaId);
             if (manga == null) {
-                throw new Exception($"Manga {mangaId} not found.");
+                return;
             }
 
             var source = sources.FirstOrDefault(x => x.Name.GetIdFromName() == sourceId);
             if (source is null) {
-                throw new Exception($"Source {sourceId} not found.");
+                return;
             }
 
             var updated = await source.GetMangaAsync(manga.SourceUrl);
