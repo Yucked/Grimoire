@@ -69,7 +69,6 @@ public sealed partial class TCBScansSource(
         });
 
         var coverPath = await scrapingHandler.SaveCoverSafeAsync(cover, Name.GetIdFromName(), name, logger);
-
         var mangaObject = new MangaObject {
             Title = name,
             SourceId = Name.GetIdFromName(),

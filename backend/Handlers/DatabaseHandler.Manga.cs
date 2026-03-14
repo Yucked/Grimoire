@@ -20,11 +20,6 @@ public sealed partial class DatabaseHandler {
         return await session.LoadAsync<MangaObject>($"{sourceId}/{mangaId}");
     }
 
-    public async Task<MangaObject> GetMangaByIdAsync(string fullId) {
-        using var session = documentStore.OpenAsyncSession();
-        return await session.LoadAsync<MangaObject>(fullId);
-    }
-
     public async Task<ChapterObject> GetMangaChapterAsync(string sourceId, string mangaId, string chapterId) {
         using var session = documentStore.OpenAsyncSession();
         var manga = await session.LoadAsync<MangaObject>($"{sourceId}/{mangaId}");

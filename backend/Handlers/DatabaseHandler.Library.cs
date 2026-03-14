@@ -56,7 +56,7 @@ public sealed partial class DatabaseHandler {
         await session.SaveChangesAsync();
     }
 
-    public async Task TryRefreshLibraryAsync(string userId, CancellationToken cancellationToken = default) {
+    public async Task RefreshLibraryAsync(string userId, CancellationToken cancellationToken = default) {
         var user = await GetUserAsync(userId);
         if (user is null) {
             ArgumentException.ThrowIfNullOrWhiteSpace(userId);
@@ -76,7 +76,7 @@ public sealed partial class DatabaseHandler {
             var sourceId = key.Split('/')[0];
             var mangaId = key.Split('/')[1];
 
-            var manga = await GetMangaByIdAsync(mangaId);
+            var manga = await GetMangaAsync(sourceId, mangaId);
             if (manga == null) {
                 throw new Exception($"Manga {mangaId} not found.");
             }

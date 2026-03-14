@@ -66,7 +66,7 @@ public sealed class LibraryController(
             return ResponseObject.New(StatusCodes.Status400BadRequest);
         }
 
-        await databaseHandler.TryRefreshLibraryAsync(userId);
+        await databaseHandler.RefreshLibraryAsync(userId);
         return ResponseObject.New(StatusCodes.Status200OK);
     }
 }

@@ -1,6 +1,5 @@
 using Grimoire.Handlers;
 using Grimoire.Objects;
-using Grimoire.Services;
 using Grimoire.Sources.Commons;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,7 +12,8 @@ public sealed class MangaController(
     DatabaseHandler databaseHandler,
     IEnumerable<IGrimoireSource> sources,
     IConfiguration configuration,
-    ChapterDownloadService downloadService) : ControllerBase {
+    DownloadQueue downloadQueue,
+    ILogger<MangaController> logger) : ControllerBase {
     [HttpGet]
     public async ValueTask<ResponseObject> GetMangasAsync(string sourceId,
                                                           [FromQuery] int page = 0,
@@ -80,10 +80,37 @@ public sealed class MangaController(
         }
 
         if (configuration.GetValue<bool>("Library:DownloadChapters")) {
-            //var imageUrls = chapter.Pages.Where(u => !string.IsNullOrEmpty(u)).ToArray();
-            await downloadService.EnqueueAsync(sourceId, mangaId, chapterId, chapter.Pages);
+            await downloadQueue.AddAsync(sourceId, mangaId, chapterId, chapter.Pages);
         }
 
         return await chapter.AsResponseAsync(StatusCodes.Status200OK);
+    }
+
+    [HttpPost("{mangaId}/refresh")]
+    public async ValueTask<ResponseObject> RefreshAsync(string sourceId, string mangaId) {
+        if (string.IsNullOrWhiteSpace(sourceId) || string.IsNullOrWhiteSpace(mangaId)) {
+            return ResponseObject.New(StatusCodes.Status400BadRequest);
+        }
+
+        var manga = await databaseHandler.GetMangaAsync(sourceId, mangaId);
+        if (manga == default) {
+            return ResponseObject.New(StatusCodes.Status404NotFound);
+        }
+
+        var source = sources.FirstOrDefault(s => s.Name.GetIdFromName() == sourceId);
+        if (source is null) {
+            return ResponseObject.New(StatusCodes.Status404NotFound);
+        }
+
+        try {
+            logger.LogInformation("Refreshing {title}...", manga.Title);
+            var updated = await source.GetMangaAsync(manga.SourceUrl);
+            await databaseHandler.StoreAsync(updated);
+            return ResponseObject.New(StatusCodes.Status200OK, updated);
+        }
+        catch (Exception ex) {
+            logger.LogError(ex, "Failed to refresh manga {mangaId}.", mangaId);
+            return ResponseObject.New(StatusCodes.Status500InternalServerError);
+        }
     }
 }
