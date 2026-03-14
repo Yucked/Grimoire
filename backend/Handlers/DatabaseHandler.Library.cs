@@ -55,4 +55,39 @@ public sealed partial class DatabaseHandler {
         user.Library[$"{sourceId}/{mangaId}"] = chapter;
         await session.SaveChangesAsync();
     }
+
+    public async Task TryRefreshLibraryAsync(string userId, CancellationToken cancellationToken = default) {
+        var user = await GetUserAsync(userId);
+        if (user is null) {
+            ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+            return;
+        }
+
+        var library = user.Library
+            .Select(e => e.Key)
+            .Distinct()
+            .ToList();
+
+        if (library.Count == 0) {
+            throw new Exception("User's library is empty.");
+        }
+
+        await Parallel.ForEachAsync(library, cancellationToken, async (key, _) => {
+            var sourceId = key.Split('/')[0];
+            var mangaId = key.Split('/')[1];
+
+            var manga = await GetMangaByIdAsync(mangaId);
+            if (manga == null) {
+                throw new Exception($"Manga {mangaId} not found.");
+            }
+
+            var source = sources.FirstOrDefault(x => x.Name.GetIdFromName() == sourceId);
+            if (source is null) {
+                throw new Exception($"Source {sourceId} not found.");
+            }
+
+            var updated = await source.GetMangaAsync(manga.SourceUrl);
+            await StoreAsync(updated);
+        });
+    }
 }

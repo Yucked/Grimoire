@@ -59,4 +59,14 @@ public sealed class LibraryController(
         await databaseHandler.UpdateProgressAsync(userId, sourceId, mangaId, lastChapterRead);
         return ResponseObject.New(StatusCodes.Status200OK);
     }
+
+    [HttpPost("refresh")]
+    public async ValueTask<ResponseObject> RefreshLibraryAsync(string userId) {
+        if (string.IsNullOrWhiteSpace(userId)) {
+            return ResponseObject.New(StatusCodes.Status400BadRequest);
+        }
+
+        await databaseHandler.TryRefreshLibraryAsync(userId);
+        return ResponseObject.New(StatusCodes.Status200OK);
+    }
 }

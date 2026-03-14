@@ -1,10 +1,13 @@
 using Grimoire.Objects;
+using Grimoire.Sources.Commons;
 using Raven.Client.Documents;
 using Raven.Client.Documents.BulkInsert;
 
 namespace Grimoire.Handlers;
 
-public sealed partial class DatabaseHandler(IDocumentStore documentStore) {
+public sealed partial class DatabaseHandler(
+    IDocumentStore documentStore,
+    IEnumerable<IGrimoireSource> sources) {
     public async Task StoreAsync<T>(T item) {
         using var session = documentStore.OpenAsyncSession();
         var task = item switch {
