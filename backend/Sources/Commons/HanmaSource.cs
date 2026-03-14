@@ -118,13 +118,7 @@ public abstract partial class HanmaSource(
             })
             .ToList();
 
-        var coverPath = string.Empty;
-        try {
-            coverPath = await scrapingHandler.SaveCoverAsync(cover, Name.GetIdFromName(), name);
-        }
-        catch (Exception ex) {
-            logger.LogWarning(ex, "Failed to download cover for {}", name);
-        }
+        var coverPath = await scrapingHandler.SaveCoverSafeAsync(cover, Name.GetIdFromName(), name, logger);
 
         var mangaObject = new MangaObject {
             Title = name,
@@ -140,30 +134,16 @@ public abstract partial class HanmaSource(
             UpdatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         };
 
-        foreach (var provider in metadataProviders)
-            try {
-                var enrichment = await provider.FindMangaAsync(name);
-                if (enrichment is null) continue;
-                mangaObject = mangaObject.WithMetadata(enrichment);
-                break;
-            }
-            catch (Exception ex) {
-                logger.LogWarning(ex, "Metadata enrichment failed for {name} via {providerName}",
-                    name,
-                    provider.GetType().Name);
-            }
-
         document.Close();
-        return mangaObject;
+        return await mangaObject.EnrichWithMetadataAsync(name, metadataProviders, logger);
     }
 
     public async Task<ChapterObject> FetchChapterAsync(ChapterObject chapter, string sourceId, string mangaId) {
         var document = await scrapingHandler.GetHtmlDocumentAsync(chapter.SourceUrl);
         var element = document.All.First(x => x is { LocalName: "div", Id: "chapter-content" });
-        var children = element.Children.ToList();
 
         document.Close();
-        return chapter with { Pages = children.Select(c => c.Attributes[1]!.Value).ToArray() };
+        return chapter with { Pages = element.Children.Select(c => c.Attributes[1]!.Value).ToArray() };
     }
 
     private static string GetInfoValue(IDocument document, string infoName) {

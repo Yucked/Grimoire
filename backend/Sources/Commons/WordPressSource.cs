@@ -128,13 +128,7 @@ public abstract partial class WordPressSource(
             logger.LogWarning(ex, "Failed to scrape optional fields for {}", name);
         }
 
-        var coverPath = string.Empty;
-        try {
-            coverPath = await scrapingHandler.SaveCoverAsync(cover, Name.GetIdFromName(), name);
-        }
-        catch (Exception ex) {
-            logger.LogWarning(ex, "Failed to download cover for {}", name);
-        }
+        var coverPath = await scrapingHandler.SaveCoverSafeAsync(cover, Name.GetIdFromName(), name, logger);
 
         var mangaObject = new MangaObject {
             Title = name,
@@ -150,23 +144,7 @@ public abstract partial class WordPressSource(
             UpdatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         };
 
-        foreach (var provider in metadataProviders)
-            try {
-                var enrichment = await provider.FindMangaAsync(name);
-                if (enrichment is null) {
-                    continue;
-                }
-
-                mangaObject = mangaObject.WithMetadata(enrichment);
-                break;
-            }
-            catch (Exception ex) {
-                logger.LogWarning(ex, "Metadata enrichment failed for {name} via {providerName}",
-                    name,
-                    provider.GetType().Name);
-            }
-
-        return mangaObject;
+        return await mangaObject.EnrichWithMetadataAsync(name, metadataProviders, logger);
     }
 
     public async Task<ChapterObject> FetchChapterAsync(ChapterObject chapter, string sourceId, string mangaId) {
@@ -183,7 +161,7 @@ public abstract partial class WordPressSource(
             .Descendants<IHtmlImageElement>()
             .Select(x => x.Source)
             .Where(x => x is not null)
-            .ToList();
+            .ToArray();
 
         using var jsonDocument = await scrapingHandler.GetJsonDocumentAsync(
             $"{Url}/wp-json/wp/v2/posts/{chapterId}");
@@ -196,11 +174,11 @@ public abstract partial class WordPressSource(
             .Descendants<IHtmlImageElement>()
             .Select(x => x.Source)
             .Where(x => x is not null)
-            .ToList();
+            .ToArray();
 
-        var imageUrls = jsonImages.Count > htmlImages.Count ? jsonImages : htmlImages;
+        var imageUrls = jsonImages.Length > htmlImages.Length ? jsonImages : htmlImages;
 
         document.Close();
-        return chapter with { Pages = imageUrls.Select(u => u!).ToArray() };
+        return chapter with { Pages = imageUrls! };
     }
 }

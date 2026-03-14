@@ -54,7 +54,7 @@ public class DatabaseBackgroundService(
 
         foreach (var source in grimoireSources) {
             var existing = await databaseHandler.GetSourceAsync(source.Name.GetIdFromName());
-            if (existing is null) {
+            if (existing is not null) {
                 continue;
             }
 

@@ -87,13 +87,7 @@ public sealed partial class OmegaScansSource(
             })
             .ToList();
 
-        var coverPath = string.Empty;
-        try {
-            coverPath = await scrapingHandler.SaveCoverAsync(cached.Cover, Name.GetIdFromName(), cached.Title);
-        }
-        catch (Exception ex) {
-            logger.LogWarning(ex, "Failed to download cover for {}", cached.Title);
-        }
+        var coverPath = await scrapingHandler.SaveCoverSafeAsync(cached.Cover, Name.GetIdFromName(), cached.Title, logger);
 
         var mangaObject = new MangaObject {
             Title = cached.Title,
@@ -109,20 +103,7 @@ public sealed partial class OmegaScansSource(
             UpdatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         };
 
-        foreach (var provider in metadataProviders)
-            try {
-                var enrichment = await provider.FindMangaAsync(cached.Title);
-                if (enrichment is null) continue;
-                mangaObject = mangaObject.WithMetadata(enrichment);
-                break;
-            }
-            catch (Exception ex) {
-                logger.LogWarning(ex, "Metadata enrichment failed for {title} via {name}",
-                    cached.Title,
-                    provider.GetType().Name);
-            }
-
-        return mangaObject;
+        return await mangaObject.EnrichWithMetadataAsync(cached.Title, metadataProviders, logger);
     }
 
     public async Task<ChapterObject> FetchChapterAsync(ChapterObject chapter, string sourceId, string mangaId) {
@@ -131,10 +112,11 @@ public sealed partial class OmegaScansSource(
             .QuerySelectorAll("p.flex > img")
             .Select(x => x.GetAttribute("src"))
             .Where(x => x is not null)
-            .ToList();
+            .Select(u => u!)
+            .ToArray();
 
         document.Close();
-        return chapter with { Pages = imageUrls.Select(u => u!).ToArray() };
+        return chapter with { Pages = imageUrls };
     }
 
     private static DateOnly ChangeToDate(string str) {

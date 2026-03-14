@@ -1,6 +1,5 @@
 using Grimoire.Handlers;
 using Grimoire.Services;
-using Grimoire.Sources.Commons;
 using Grimoire.Sources.MetadataProviders;
 using Microsoft.Playwright;
 using Minio;
@@ -34,29 +33,21 @@ public sealed class Program {
         builder.Configuration.AddJsonFile("config.json", false, true);
 
         var config = builder.Configuration;
-
         builder.Services.AddControllers();
-        builder.Services.AddCors(o =>
-            o.AddDefaultPolicy(p =>
-                p.WithOrigins("http://localhost:3000", "http://grimoire-frontend:3000")
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()));
-        builder.Services.AddGrimoireSources();
         builder.Services
-            .AddOutputCache()
             .AddHostedService<DatabaseBackgroundService>()
-            .AddHostedService<LibraryBackgroundService>()
             .AddHostedService<ChapterDownloadService>()
+            .AddHostedService<LibraryBackgroundService>()
             .AddSingleton<ServiceCoordinator>()
             .AddSingleton<DatabaseHandler>()
             .AddSingleton<ScrapingHandler>()
-            .AddTransient<IMetadataProvider, MangaDexProvider>()
-            .AddTransient<IMetadataProvider, MyAnimeListProvider>()
+            .AddSingleton<MangaDexProvider>()
+            .AddTransient<MyAnimeListProvider>()
             .AddSingleton(browser)
             .AddMinio(x => {
-                var ep = config.GetValue<string>("Minio:Endpoint");
-                x.WithEndpoint(ep);
-                x.WithCredentials(config.GetValue<string>("Minio:AccessKey"),
+                x.WithEndpoint(config.GetValue<string>("Minio:Endpoint"));
+                x.WithCredentials(
+                    config.GetValue<string>("Minio:AccessKey"),
                     config.GetValue<string>("Minio:SecretKey"));
             })
             .AddSingleton(x => new DocumentStore {
@@ -69,21 +60,13 @@ public sealed class Program {
                 },
                 Database = nameof(Grimoire)
             }.Initialize())
-            .AddHttpClient<ScrapingHandler>(builder.Configuration)
-            .AddHttpClient<MangaDexProvider>(builder.Configuration,
-                x => { x.BaseAddress = new Uri("https://api.mangadex.org/"); })
-            .AddHttpClient<MyAnimeListProvider>(builder.Configuration, x => {
-                x.BaseAddress = new Uri("https://api.myanimelist.net/v2/");
-                x.DefaultRequestHeaders.Add("X-MAL-CLIENT-ID",
-                    config.GetValue<string>("MyAnimeList:ClientId"));
-            });
+            .AddFlareHttpClient(builder.Configuration)
+            .AddSingleton<ScrapingHandler>()
+            .AddSingleton<MangaDexProvider>()
+            .AddSingleton<MyAnimeListProvider>();
 
         var app = builder.Build();
-        app.UseCors();
-
         app.MapControllers();
-        app.UseOutputCache();
-
         await app.RunAsync();
     }
 }

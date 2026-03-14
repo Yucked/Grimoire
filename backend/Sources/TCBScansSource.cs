@@ -68,13 +68,7 @@ public sealed partial class TCBScansSource(
             return ValueTask.CompletedTask;
         });
 
-        var coverPath = string.Empty;
-        try {
-            coverPath = await scrapingHandler.SaveCoverAsync(cover, Name.GetIdFromName(), name);
-        }
-        catch (Exception ex) {
-            logger.LogWarning(ex, "Failed to download cover for {}", name);
-        }
+        var coverPath = await scrapingHandler.SaveCoverSafeAsync(cover, Name.GetIdFromName(), name, logger);
 
         var mangaObject = new MangaObject {
             Title = name,
@@ -87,20 +81,7 @@ public sealed partial class TCBScansSource(
             UpdatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         };
 
-        foreach (var provider in metadataProviders)
-            try {
-                var enrichment = await provider.FindMangaAsync(name);
-                if (enrichment is null) continue;
-                mangaObject = mangaObject.WithMetadata(enrichment);
-                break;
-            }
-            catch (Exception ex) {
-                logger.LogWarning(ex, "Metadata enrichment failed for {name} via {providerName}",
-                    name,
-                    provider.GetType().Name);
-            }
-
-        return mangaObject;
+        return await mangaObject.EnrichWithMetadataAsync(name, metadataProviders, logger);
     }
 
     public async Task<ChapterObject> FetchChapterAsync(ChapterObject chapter, string sourceId, string mangaId) {
