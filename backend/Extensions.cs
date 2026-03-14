@@ -1,6 +1,7 @@
+using System.Net;
 using System.Reflection;
 using System.Text;
-using System.Threading.Channels;
+using System.Text.RegularExpressions;
 using AngleSharp.Dom;
 using FlareSolverrSharp;
 using Grimoire.Handlers;
@@ -46,32 +47,21 @@ public static class Extensions {
         }
 
         public double Similarity(string b) {
-            if (str == b) {
-                return 100.0;
-            }
+            var tokensA = Tokenize(str);
+            var tokensB = Tokenize(b);
 
-            if (string.IsNullOrEmpty(str) || string.IsNullOrEmpty(b)) {
-                return 0.0;
-            }
+            var intersection = tokensA.Intersect(tokensB).Count();
+            var union = tokensA.Union(tokensB).Count();
 
-            var prev = Enumerable.Range(0, b.Length + 1).ToArray();
-            var curr = new int[b.Length + 1];
+            var jaccard = (double)intersection / union;
+            var containment = (double)intersection / Math.Min(tokensA.Count, tokensB.Count);
 
-            for (var i = 1; i <= str.Length; i++) {
-                curr[0] = i;
-                for (var j = 1; j <= b.Length; j++) {
-                    var cost = str[i - 1] == b[j - 1] ? 0 : 1;
-                    curr[j] = Math.Min(
-                        Math.Min(prev[j] + 1, curr[j - 1] + 1),
-                        prev[j - 1] + cost
-                    );
-                }
+            return Math.Max(jaccard, containment * 0.9) * 100.0;
 
-                (prev, curr) = (curr, prev);
-            }
-
-            var distance = prev[b.Length];
-            return (1.0 - (double)distance / Math.Max(str.Length, b.Length)) * 100.0;
+            static List<string> Tokenize(string s) =>
+                Regex.Replace(s.ToLowerInvariant(), @"[^\w\s]", " ")
+                    .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                    .ToList();
         }
     }
 
@@ -100,14 +90,16 @@ public static class Extensions {
             };
         }
 
-        public async Task<MangaObject> EnrichWithMetadataAsync(
-            string name,
-            IEnumerable<IMetadataProvider> providers,
-            ILogger logger) {
+        public async Task<MangaObject> EnrichWithMetadataAsync(string name,
+                                                               IEnumerable<IMetadataProvider> providers,
+                                                               ILogger logger) {
             foreach (var provider in providers)
                 try {
                     var enrichment = await provider.FindMangaAsync(name);
-                    if (enrichment is null) continue;
+                    if (enrichment is null) {
+                        continue;
+                    }
+
                     manga = manga.WithMetadata(enrichment);
                     break;
                 }
@@ -135,11 +127,6 @@ public static class Extensions {
         }
     }
 
-    extension(ChannelWriter<(string SourceId, string MangaId, string ChapterNumber, string[] ImageUrls)> writer) {
-        public ValueTask EnqueueAsync(string sourceId, string mangaId, string chapterNumber, string[] imageUrls)
-            => writer.WriteAsync((sourceId, mangaId, chapterNumber, imageUrls));
-    }
-
     extension(IServiceCollection services) {
         public IServiceCollection AddGrimoireSources() {
             var sourceTypes = Assembly.GetExecutingAssembly()
@@ -155,13 +142,29 @@ public static class Extensions {
             return services;
         }
 
+        public IServiceCollection AddMetadataProviders() {
+            var sourceTypes = Assembly.GetExecutingAssembly()
+                .GetTypes()
+                .Where(t => t is { IsAbstract: false, IsInterface: false }
+                            && t.IsAssignableTo(typeof(IMetadataProvider)));
+
+            foreach (var type in sourceTypes) {
+                services.AddSingleton(type);
+                services.AddSingleton(typeof(IMetadataProvider), sp => sp.GetRequiredService(type));
+            }
+
+            return services;
+        }
+
         public IServiceCollection AddFlareHttpClient(IConfiguration configuration) {
             var handler = new ClearanceHandler(configuration.GetValue<string>("Http:FlareUrl")) {
-                MaxTimeout = 5000,
                 ProxyUrl = configuration.GetValue<string>("Http:FlareProxyUrl")
             };
 
-            services.AddSingleton(new HttpClient(handler));
+            services.AddSingleton(new HttpClient(handler) {
+                DefaultRequestVersion = HttpVersion.Version11,
+                DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrLower
+            });
             return services;
         }
     }
