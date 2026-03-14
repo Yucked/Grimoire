@@ -35,6 +35,9 @@ public sealed class Program {
         var config = builder.Configuration;
         builder.Services.AddControllers();
         builder.Services
+            .AddGrimoireSources()
+            .AddMetadataProviders()
+            .AddFlareHttpClient(builder.Configuration)
             .AddHostedService<DatabaseBackgroundService>()
             .AddHostedService<ChapterDownloadService>()
             .AddHostedService<LibraryBackgroundService>()
@@ -43,27 +46,24 @@ public sealed class Program {
             .AddSingleton<ScrapingHandler>()
             .AddSingleton<MangaDexProvider>()
             .AddTransient<MyAnimeListProvider>()
+            .AddSingleton<DownloadQueue>()
             .AddSingleton(browser)
             .AddMinio(x => {
                 x.WithEndpoint(config.GetValue<string>("Minio:Endpoint"));
                 x.WithCredentials(
                     config.GetValue<string>("Minio:AccessKey"),
                     config.GetValue<string>("Minio:SecretKey"));
+                x.WithSSL(false);
             })
             .AddSingleton(x => new DocumentStore {
                 Urls = builder.Configuration.GetSection("RavenNodes").Get<string[]>(),
                 Conventions = {
-                    CreateHttpClient = _ => x.GetService<IHttpClientFactory>()!.CreateClient("RavenDB"),
                     UseOptimisticConcurrency = true,
                     MaxNumberOfRequestsPerSession = 30,
                     RequestTimeout = TimeSpan.FromSeconds(15)
                 },
                 Database = nameof(Grimoire)
-            }.Initialize())
-            .AddFlareHttpClient(builder.Configuration)
-            .AddSingleton<ScrapingHandler>()
-            .AddSingleton<MangaDexProvider>()
-            .AddSingleton<MyAnimeListProvider>();
+            }.Initialize());
 
         var app = builder.Build();
         app.MapControllers();
