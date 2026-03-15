@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Grimoire.Handlers;
 using Grimoire.Objects;
 using Grimoire.Sources.Commons;
 
@@ -6,135 +7,105 @@ namespace Grimoire.Sources.MetadataProviders;
 
 public sealed class MangaDexProvider(
     HttpClient httpClient,
+    ScrapingHandler scrapingHandler,
     ILogger<MangaDexProvider> logger) : IMetadataProvider {
-    private static readonly JsonSerializerOptions JSON_OPTIONS
-        = new() { PropertyNameCaseInsensitive = true };
+    private const string URL = "https://api.mangadex.org";
 
-    public async Task<MetadataResult?> FindMangaAsync(string title) {
+    public async Task<MetadataResult?> FindMangaAsync(string mangaName) {
         try {
-            var searchUrl = $"/manga?title={Uri.EscapeDataString(title)}&limit=5&includes[]=author&includes[]=artist";
-            using var searchResponse = await httpClient.GetAsync(searchUrl);
-            searchResponse.EnsureSuccessStatusCode();
+            var responseMessage = await httpClient.GetAsync(
+                $"{URL}/manga?title={Uri.EscapeDataString(mangaName)}&limit=5&includes[]=author&includes[]=artist");
+            responseMessage.EnsureSuccessStatusCode();
 
-            await using var searchStream = await searchResponse.Content.ReadAsStreamAsync();
-            using var searchDoc = await JsonDocument.ParseAsync(searchStream);
+            await using var searchStream = await responseMessage.Content.ReadAsStreamAsync();
+            using var document = await JsonDocument.ParseAsync(searchStream);
+            var root = document.RootElement.GetProperty("data");
 
-            var data = searchDoc.RootElement.GetProperty("data");
-            string? matchedId = null;
-            JsonElement matchedEntry = default;
+            var matched = root
+                .EnumerateArray()
+                .FirstOrDefault(y => {
+                    var title = y.GetProperty("attributes")
+                        .GetProperty("title")
+                        .GetProperty("ja-ro")
+                        .GetString()!;
+                    var titleId = title.GetIdFromName();
+                    var mangaId = mangaName.GetIdFromName();
+                    var similarity = mangaName.Similarity(title);
 
-            foreach (var entry in data.EnumerateArray()) {
-                var attrs = entry.GetProperty("attributes");
-                if (TitleMatches(attrs, title)) {
-                    matchedId = entry.GetProperty("id").GetString();
-                    matchedEntry = entry;
-                    break;
+                    return titleId == mangaId ||
+                           similarity > 85.0;
+                });
+
+            if (string.IsNullOrEmpty(matched.GetRawText())) {
+                return null;
+            }
+
+            var metadata = new MetadataResult();
+            if (matched.TryGetProperty("relationships", out var relationships)) {
+                foreach (var elm in relationships.EnumerateArray()) {
+                    var type = elm.GetProperty("type").GetString()!;
+                    var name = elm
+                        .GetProperty("attributes")
+                        .GetProperty("name")
+                        .GetString()!;
+
+                    switch (type) {
+                        case "author":
+                            metadata.Authors.Add(name);
+                            break;
+
+                        case "artist":
+                            metadata.Artists.Add(name);
+                            break;
+                    }
                 }
             }
 
-            if (matchedId is null) return null;
+            if (matched.TryGetProperty("tags", out var tags)) {
+                var genres = tags
+                    .EnumerateArray()
+                    .Select(x => x.GetProperty("attributes")
+                        .GetProperty("name")
+                        .GetProperty("en")
+                        .GetString()!);
 
-            var attrs2 = matchedEntry.GetProperty("attributes");
-            var relationships = matchedEntry.GetProperty("relationships");
+                metadata.Genres.AddRange(genres);
+            }
 
-            var authors = ExtractRelationshipNames(relationships, "author");
-            var artists = ExtractRelationshipNames(relationships, "artist");
-            var genres = ExtractGenres(attrs2);
-            var aliases = ExtractAliases(attrs2);
-            var status = ParseStatus(attrs2.GetProperty("status").GetString());
-            var year = attrs2.TryGetProperty("year", out var yearEl) && yearEl.ValueKind != JsonValueKind.Null
-                ? new DateOnly(yearEl.GetInt32(), 1, 1)
-                : default;
+            if (matched.TryGetProperty("altTitles", out var altTitles)) {
+                metadata.Aliases.AddRange(altTitles
+                    .EnumerateObject()
+                    .Select(x => x.Value.GetString()!));
+            }
 
-            var ratings = await FetchRatingsAsync(matchedId);
+            if (matched.TryGetProperty("status", out var status)) {
+                metadata.Status = status.GetString() switch {
+                    "ongoing"   => MangaStatus.OnGoing,
+                    "completed" => MangaStatus.Completed,
+                    "hiatus"    => MangaStatus.Hiatus,
+                    "cancelled" => MangaStatus.Cancelled,
+                    _           => MangaStatus.OnGoing
+                };
+            }
 
-            return new MetadataResult(matchedId, authors, artists, genres, aliases, status, year, ratings);
-        }
-        catch (Exception ex) {
-            logger.LogError(ex, "MangaDex lookup failed for {Title}", title);
-            return null;
-        }
-    }
+            if (matched.TryGetProperty("createdAt", out var createdAt)) {
+                metadata.ReleasedOn = DateOnly.Parse(createdAt.GetString()!);
+            }
 
-    private async Task<float> FetchRatingsAsync(string mangaId) {
-        try {
-            using var response = await httpClient.GetAsync($"/statistics/manga/{mangaId}");
-            response.EnsureSuccessStatusCode();
-            await using var stream = await response.Content.ReadAsStreamAsync();
-            using var doc = await JsonDocument.ParseAsync(stream);
-            var rating = doc.RootElement
+            var mangaId = matched.GetProperty("id").GetString()!;
+            var doc = await scrapingHandler.GetJsonDocumentAsync($"{URL}/statistics/manga/{mangaId}");
+            metadata.Ratings = (float)doc.RootElement
                 .GetProperty("statistics")
                 .GetProperty(mangaId)
                 .GetProperty("rating")
-                .GetProperty("bayesian");
-            return rating.ValueKind == JsonValueKind.Null ? 0f : (float)rating.GetDouble();
+                .GetProperty("average")
+                .GetDouble();
+
+            return metadata;
         }
-        catch {
-            return 0f;
+        catch (Exception ex) {
+            logger.LogError(ex, "MangaDex lookup failed for {mangaName}", mangaName);
+            return null;
         }
-    }
-
-    private static bool TitleMatches(JsonElement attrs, string search) {
-        var lower = search.ToLowerInvariant();
-
-        var titleProp = attrs.GetProperty("title");
-        foreach (var kv in titleProp.EnumerateObject())
-            if (kv.Value.GetString()?.ToLowerInvariant().Contains(lower) is true)
-                return true;
-
-        if (!attrs.TryGetProperty("altTitles", out var altTitles)) return false;
-        foreach (var alt in altTitles.EnumerateArray())
-        foreach (var kv in alt.EnumerateObject())
-            if (kv.Value.GetString()?.ToLowerInvariant().Contains(lower) is true)
-                return true;
-
-        return false;
-    }
-
-    private static IList<string> ExtractRelationshipNames(JsonElement relationships, string type) {
-        var result = new List<string>();
-        foreach (var rel in relationships.EnumerateArray()) {
-            if (rel.GetProperty("type").GetString() != type) continue;
-            if (!rel.TryGetProperty("attributes", out var relAttrs)) continue;
-            var name = relAttrs.GetProperty("name").GetString();
-            if (name is not null) result.Add(name);
-        }
-
-        return result;
-    }
-
-    private static IList<string> ExtractGenres(JsonElement attrs) {
-        var result = new List<string>();
-        if (!attrs.TryGetProperty("tags", out var tags)) return result;
-        foreach (var tag in tags.EnumerateArray()) {
-            var tagAttrs = tag.GetProperty("attributes");
-            if (tagAttrs.GetProperty("group").GetString() != "genre") continue;
-            var name = tagAttrs.GetProperty("name").GetProperty("en").GetString();
-            if (name is not null) result.Add(name);
-        }
-
-        return result;
-    }
-
-    private static IList<string> ExtractAliases(JsonElement attrs) {
-        var result = new List<string>();
-        if (!attrs.TryGetProperty("altTitles", out var altTitles)) return result;
-        foreach (var alt in altTitles.EnumerateArray())
-        foreach (var kv in alt.EnumerateObject()) {
-            var val = kv.Value.GetString();
-            if (val is not null) result.Add(val);
-        }
-
-        return result;
-    }
-
-    private static MangaStatus ParseStatus(string? status) {
-        return status switch {
-            "ongoing"   => MangaStatus.OnGoing,
-            "completed" => MangaStatus.Completed,
-            "hiatus"    => MangaStatus.Hiatus,
-            "cancelled" => MangaStatus.Cancelled,
-            _           => MangaStatus.OnGoing
-        };
     }
 }

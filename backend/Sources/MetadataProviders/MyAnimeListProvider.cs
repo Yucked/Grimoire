@@ -14,10 +14,10 @@ public sealed class MyAnimeListProvider(
     private const string FIELDS
         = "id,title,alternative_titles,start_date,mean,status,genres,authors{first_name,last_name}";
 
-    public async Task<MetadataResult?> FindMangaAsync(string title) {
+    public async Task<MetadataResult?> FindMangaAsync(string mangaName) {
         try {
             using var requestMessage =
-                RequestMessage($"{URL}/manga?q={Uri.EscapeDataString(title)}&limit=5&fields={FIELDS}");
+                RequestMessage($"{URL}/manga?q={Uri.EscapeDataString(mangaName)}&limit=5&fields={FIELDS}");
             using var responseMessage = await httpClient.SendAsync(requestMessage);
             responseMessage.EnsureSuccessStatusCode();
 
@@ -31,8 +31,8 @@ public sealed class MyAnimeListProvider(
                 .FirstOrDefault(x => {
                     var name = x.GetProperty("title").GetString()!;
                     var nameId = name.GetIdFromName();
-                    var titleId = title.GetIdFromName();
-                    var similarity = name.Similarity(title);
+                    var titleId = mangaName.GetIdFromName();
+                    var similarity = name.Similarity(mangaName);
 
                     return nameId == titleId ||
                            similarity > 85.0;
@@ -119,7 +119,7 @@ public sealed class MyAnimeListProvider(
             return metadata;
         }
         catch (Exception ex) {
-            logger.LogError(ex, "MyAnimeList lookup failed for {Title}", title);
+            logger.LogError(ex, "MyAnimeList lookup failed for {mangaName}", mangaName);
             return null;
         }
     }
