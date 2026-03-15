@@ -32,6 +32,11 @@ public sealed class MangaController(
             return ResponseObject.New(StatusCodes.Status404NotFound);
         }
 
+        var dbSource = await databaseHandler.GetSourceAsync(sourceId);
+        if (dbSource?.IsDisabled is true) {
+            return ResponseObject.New(StatusCodes.Status503ServiceUnavailable);
+        }
+
         mangas = await source.GetMangasAsync();
         await databaseHandler.BulkStoreAsync(mangas);
 
@@ -74,7 +79,8 @@ public sealed class MangaController(
         }
 
         var source = sources.FirstOrDefault(s => s.Name.GetIdFromName() == manga.SourceId);
-        if (source is not null) {
+        var dbSource = await databaseHandler.GetSourceAsync(sourceId);
+        if (source is not null && dbSource?.IsDisabled is not true) {
             chapter = await source.FetchChapterAsync(chapter, manga.SourceId, manga.Id);
             await databaseHandler.UpdateChapterAsync(sourceId, mangaId, chapter);
         }
@@ -100,6 +106,11 @@ public sealed class MangaController(
         var source = sources.FirstOrDefault(s => s.Name.GetIdFromName() == sourceId);
         if (source is null) {
             return ResponseObject.New(StatusCodes.Status404NotFound);
+        }
+
+        var dbSource = await databaseHandler.GetSourceAsync(sourceId);
+        if (dbSource?.IsDisabled is true) {
+            return ResponseObject.New(StatusCodes.Status503ServiceUnavailable);
         }
 
         try {

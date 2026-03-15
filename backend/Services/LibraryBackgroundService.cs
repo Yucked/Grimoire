@@ -42,6 +42,13 @@ public sealed class LibraryBackgroundService(
                 var source = sources.FirstOrDefault(x => x.Name.GetIdFromName() == sourceId);
                 if (source is null) {
                     logger.LogWarning("Source {SourceId} not found.", sourceId);
+                    return;
+                }
+
+                var dbSource = await databaseHandler.GetSourceAsync(sourceId);
+                if (dbSource.IsDisabled) {
+                    logger.LogWarning("Source {SourceId} is disabled.", sourceId);
+                    return;
                 }
 
                 var updated = await source.GetMangaAsync(manga.SourceUrl);
