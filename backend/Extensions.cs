@@ -168,4 +168,10 @@ public static class Extensions {
             return services;
         }
     }
+
+    public static void AddRange<T>(this IList<T> list, IEnumerable<T> range) {
+        foreach (var item in range) {
+            list.Add(item);
+        }
+    }
 }

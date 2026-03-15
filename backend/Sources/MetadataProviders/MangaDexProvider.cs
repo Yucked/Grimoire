@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Grimoire.Handlers;
 using Grimoire.Objects;
 using Grimoire.Sources.Commons;
@@ -6,19 +5,14 @@ using Grimoire.Sources.Commons;
 namespace Grimoire.Sources.MetadataProviders;
 
 public sealed class MangaDexProvider(
-    HttpClient httpClient,
     ScrapingHandler scrapingHandler,
     ILogger<MangaDexProvider> logger) : IMetadataProvider {
     private const string URL = "https://api.mangadex.org";
 
     public async Task<MetadataResult?> FindMangaAsync(string mangaName) {
         try {
-            var responseMessage = await httpClient.GetAsync(
+            var document = await scrapingHandler.GetJsonDocumentAsync(
                 $"{URL}/manga?title={Uri.EscapeDataString(mangaName)}&limit=5&includes[]=author&includes[]=artist");
-            responseMessage.EnsureSuccessStatusCode();
-
-            await using var searchStream = await responseMessage.Content.ReadAsStreamAsync();
-            using var document = await JsonDocument.ParseAsync(searchStream);
             var root = document.RootElement.GetProperty("data");
 
             var matched = root

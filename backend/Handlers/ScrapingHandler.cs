@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using AngleSharp;
 using AngleSharp.Dom;
 using Microsoft.Playwright;
@@ -26,7 +27,7 @@ public sealed partial class ScrapingHandler(
     private readonly int _requestDelay
         = configuration.GetValue<int>("Http:RequestDelay");
 
-    private readonly HashSet<string> _confirmedBuckets = [];
+    private readonly ConcurrentDictionary<string, byte> _confirmedBuckets = new();
 
     private static readonly Regex BlockedPattern = BlockedRegex();
 
@@ -48,7 +49,7 @@ public sealed partial class ScrapingHandler(
             var stream = await responseMessage.Content.ReadAsStreamAsync();
             var document = await _context.OpenAsync(x => x.Content(stream));
 
-            if (document.All.Length <= 10 || (document.Body?.TextContent?.Trim() ?? "").Length < 100) {
+            if (document.All.Length <= 10 || (document.Body?.TextContent.Trim() ?? "").Length < 100) {
                 var page = await GetPageWithPlaywrightAsync(url);
                 document = await _context.OpenAsync(x => x.Content(page));
             }
@@ -116,7 +117,7 @@ public sealed partial class ScrapingHandler(
     }
 
     private async Task EnsureBucketAsync(string bucket) {
-        if (_confirmedBuckets.Contains(bucket)) {
+        if (_confirmedBuckets.ContainsKey(bucket)) {
             return;
         }
 
@@ -139,7 +140,7 @@ public sealed partial class ScrapingHandler(
                     new SetPolicyArgs().WithBucket(bucket).WithPolicy(policy));
             }
 
-            _confirmedBuckets.Add(bucket);
+            _confirmedBuckets.TryAdd(bucket, 0);
         }
         catch (MinioException ex) {
             logger.LogError("MinIO bucket setup failed for '{bucket}': {ex.Message}", bucket, ex.Message);

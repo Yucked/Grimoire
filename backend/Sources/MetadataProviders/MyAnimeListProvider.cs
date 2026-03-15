@@ -83,9 +83,9 @@ public sealed class MyAnimeListProvider(
 
             if (matched.TryGetProperty("alternative_titles", out var altElm)) {
                 if (altElm.TryGetProperty("synonyms", out var synElm)) {
-                    foreach (var elm in synElm.EnumerateArray()) {
-                        metadata.Aliases.Add(elm.GetString()!);
-                    }
+                    metadata.Aliases.AddRange(synElm
+                        .EnumerateArray()
+                        .Select(x => x.GetString()!));
                 }
 
                 foreach (var lang in new[] { "en", "ja" }) {
