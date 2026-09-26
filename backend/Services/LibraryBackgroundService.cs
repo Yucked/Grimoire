@@ -39,6 +39,11 @@ public sealed class LibraryBackgroundService(
                     return;
                 }
 
+                if (manga.UpdatedAt.Until(DateTime.UtcNow) < TimeSpan.FromDays(5)) {
+                    logger.LogWarning("Skipping {manga} since it was recently updated.", manga.Title);
+                    return;
+                }
+
                 var source = sources.FirstOrDefault(x => x.Name.GetIdFromName() == sourceId);
                 if (source is null) {
                     logger.LogWarning("Source {SourceId} not found.", sourceId);

@@ -163,7 +163,10 @@ public static class Extensions {
 
             services.AddSingleton(new HttpClient(handler) {
                 DefaultRequestVersion = HttpVersion.Version11,
-                DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrLower
+                DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrLower,
+                DefaultRequestHeaders = {
+                    { "User-Agent", configuration.GetValue<string>("Http:UserAgent") }
+                }
             });
             return services;
         }
@@ -173,5 +176,9 @@ public static class Extensions {
         foreach (var item in range) {
             list.Add(item);
         }
+    }
+
+    public static TimeSpan Until(this DateOnly date, DateTime reference) {
+        return reference - date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
     }
 }

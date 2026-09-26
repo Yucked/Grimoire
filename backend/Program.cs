@@ -1,6 +1,6 @@
 using Grimoire.Handlers;
 using Grimoire.Services;
-using Grimoire.Sources.MetadataProviders;
+using Microsoft.Extensions.Logging.Colorful;
 using Microsoft.Playwright;
 using Minio;
 using Raven.Client.Documents;
@@ -34,6 +34,9 @@ public sealed class Program {
 
         var config = builder.Configuration;
         builder.Services.AddControllers();
+        builder.Logging
+            .ClearProviders()
+            .AddColorfulConsole();
         builder.Services
             .AddGrimoireSources()
             .AddMetadataProviders()
@@ -44,8 +47,6 @@ public sealed class Program {
             .AddSingleton<ServiceCoordinator>()
             .AddSingleton<DatabaseHandler>()
             .AddSingleton<ScrapingHandler>()
-            .AddSingleton<MangaDexProvider>()
-            .AddTransient<MyAnimeListProvider>()
             .AddSingleton<DownloadQueue>()
             .AddSingleton(browser)
             .AddMinio(x => {

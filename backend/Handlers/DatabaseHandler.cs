@@ -10,6 +10,7 @@ public sealed partial class DatabaseHandler(
     IEnumerable<IGrimoireSource> sources) {
     public async Task StoreAsync<T>(T item) {
         using var session = documentStore.OpenAsyncSession();
+        session.Advanced.UseOptimisticConcurrency = false;
         var task = item switch {
             MangaObject manga   => session.StoreAsync(manga, $"{manga.Id}"),
             SourceObject source => session.StoreAsync(source, source.Id),
@@ -35,7 +36,7 @@ public sealed partial class DatabaseHandler(
             }
         }
         finally {
-            if (bulkInsert != null) await bulkInsert.DisposeAsync();
+            await bulkInsert!.DisposeAsync();
         }
     }
 }

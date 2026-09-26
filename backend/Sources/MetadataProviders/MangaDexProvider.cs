@@ -15,10 +15,10 @@ public sealed class MangaDexProvider(
                 $"{URL}/manga?title={Uri.EscapeDataString(mangaName)}&limit=5&includes[]=author&includes[]=artist");
             var root = document.RootElement.GetProperty("data");
 
-            var matched = root
+            var matched = root // ERROR HERE
                 .EnumerateArray()
                 .FirstOrDefault(y => {
-                    var title = y.GetProperty("attributes")
+                    var title = y.GetProperty("attributes") // ERROR THROWN HERE 
                         .GetProperty("title")
                         .GetProperty("ja-ro")
                         .GetString()!;
