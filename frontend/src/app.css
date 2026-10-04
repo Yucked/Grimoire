@@ -1,0 +1,196 @@
+@import 'tailwindcss';
+
+@theme {
+	/* Ink palette — warm dark */
+	--color-ink:        #0c0b09;
+	--color-ink2:       #141210;
+	--color-ink3:       #1e1b17;
+	--color-ink4:       #2a2620;
+
+	/* Amber accent */
+	--color-amber:      #c97b2a;
+	--color-amber-l:    #e09040;
+	--color-amber-dim:  #6b3d10;
+
+	/* Text */
+	--color-text:       #d4cfc6;
+	--color-text-dim:   #7a7268;
+	--color-text-muted: #4a4640;
+
+	/* Border */
+	--color-border:     #2e2a24;
+
+	/* Fonts */
+	--font-serif: 'Playfair Display', Georgia, serif;
+	--font-sans:  'DM Sans', system-ui, sans-serif;
+
+	/* Legacy aliases so old classes don't break */
+	--color-bg:          #0c0b09;
+	--color-surface:     #1e1b17;
+	--color-raised:      #2a2620;
+	--color-muted:       #7a7268;
+	--color-accent:      #c97b2a;
+	--color-accent-light:#e09040;
+	--color-accent-dim:  #6b3d10;
+}
+
+* { box-sizing: border-box; }
+
+html {
+	font-family: 'DM Sans', system-ui, sans-serif;
+	-webkit-font-smoothing: antialiased;
+}
+
+body {
+	background: var(--color-ink);
+	color: var(--color-text);
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+
+* {
+	scrollbar-width: thin;
+	scrollbar-color: var(--color-border) transparent;
+}
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 2px; }
+
+/* ── Rail nav items ──────────────────────────────────────────────────────── */
+
+.rail-item {
+	width: 38px;
+	height: 38px;
+	border-radius: 10px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--color-text-dim);
+	transition: background 0.15s, color 0.15s;
+	position: relative;
+	cursor: pointer;
+	text-decoration: none;
+}
+.rail-item:hover { background: var(--color-ink3); color: var(--color-text); }
+.rail-item.active { background: var(--color-amber-dim); color: var(--color-amber); }
+
+.rail-item .tip {
+	position: absolute;
+	left: calc(100% + 10px);
+	top: 50%;
+	transform: translateY(-50%);
+	background: var(--color-ink3);
+	border: 1px solid var(--color-border);
+	padding: 4px 10px;
+	border-radius: 6px;
+	font-size: 12px;
+	white-space: nowrap;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 0.15s;
+	color: var(--color-text);
+	z-index: 100;
+}
+.rail-item:hover .tip { opacity: 1; }
+
+/* ── Stat pill ───────────────────────────────────────────────────────────── */
+
+.stat-pill {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	padding: 5px 12px;
+	border-radius: 999px;
+	background: var(--color-ink3);
+	border: 1px solid var(--color-border);
+	font-size: 12px;
+	color: var(--color-text-dim);
+	transition: border-color 0.2s, color 0.2s;
+}
+.stat-pill:hover { border-color: var(--color-amber-dim); color: var(--color-text); }
+.stat-pill strong { color: var(--color-text); font-weight: 500; }
+
+/* ── Toolbar button ──────────────────────────────────────────────────────── */
+
+.tbtn {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	padding: 5px 12px;
+	border-radius: 7px;
+	border: 1px solid var(--color-border);
+	background: transparent;
+	color: var(--color-text-dim);
+	font-size: 12px;
+	cursor: pointer;
+	transition: all 0.15s;
+	font-family: 'DM Sans', sans-serif;
+}
+.tbtn:hover { background: var(--color-ink3); color: var(--color-text); border-color: var(--color-ink4); }
+.tbtn.active { background: var(--color-ink3); color: var(--color-amber); border-color: var(--color-amber-dim); }
+
+.tselect {
+	appearance: none;
+	background: var(--color-ink);
+	border: 1px solid var(--color-border);
+	color: var(--color-text-dim);
+	padding: 5px 24px 5px 10px;
+	border-radius: 7px;
+	font-size: 12px;
+	cursor: pointer;
+	font-family: 'DM Sans', sans-serif;
+	transition: all 0.15s;
+}
+.tselect:hover { border-color: var(--color-ink4); color: var(--color-text); }
+
+/* ── Card overlay buttons ────────────────────────────────────────────────── */
+
+.overlay-btn {
+	padding: 8px 20px;
+	border-radius: 999px;
+	border: 1px solid rgba(201,123,42,.55);
+	background: rgba(201,123,42,.12);
+	color: var(--color-amber-l);
+	font-size: 12px;
+	cursor: pointer;
+	font-family: 'DM Sans', sans-serif;
+	transition: all 0.15s;
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	white-space: nowrap;
+}
+.overlay-btn:hover { background: var(--color-amber); color: #0c0b09; border-color: var(--color-amber); }
+.overlay-btn.secondary {
+	background: transparent;
+	border-color: var(--color-border);
+	color: var(--color-text-dim);
+}
+.overlay-btn.secondary:hover { background: var(--color-ink3); color: var(--color-text); }
+
+/* ── Entry animations ────────────────────────────────────────────────────── */
+
+@keyframes card-in {
+	from { opacity: 0; transform: translateY(12px); }
+	to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-up {
+	from { opacity: 0; transform: translateY(8px); }
+	to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes row-in {
+	from { opacity: 0; transform: translateX(-8px); }
+	to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── View transitions ────────────────────────────────────────────────────── */
+
+@keyframes vt-out {
+	to { opacity: 0; transform: translateY(-4px); }
+}
+@keyframes vt-in {
+	from { opacity: 0; transform: translateY(4px); }
+}
+::view-transition-old(root) { animation: 120ms ease-in vt-out; }
+::view-transition-new(root) { animation: 180ms ease-out vt-in; }
