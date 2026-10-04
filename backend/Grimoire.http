@@ -20,4 +20,13 @@ Accept: application/json
 GET {{Grimoire_HostAddress}}/api/Manga/Source-Id-This/Manga-Id/999
 Accept: application/json
 
+### SOURCES TESTING
+GET https://api.myanimelist.net/v2/manga?q=One Piece - Nami vs Kalifa by Boichi&limit=5&fields=id,title,alternative_titles,start_date,mean,status,genres,authors{first_name,last_name}
+Accept: application/json
+X-MAL-CLIENT-ID: 8ef0267fd86a187d479e6fcd7e1bb42a
+
 ###
+GET https://api.mangadex.org/manga?title=jujutsu&limit=5&includes[]=author&includes[]=artist
+
+###
+GET https://api.mangadex.org/statistics/manga/f3f59f12-351a-4de7-bd51-696d0764d64e

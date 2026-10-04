@@ -2,15 +2,16 @@
     "AllowedHosts": "*",
     "Logging": {
         "LogLevel": {
-            "Default": "Debug",
+            "Default": "Information",
             "Microsoft.AspNetCore": "Warning",
-            "System.Net.Http.HttpClient.*": "Information"
+            "System.Net.Http.HttpClient.*": "Information",
+            "Microsoft.Extensions.Http.*": "Error"
         }
     },
     "Kestrel": {
         "Endpoints": {
             "Http": {
-                "Url": "http://0.0.0.0:9000"
+                "Url": "http://0.0.0.0:7000"
             }
         }
     },
@@ -28,6 +29,14 @@
         "FlareTimeout": 5000,
         "RequestDelay": 500,
         "RequestRetries": 5,
-        "RequestConcurrency": 5
+        "RequestConcurrency": 5,
+        "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:148.0) Gecko/20100101 Firefox/148.0"
+    },
+    "Library": {
+        "DownloadChapters": true,
+        "DefaultUsername": "Grimoire"
+    },
+    "MyAnimeList": {
+        "ClientId": "XXXX"
     }
 }
